@@ -8,6 +8,7 @@ void main() {
   for(final movie in movies) {
     print(movie.title);
   }
+  print(displayName("  "));
 }
 
 class Movie {
@@ -15,4 +16,8 @@ class Movie {
 
   final int id;
   final String title;
+}
+
+String displayName(String? nickname) {
+  return nickname?.trim().isNotEmpty == true ? nickname! : '이름 없음';
 }
