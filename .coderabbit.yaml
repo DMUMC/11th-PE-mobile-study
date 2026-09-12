@@ -101,7 +101,6 @@ reviews:
     base_branches:
       - "main"
       - "develop"
-      - "feat/**"
     # PR 제목에 특정 키워드가 포함되어 있으면 리뷰 생략
     ignore_title_keywords:
       - "[Deploy]"
