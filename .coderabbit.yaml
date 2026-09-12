@@ -8,7 +8,7 @@ language: "ko-KR"
 early_access: false
 
 # 리뷰 전반에 적용할 AI의 어조 및 페르소나 지침
-tone_instructions: "모든 리뷰와 PR 요약은 반드시 한국어로 작성하세요. 풀스택 시니어 개발자 관점에서 엄격하게 피드백해야합니다. 또한 모든 피드백에는 반드시 근거가 있어야합니다."
+tone_instructions: "모든 리뷰와 PR 요약은 반드시 한국어로 작성하세요. 풀스택 시니어 개발자 관점에서 엄격하게 피드백해야합니다. 또한 모든 피드백에는 반드시 근거가 있어야합니다. 핵심을 명확히 전달하고 구체적인 코드 수정 예시를 포함하세요."
 
 # ============================================================= #
 #                          리뷰 상세 설정                          #
@@ -82,6 +82,8 @@ reviews:
   # --------------------------------------------------------- #
   # 특정 경로의 파일에 대해 특화된 검토 규칙 적용
   path_instructions:
+    - path: "**/*"
+      instructions: "모든 공개 API 함수에는 JSDoc/JavaDoc 스타일의 주석을 작성해야 합니다. 하드코딩된 문자열이나 매직 넘버는 상수로 분리하세요."
     - path: "src/main/java/**"
       instructions: "RESTful 규약 준수 여부, 입력값 검증(Validation), 예외 처리 구조를 중점적으로 확인하세요."
     - path: "**/*Test.*"
@@ -131,8 +133,6 @@ reviews:
 chat:
   # @coderabbitai 멘션 없이도 PR 코멘트에 자동으로 응답
   auto_reply: true
-  # 채팅 답변 시 적용할 추가 톤/스타일 지침
-  tone_instructions: "핵심을 명확히 전달하고 구체적인 코드 수정 예시를 포함하세요."
 
 # ============================================================ #
 #                       지식 베이스 설정                           #
@@ -149,21 +149,17 @@ knowledge_base:
   code_guidelines:
     enabled: true
     # 참고할 문서 파일 경로
-    files:
+    filePatterns:
       - "README.md"
-    # 문서 파일 외에 직접 명시할 전역 코딩 규칙
-    instructions:
-      - "모든 공개 API 함수에는 JSDoc/JavaDoc 스타일의 주석을 작성해야 합니다."
-      - "하드코딩된 문자열이나 매직 넘버는 상수로 분리하세요."
 
   # 이전 리뷰 피드백 및 사용자 상호작용 학습 반영
   learnings:
-    enabled: true
+    scope: local
 
   # 과거 이슈 내역을 지식 베이스로 활용
   issues:
-    enabled: true
+    scope: local
 
   # 과거 병합된 PR 내역을 지식 베이스로 활용
   pull_requests:
-    enabled: true
+    scope: local
