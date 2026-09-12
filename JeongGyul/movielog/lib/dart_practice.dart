@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 void main() {
   const movies= <Movie>[
     Movie(id: 1, title: "오디세이"),
