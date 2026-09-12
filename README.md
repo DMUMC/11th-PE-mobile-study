@@ -20,7 +20,8 @@
 - 내용 : 구현 내용, 실행 화면, 학습 내용, 오류와 해결 과정 작성
 
 PR 작성 이후에 우측부분에서 Assignee 지정해주세요!
-<!-- 추후 이미지 추가 예정 -->
+<img width="1469" height="821" alt="스크린샷 2026-09-12 오후 10 28 45" src="https://github.com/user-attachments/assets/918e4496-3b6f-469a-b7a2-8dcb57fe945e" />
+
 
 ### Assignee: 본인(작성자) 지정
 
