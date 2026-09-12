@@ -15,7 +15,9 @@ class StartScreen extends StatelessWidget {
             children: [
               const Text(
                 'FLUTTER 0주차',
-                textAlign: TextAlign.center
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 ),
 
               const SizedBox(height: 50),
@@ -24,6 +26,7 @@ class StartScreen extends StatelessWidget {
                 Icons.movie_outlined,
                 size: 72,
                 color: Colors.deepPurple,
+                semanticLabel: '영화 아이콘',
               ),
 
               const SizedBox(height: 50),
@@ -41,7 +44,9 @@ class StartScreen extends StatelessWidget {
 
               const Text(
                 '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
-                textAlign: TextAlign.center
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
 
               const Spacer(),
