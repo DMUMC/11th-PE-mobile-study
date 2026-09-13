@@ -10,21 +10,17 @@ String displayName(String? nickname) {
 }
 
 void main() {
-  // 영화 3개를 List<Movie>에 넣기
-  final movies = <Movie>[
-    const Movie(id: 1, title: '인터스텔라'),
-    const Movie(id: 2, title: '기생충'),
-    const Movie(id: 3, title: '어벤져스'),
-  ];
+  final titles = <String?>['인터스텔라', null, '어벤져스'];
 
-  // for를 사용해 영화 제목 출력
-  for (final movie in movies) {
-    print(movie.title);
+  final movies = <Movie>[];
+
+  // for문으로 Movie 인스턴스 추가 + Null Safety
+  for (int i = 0; i < titles.length; i++) {
+    final title = titles[i] ?? '제목 없음';
+
+    movies.add(Movie(id: i + 1, title: title));
   }
 
-  // nullable 닉네임을 안전한 기본값으로 변환
-  String? nickname;
-
-  final name = displayName(nickname);
-  print(name);
+  // map을 사용해서 영화 제목 출력
+  movies.map((movie) => movie.title).forEach(print);
 }
