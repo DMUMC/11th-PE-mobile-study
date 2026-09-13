@@ -13,7 +13,7 @@ class StartScreen extends StatelessWidget {
           child: Column(
             children: [
               const Text(
-                'FLUTTER 1주차',
+                'FLUTTER 0주차',
                 style: TextStyle(
                   color: Color(0xFF333333),
                   fontSize: 12,
