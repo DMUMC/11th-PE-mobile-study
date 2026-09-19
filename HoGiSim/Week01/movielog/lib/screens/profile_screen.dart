@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../widgets/movie_log_app_bar.dart';
 import '../widgets/stat_item.dart';
@@ -39,13 +40,38 @@ class ProfileHeader extends StatelessWidget {
 
     return Column(
       children: [
-        CircleAvatar(
-          radius: 64,
-          backgroundColor: colors.surfaceContainerHighest,
-          child: Icon(Icons.person, size: 64, color: colors.primary),
+        ClipOval(
+          child: Image.asset(
+            'assets/images/profile/profile_movielog.jpg',
+            width: 128,
+            height: 128,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 128,
+                height: 128,
+                color: colors.surfaceContainerHighest,
+                alignment: Alignment.center,
+                child: Icon(Icons.person, size: 64, color: colors.primary),
+              );
+            },
+          ),
         ),
         const SizedBox(height: 16),
-        Text('무비러버', style: textTheme.titleLarge),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/icons/person.svg',
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
+              semanticsLabel: '프로필 아이콘',
+            ),
+            const SizedBox(width: 8),
+            Text('무비러버', style: textTheme.titleLarge),
+          ],
+        ),
         const SizedBox(height: 8),
         Text(
           '매주 주말엔 영화관으로 출근하는 프로 관람객. '
