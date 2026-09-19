@@ -16,6 +16,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Manrope',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.surface,
       textTheme: const TextTheme(

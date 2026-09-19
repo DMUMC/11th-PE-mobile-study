@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import 'theme/app_theme.dart';
 import 'screens/profile_screen.dart';
 
@@ -21,7 +23,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class StartScreen extends StatelessWidget{
+class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
 
   @override
@@ -32,32 +34,27 @@ class StartScreen extends StatelessWidget{
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-            vertical: 24,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
           child: Column(
             children: [
               const SizedBox(height: 24),
 
               const Text(
                 'FLUTTER 1주차',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
 
               const Spacer(),
 
               Column(
                 children: [
-                  Icon(
-                    Icons.movie_outlined,
-                    size: 72,
-                    color: colors.primary,
+                  SvgPicture.asset(
+                    'assets/logos/movielog_logo.svg',
+                    width: 72,
+                    height: 72,
+                    semanticsLabel: 'MovieLog 로고',
                   ),
-                  
+
                   const SizedBox(height: 80),
 
                   Text(
@@ -65,15 +62,13 @@ class StartScreen extends StatelessWidget{
                     textAlign: TextAlign.center,
                     style: textTheme.headlineSmall,
                   ),
-                  
+
                   const SizedBox(height: 16),
 
                   Text(
                     '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
                     textAlign: TextAlign.center,
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: Colors.black54,
-                    ),
+                    style: textTheme.bodyLarge?.copyWith(color: Colors.black54),
                   ),
                 ],
               ),
@@ -92,19 +87,14 @@ class StartScreen extends StatelessWidget{
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
-                  child: const Text(
-                    '시작하기',
-                    style: TextStyle(
-                      fontSize: 18,
-                    ),
-                  ),
+                  child: const Text('시작하기', style: TextStyle(fontSize: 18)),
                 ),
               ),
 
               const SizedBox(height: 24),
             ],
           ),
-        )
+        ),
       ),
     );
   }
