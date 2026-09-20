@@ -12,6 +12,12 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final stats = const [
+      (label: '본 영화', value: '24'),
+      (label: '평점', value: '4.2'),
+      (label: '즐겨찾기', value: '58'),
+    ];
+    final genres = const ['드라마', 'SF', '애니메이션'];
 
     return Scaffold(
       appBar: const MovieLogAppBar(title: '내 프로필'),
@@ -27,19 +33,22 @@ class ProfileScreen extends StatelessWidget {
               ProfileHeader(),
               SizedBox(height: AppSpacing.x4),
               Row(
-                children: [
-                  Expanded(
-                    child: StatItem(label: '본 영화', value: '24'),
-                  ),
-                  SizedBox(width: AppSpacing.x1),
-                  Expanded(
-                    child: StatItem(label: '평점', value: '4.2'),
-                  ),
-                  SizedBox(width: AppSpacing.x1),
-                  Expanded(
-                    child: StatItem(label: '즐겨찾기', value: '58'),
-                  ),
-                ],
+                children: stats
+                    .asMap()
+                    .entries
+                    .map<List<Widget>>(
+                      (entry) => [
+                        if (entry.key > 0) const SizedBox(width: AppSpacing.x1),
+                        Expanded(
+                          child: StatItem(
+                            label: entry.value.label,
+                            value: entry.value.value,
+                          ),
+                        ),
+                      ],
+                    )
+                    .expand<Widget>((widgets) => widgets)
+                    .toList(),
               ),
               SizedBox(height: AppSpacing.x4),
               Align(
@@ -52,11 +61,9 @@ class ProfileScreen extends StatelessWidget {
                 child: Wrap(
                   spacing: AppSpacing.x1,
                   runSpacing: AppSpacing.x1,
-                  children: [
-                    FavoriteGenreChip(label: '드라마'),
-                    FavoriteGenreChip(label: 'SF'),
-                    FavoriteGenreChip(label: '애니메이션'),
-                  ],
+                  children: genres
+                      .map((genre) => FavoriteGenreChip(label: genre))
+                      .toList(),
                 ),
               ),
             ],
