@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/start_screen.dart';
+import 'package:movielog/theme/app_theme.dart';
 
 void main() {
   runApp(const MovieLogApp());
@@ -14,7 +15,7 @@ class MovieLogApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
-      theme: ThemeData(useMaterial3: true),
+      theme: AppTheme.light,
       home: const StartScreen(), // 첫 실행 화면 지정
     );
   }

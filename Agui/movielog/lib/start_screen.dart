@@ -28,7 +28,7 @@ class StartScreen extends StatelessWidget {
                 'assets/logos/movielog_logo.svg',
                 width: 72,
                 height: 72,
-                semanticsLabel: 'MovieLog 영화 아이콘',
+                semanticsLabel: 'MovieLog 로고',
               ),
               const SizedBox(height: 40),
               const Text(

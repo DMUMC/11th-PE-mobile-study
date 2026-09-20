@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 abstract final class AppTextStyles {
+  static const textTheme = TextTheme(
+    titleLarge: titleLarge,
+    titleMedium: titleMedium,
+    bodyMedium: bodyMedium,
+    bodySmall: bodySmall,
+  );
+
   static const titleLarge = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w700,
