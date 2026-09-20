@@ -11,7 +11,7 @@ class ProfileHeader extends StatelessWidget {
   });
 
   static const _defaultProfileImagePath =
-      'assets/images/profile/profile_movielog.jpg';
+      'assets/images/profile/profile_movielo.jpg';
 
   final String? profileImagePath;
 
@@ -19,6 +19,13 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final defaultProfileIcon = SvgPicture.asset(
+      'assets/icons/person.svg',
+      width: 72,
+      height: 72,
+      semanticsLabel: '기본 프로필 아이콘',
+      colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
+    );
 
     return SizedBox(
       width: double.infinity,
@@ -33,18 +40,15 @@ class ProfileHeader extends StatelessWidget {
                 radius: 72,
                 backgroundColor: colors.surface,
                 child: profileImagePath == null
-                    ? Icon(Icons.person, size: 72, color: colors.outline)
+                    ? defaultProfileIcon
                     : ClipOval(
                         child: Image.asset(
                           profileImagePath!,
                           width: 144,
                           height: 144,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            Icons.person,
-                            size: 72,
-                            color: colors.outline,
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              defaultProfileIcon,
                         ),
                       ),
               ),
