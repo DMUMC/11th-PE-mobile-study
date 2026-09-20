@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
 
 import '../theme/app_theme.dart';
 import 'profile_body/profile_header.dart';
@@ -15,7 +16,15 @@ class ProfileScreen extends StatelessWidget {
             horizontal: AppSpacing.x2,
             vertical: AppSpacing.x4,
           ),
-          child: const Column(children: [ProfileHeader()]),
+          child: const Column(
+            children: [
+              ProfileHeader(),
+              SizedBox(height: AppSpacing.x4),
+              Row(
+                children: [StatItem(label: '본 영화', value: '24')],
+              ),
+            ],
+          ),
         ),
       ),
     );

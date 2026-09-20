@@ -27,8 +27,8 @@ class ProfileHeader extends StatelessWidget {
                 ),
               ),
               Positioned(
-                right: -2,
-                bottom: -2,
+                left: 56,
+                bottom: -15,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: colors.primary,
@@ -52,7 +52,7 @@ class ProfileHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.x2),
+          const SizedBox(height: AppSpacing.x3),
           Text('무비러버', style: textTheme.titleMedium),
           const SizedBox(height: AppSpacing.x1),
           Text(
@@ -60,7 +60,7 @@ class ProfileHeader extends StatelessWidget {
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
               color: colors.onSurface,
-              fontSize: 12,
+              fontSize: 15,
               height: 1.5,
             ),
           ),
