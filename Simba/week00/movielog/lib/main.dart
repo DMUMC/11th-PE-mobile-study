@@ -46,9 +46,9 @@ class StartScreen extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Column(
+              const Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   Icon(
                     Icons.movie_creation_outlined,
                     size: 72,
