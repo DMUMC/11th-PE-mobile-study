@@ -5,7 +5,15 @@ import '../../theme/app_theme.dart';
 import 'edit_profile_button.dart';
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key});
+  const ProfileHeader({
+    super.key,
+    this.profileImagePath = _defaultProfileImagePath,
+  });
+
+  static const _defaultProfileImagePath =
+      'assets/images/profile/profile_movielog.jpg';
+
+  final String? profileImagePath;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +32,21 @@ class ProfileHeader extends StatelessWidget {
               CircleAvatar(
                 radius: 72,
                 backgroundColor: colors.surface,
-                backgroundImage: const AssetImage(
-                  'assets/images/profile/profile_movielog.jpg',
-                ),
+                child: profileImagePath == null
+                    ? Icon(Icons.person, size: 72, color: colors.outline)
+                    : ClipOval(
+                        child: Image.asset(
+                          profileImagePath!,
+                          width: 144,
+                          height: 144,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.person,
+                            size: 72,
+                            color: colors.outline,
+                          ),
+                        ),
+                      ),
               ),
               Positioned(
                 bottom: -15,
