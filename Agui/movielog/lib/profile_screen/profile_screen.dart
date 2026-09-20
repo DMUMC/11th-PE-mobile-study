@@ -13,7 +13,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: const MovieLogAppBar(title: '내 프로필'),
       body: SafeArea(
-        minimum: EdgeInsets.symmetric(horizontal: 16),
+        minimum: EdgeInsets.symmetric(),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.x2,
@@ -24,7 +24,19 @@ class ProfileScreen extends StatelessWidget {
               ProfileHeader(),
               SizedBox(height: AppSpacing.x4),
               Row(
-                children: [StatItem(label: '본 영화', value: '24')],
+                children: [
+                  Expanded(
+                    child: StatItem(label: '본 영화', value: '24'),
+                  ),
+                  SizedBox(width: AppSpacing.x1),
+                  Expanded(
+                    child: StatItem(label: '평점', value: '4.2'),
+                  ),
+                  SizedBox(width: AppSpacing.x1),
+                  Expanded(
+                    child: StatItem(label: '즐겨찾기', value: '58'),
+                  ),
+                ],
               ),
             ],
           ),

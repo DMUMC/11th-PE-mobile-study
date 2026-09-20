@@ -23,7 +23,10 @@ class MovieLogAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: 16,
       title: Text(
         title,
-        style: textTheme.titleMedium?.copyWith(color: colors.primary),
+        style: textTheme.titleMedium?.copyWith(
+          color: colors.primary,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
