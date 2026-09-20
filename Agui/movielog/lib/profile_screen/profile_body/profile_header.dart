@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../theme/app_theme.dart';
+import 'edit_profile_button.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key});
@@ -64,6 +65,8 @@ class ProfileHeader extends StatelessWidget {
               height: 1.5,
             ),
           ),
+          const SizedBox(height: AppSpacing.x2),
+          const EditProfileButton(),
         ],
       ),
     );
