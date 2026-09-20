@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -23,13 +24,13 @@ class StartScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 64),
-              const Icon(
-                Icons.movie_outlined,
-                color: Color(0xFF4B3B8D),
-                size: 56,
-                semanticLabel: 'MovieLog 영화 아이콘',
+              SvgPicture.asset(
+                'assets/logos/movielog_logo.svg',
+                width: 72,
+                height: 72,
+                semanticsLabel: 'MovieLog 영화 아이콘',
               ),
-              const SizedBox(height: 68),
+              const SizedBox(height: 40),
               const Text(
                 '영화의 순간을\n기록하세요',
                 textAlign: TextAlign.center,
