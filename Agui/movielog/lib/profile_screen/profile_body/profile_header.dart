@@ -11,7 +11,7 @@ class ProfileHeader extends StatelessWidget {
   });
 
   static const _defaultProfileImagePath =
-      'assets/images/profile/profile_movielo.jpg';
+      'assets/images/profile/profile_movielog.jpg';
 
   final String? profileImagePath;
 

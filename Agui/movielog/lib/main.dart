@@ -17,7 +17,7 @@ class MovieLogApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
       theme: AppTheme.light,
-      home: const ProfileScreen(), // 첫 실행 화면 지정
+      home: const StartScreen(), // 첫 실행 화면 지정
     );
   }
 }
