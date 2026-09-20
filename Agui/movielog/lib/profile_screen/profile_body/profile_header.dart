@@ -18,6 +18,7 @@ class ProfileHeader extends StatelessWidget {
         children: [
           Stack(
             clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
             children: [
               CircleAvatar(
                 radius: 72,
@@ -27,7 +28,6 @@ class ProfileHeader extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: 56,
                 bottom: -15,
                 child: DecoratedBox(
                   decoration: BoxDecoration(

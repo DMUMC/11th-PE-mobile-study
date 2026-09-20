@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/profile_screen/profile_body/profile_header.dart';
 import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
 
 import '../theme/app_theme.dart';
-import 'profile_body/profile_header.dart';
+import 'app_bar/app_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,7 +11,9 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const MovieLogAppBar(title: '내 프로필'),
       body: SafeArea(
+        minimum: EdgeInsets.symmetric(horizontal: 16),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.x2,
