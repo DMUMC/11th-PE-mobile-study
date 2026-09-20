@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/profile_screen/profile_body/favorite_genrs.dart';
 import 'package:movielog/profile_screen/profile_body/profile_header.dart';
 import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
 
@@ -10,6 +11,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: const MovieLogAppBar(title: '내 프로필'),
       body: SafeArea(
@@ -19,7 +22,7 @@ class ProfileScreen extends StatelessWidget {
             horizontal: AppSpacing.x2,
             vertical: AppSpacing.x4,
           ),
-          child: const Column(
+          child: Column(
             children: [
               ProfileHeader(),
               SizedBox(height: AppSpacing.x4),
@@ -37,6 +40,24 @@ class ProfileScreen extends StatelessWidget {
                     child: StatItem(label: '즐겨찾기', value: '58'),
                   ),
                 ],
+              ),
+              SizedBox(height: AppSpacing.x4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('선호하는 장르', style: textTheme.titleSmall),
+              ),
+              SizedBox(height: AppSpacing.x2),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: AppSpacing.x1,
+                  runSpacing: AppSpacing.x1,
+                  children: [
+                    FavoriteGenreChip(label: '드라마'),
+                    FavoriteGenreChip(label: 'SF'),
+                    FavoriteGenreChip(label: '애니메이션'),
+                  ],
+                ),
               ),
             ],
           ),
