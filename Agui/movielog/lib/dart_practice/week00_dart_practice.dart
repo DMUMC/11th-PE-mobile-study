@@ -14,9 +14,13 @@ void main() {
 
   final movies = <Movie>[];
 
+  // for문으로 Movie 인스턴스 추가 + Null Safety
   for (int i = 0; i < titles.length; i++) {
-    movies.add(Movie(id: i + 1, title: displayName(titles[i])));
+    final title = titles[i] ?? '제목 없음';
+
+    movies.add(Movie(id: i + 1, title: title));
   }
 
+  // map을 사용해서 영화 제목 출력
   movies.map((movie) => movie.title).forEach(print);
 }
