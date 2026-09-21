@@ -10,6 +10,7 @@ abstract final class AppSpacing {
   static const x2 = 16.0;
   static const x3 = 24.0;
   static const x4 = 32.0;
+  static const inputVertical = 12.0;
 
   static const pagePadding = EdgeInsets.all(x3);
 }
@@ -18,6 +19,12 @@ abstract final class AppSpacing {
 abstract final class AppRadius {
   static const value = 8.0;
   static const borderRadius = BorderRadius.all(Radius.circular(value));
+}
+
+abstract final class AppComponentHeight {
+  static const appBar = 64.0;
+  static const input = 44.0;
+  static const button = 48.0;
 }
 
 abstract final class AppTheme {
@@ -90,22 +97,23 @@ abstract final class AppTheme {
     ),
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surface,
+      fillColor: AppColors.surfaceLow,
+      isDense: true,
       border: OutlineInputBorder(
         borderRadius: AppRadius.borderRadius,
-        borderSide: BorderSide(color: AppColors.outline),
+        borderSide: BorderSide(color: AppColors.surfaceHighest),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: AppRadius.borderRadius,
-        borderSide: BorderSide(color: AppColors.outline),
+        borderSide: BorderSide(color: AppColors.surfaceHighest),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: AppRadius.borderRadius,
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+        borderSide: BorderSide(color: AppColors.surfaceHighest),
       ),
       contentPadding: EdgeInsets.symmetric(
         horizontal: AppSpacing.x2,
-        vertical: AppSpacing.x1,
+        vertical: AppSpacing.inputVertical,
       ),
     ),
   );
