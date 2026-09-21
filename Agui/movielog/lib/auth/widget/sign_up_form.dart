@@ -3,6 +3,20 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'sign_up_text_field.dart';
 
+String? validateNickname(String? value) {
+  final nickname = value?.trim() ?? '';
+
+  if (nickname.isEmpty) {
+    return '닉네임을 입력해주세요.';
+  }
+
+  if (nickname.length < 2) {
+    return '닉네임은 2자 이상이어야 합니다.';
+  }
+
+  return null;
+}
+
 class SignUpForm extends StatelessWidget {
   const SignUpForm({
     super.key,
@@ -11,6 +25,8 @@ class SignUpForm extends StatelessWidget {
     required this.passwordController,
     required this.emailFocusNode,
     required this.passwordFocusNode,
+    required this.onNicknameChanged,
+    this.nicknameErrorText,
   });
 
   final TextEditingController nicknameController;
@@ -18,6 +34,8 @@ class SignUpForm extends StatelessWidget {
   final TextEditingController passwordController;
   final FocusNode emailFocusNode;
   final FocusNode passwordFocusNode;
+  final ValueChanged<String> onNicknameChanged;
+  final String? nicknameErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +46,9 @@ class SignUpForm extends StatelessWidget {
           controller: nicknameController,
           label: '닉네임',
           hintText: '닉네임을 입력해주세요',
+          validator: validateNickname,
+          errorText: nicknameErrorText,
+          onChanged: onNicknameChanged,
         ),
         const SizedBox(height: AppSpacing.x2),
         SignUpTextField(

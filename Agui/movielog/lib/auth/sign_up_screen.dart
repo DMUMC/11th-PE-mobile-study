@@ -25,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final passwordFocusNode = FocusNode();
 
   bool agreedToTerms = false;
+  String? nicknameErrorText;
 
   @override
   void dispose() {
@@ -71,6 +72,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             passwordController: passwordController,
                             emailFocusNode: emailFocusNode,
                             passwordFocusNode: passwordFocusNode,
+                            nicknameErrorText: nicknameErrorText,
+                            onNicknameChanged: (value) {
+                              setState(() {
+                                nicknameErrorText = value.trim().isEmpty
+                                    ? null
+                                    : validateNickname(value);
+                              });
+                            },
                           ),
                         ],
                       ),
