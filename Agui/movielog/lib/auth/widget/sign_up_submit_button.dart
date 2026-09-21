@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
 class SignUpSubmitButton extends StatelessWidget {
-  const SignUpSubmitButton({super.key});
+  const SignUpSubmitButton({super.key, this.onPressed});
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +13,7 @@ class SignUpSubmitButton extends StatelessWidget {
       width: double.infinity,
       height: AppComponentHeight.button,
       child: ElevatedButton(
-        onPressed: null,
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           disabledBackgroundColor: Theme.of(context)
               .colorScheme

@@ -10,9 +10,11 @@ class SignUpTextField extends StatelessWidget {
     required this.hintText,
     required this.focusNode,
     this.keyboardType,
+    this.textInputAction,
     this.obscureText = false,
     this.validator,
     this.onChanged,
+    this.onSubmitted,
     this.errorText,
     this.showSuccessIcon = false,
   });
@@ -22,9 +24,11 @@ class SignUpTextField extends StatelessWidget {
   final String hintText;
   final FocusNode focusNode;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
   final bool obscureText;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final String? errorText;
   final bool showSuccessIcon;
 
@@ -84,6 +88,7 @@ class SignUpTextField extends StatelessWidget {
                             focusNode: focusNode,
                             cursorColor: colors.primary,
                             keyboardType: keyboardType,
+                            textInputAction: textInputAction,
                             obscureText: obscureText,
                             textAlign: TextAlign.start,
                             textAlignVertical: TextAlignVertical.center,
@@ -94,6 +99,7 @@ class SignUpTextField extends StatelessWidget {
                               field.didChange(value);
                               onChanged?.call(value);
                             },
+                            onSubmitted: onSubmitted,
                             decoration: InputDecoration(
                               hintText: hintText,
                               hintStyle: textTheme.bodySmall?.copyWith(

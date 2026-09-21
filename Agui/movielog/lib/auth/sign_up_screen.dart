@@ -33,6 +33,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool isEmailValid = false;
   bool isPasswordValid = false;
 
+  bool get canSubmit =>
+      isNicknameValid && isEmailValid && isPasswordValid && agreedToTerms;
+
   @override
   void dispose() {
     nicknameController.dispose();
@@ -122,12 +125,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ],
                       ),
                       Column(
-                        children: const [
-                          TermsCheckbox(),
-                          SizedBox(height: AppSpacing.x2),
-                          SignUpSubmitButton(),
-                          SizedBox(height: AppSpacing.x3),
-                          SignUpFooter(),
+                        children: [
+                          TermsCheckbox(
+                            agreedToTerms: agreedToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                agreedToTerms = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: AppSpacing.x2),
+                          SignUpSubmitButton(
+                            onPressed: canSubmit
+                                ? () {
+                                    final isValid =
+                                        formKey.currentState?.validate() ??
+                                        false;
+                                    if (!isValid) return;
+                                    FocusScope.of(context).unfocus();
+                                  }
+                                : null,
+                          ),
+                          const SizedBox(height: AppSpacing.x3),
+                          const SignUpFooter(),
                         ],
                       ),
                     ],
