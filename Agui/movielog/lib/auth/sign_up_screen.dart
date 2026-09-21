@@ -21,17 +21,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  final nicknameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
 
   bool agreedToTerms = false;
   String? nicknameErrorText;
+  String? emailErrorText;
+  bool isNicknameValid = false;
+  bool isEmailValid = false;
 
   @override
   void dispose() {
     nicknameController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    nicknameFocusNode.dispose();
     emailFocusNode.dispose();
     passwordFocusNode.dispose();
     super.dispose();
@@ -70,14 +75,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             nicknameController: nicknameController,
                             emailController: emailController,
                             passwordController: passwordController,
+                            nicknameFocusNode: nicknameFocusNode,
                             emailFocusNode: emailFocusNode,
                             passwordFocusNode: passwordFocusNode,
                             nicknameErrorText: nicknameErrorText,
+                            emailErrorText: emailErrorText,
+                            isNicknameValid: isNicknameValid,
+                            isEmailValid: isEmailValid,
                             onNicknameChanged: (value) {
                               setState(() {
-                                nicknameErrorText = value.trim().isEmpty
+                                final errorText = value.trim().isEmpty
                                     ? null
                                     : validateNickname(value);
+                                nicknameErrorText = errorText;
+                                isNicknameValid =
+                                    value.trim().isNotEmpty &&
+                                    errorText == null;
+                              });
+                            },
+                            onEmailChanged: (value) {
+                              setState(() {
+                                final errorText = value.trim().isEmpty
+                                    ? null
+                                    : validateEmail(value);
+                                emailErrorText = errorText;
+                                isEmailValid =
+                                    value.trim().isNotEmpty &&
+                                    errorText == null;
                               });
                             },
                           ),

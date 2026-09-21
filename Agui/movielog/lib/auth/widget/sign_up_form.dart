@@ -17,25 +17,50 @@ String? validateNickname(String? value) {
   return null;
 }
 
+String? validateEmail(String? value) {
+  final email = value?.trim() ?? '';
+  final emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
+  if (email.isEmpty) {
+    return '이메일을 입력해주세요.';
+  }
+
+  if (!emailPattern.hasMatch(email)) {
+    return '올바른 이메일 형식이 아닙니다.';
+  }
+
+  return null;
+}
+
 class SignUpForm extends StatelessWidget {
   const SignUpForm({
     super.key,
     required this.nicknameController,
     required this.emailController,
     required this.passwordController,
+    required this.nicknameFocusNode,
     required this.emailFocusNode,
     required this.passwordFocusNode,
     required this.onNicknameChanged,
+    required this.onEmailChanged,
+    required this.isNicknameValid,
+    required this.isEmailValid,
     this.nicknameErrorText,
+    this.emailErrorText,
   });
 
   final TextEditingController nicknameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final FocusNode nicknameFocusNode;
   final FocusNode emailFocusNode;
   final FocusNode passwordFocusNode;
   final ValueChanged<String> onNicknameChanged;
+  final ValueChanged<String> onEmailChanged;
+  final bool isNicknameValid;
+  final bool isEmailValid;
   final String? nicknameErrorText;
+  final String? emailErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +71,11 @@ class SignUpForm extends StatelessWidget {
           controller: nicknameController,
           label: '닉네임',
           hintText: '닉네임을 입력해주세요',
+          focusNode: nicknameFocusNode,
           validator: validateNickname,
           errorText: nicknameErrorText,
           onChanged: onNicknameChanged,
+          showSuccessIcon: isNicknameValid,
         ),
         const SizedBox(height: AppSpacing.x2),
         SignUpTextField(
@@ -57,6 +84,10 @@ class SignUpForm extends StatelessWidget {
           hintText: '이메일 주소를 입력해주세요',
           focusNode: emailFocusNode,
           keyboardType: TextInputType.emailAddress,
+          validator: validateEmail,
+          errorText: emailErrorText,
+          onChanged: onEmailChanged,
+          showSuccessIcon: isEmailValid,
         ),
         const SizedBox(height: AppSpacing.x2),
         SignUpTextField(
