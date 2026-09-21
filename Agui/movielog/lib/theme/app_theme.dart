@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
-import 'app_text_styles.dart';
+import 'app_text_style.dart';
 
 /// Figma의 8px 간격 단위입니다.
 abstract final class AppSpacing {
