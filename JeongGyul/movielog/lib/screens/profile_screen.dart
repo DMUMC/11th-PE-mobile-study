@@ -16,7 +16,10 @@ class ProfileScreen extends StatelessWidget {
         centerTitle: false,
         title: Text(
           '내 프로필',
-          style: textTheme.titleLarge?.copyWith(color: colors.primary),
+          style: textTheme.bodyLarge?.copyWith(
+            color: colors.primary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: SafeArea(
@@ -31,12 +34,19 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('무비러버', style: textTheme.titleLarge),
+              Text(
+                '무비러버',
+                style: textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화로 보고 기록하는 것을 좋아합니다.',
                 textAlign: TextAlign.center,
-                style: textTheme.bodySmall,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -44,6 +54,8 @@ class ProfileScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                   shadowColor: Colors.transparent,
+                  backgroundColor: colors.surface,
+                  foregroundColor: colors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -51,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Text(
                   '프로필 수정',
-                  style: textTheme.bodyMedium?.copyWith(color: colors.primary),
+                  style: textTheme.labelLarge?.copyWith(color: colors.primary),
                 ),
               ),
               const SizedBox(height: 28),
@@ -73,7 +85,12 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 28),
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('선호하는 장르', style: textTheme.titleMedium),
+                child: Text(
+                  '선호하는 장르',
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               Align(

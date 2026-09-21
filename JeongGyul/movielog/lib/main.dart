@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'theme/app_theme.dart';
+
 import 'package:movielog/screens/start_screen.dart';
 import 'package:movielog/screens/profile_screen.dart';
 

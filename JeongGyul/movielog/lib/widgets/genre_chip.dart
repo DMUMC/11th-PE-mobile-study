@@ -7,12 +7,15 @@ class GenreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Chip(
       label: Text(
         label,
-        style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: colors.onPrimaryContainer),
       ),
-      backgroundColor: const Color(0xFFE9DDFF),
+      backgroundColor: colors.primaryContainer,
       side: BorderSide.none,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
