@@ -1,81 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9F5),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 64, 32, 56),
+          padding: const EdgeInsets.all(32),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'FLUTTER 0주차',
-                style: TextStyle(
-                  color: Color(0xFF333333),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.9,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 64),
-              const Icon(
-                Icons.movie_outlined,
-                color: Color(0xFF4B3B8D),
-                size: 56,
-                semanticLabel: 'MovieLog 영화 아이콘',
-              ),
-              const SizedBox(height: 68),
-              const Text(
-                '영화의 순간을\n기록하세요',
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Color(0xFF202020),
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  height: 1.22,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Color(0xFF5C5C5C),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  height: 1.45,
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 58,
-                child: ElevatedButton(
-                  onPressed: () {
-                    debugPrint('시작하기 버튼을 눌렀습니다.');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4B3B8D),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              Column(
+                children: [
+                  const SizedBox(height: 32),
+                  const Text('FLUTTER 1주차'),
+                  const SizedBox(height: 64),
+                  SvgPicture.asset(
+                    'assets/logos/movielog_logo.svg',
+                    width: 72,
+                    height: 72,
+                    semanticsLabel: 'MovieLog 로고',
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    '영화의 순간을\n기록하세요',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: const Text(
-                    '시작하기',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '보고 싶은 영화부터 나만의 평점까지\n한곳에서 관리해요',
+                    textAlign: TextAlign.center,
                   ),
+                ],
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
+                  ),
+                  child: const Text('시작하기'),
                 ),
               ),
             ],
