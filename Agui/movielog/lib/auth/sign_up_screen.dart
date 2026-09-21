@@ -28,8 +28,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreedToTerms = false;
   String? nicknameErrorText;
   String? emailErrorText;
+  String? passwordErrorText;
   bool isNicknameValid = false;
   bool isEmailValid = false;
+  bool isPasswordValid = false;
 
   @override
   void dispose() {
@@ -80,8 +82,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             passwordFocusNode: passwordFocusNode,
                             nicknameErrorText: nicknameErrorText,
                             emailErrorText: emailErrorText,
+                            passwordErrorText: passwordErrorText,
                             isNicknameValid: isNicknameValid,
                             isEmailValid: isEmailValid,
+                            isPasswordValid: isPasswordValid,
                             onNicknameChanged: (value) {
                               setState(() {
                                 final errorText = value.trim().isEmpty
@@ -102,6 +106,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 isEmailValid =
                                     value.trim().isNotEmpty &&
                                     errorText == null;
+                              });
+                            },
+                            onPasswordChanged: (value) {
+                              setState(() {
+                                final errorText = value.isEmpty
+                                    ? null
+                                    : validatePassword(value);
+                                passwordErrorText = errorText;
+                                isPasswordValid =
+                                    value.isNotEmpty && errorText == null;
                               });
                             },
                           ),

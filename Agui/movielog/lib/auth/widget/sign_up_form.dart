@@ -32,6 +32,20 @@ String? validateEmail(String? value) {
   return null;
 }
 
+String? validatePassword(String? value) {
+  final password = value ?? '';
+
+  if (password.isEmpty) {
+    return '비밀번호를 입력해주세요.';
+  }
+
+  if (password.length < 8) {
+    return '비밀번호는 8자 이상이어야 합니다.';
+  }
+
+  return null;
+}
+
 class SignUpForm extends StatelessWidget {
   const SignUpForm({
     super.key,
@@ -43,10 +57,13 @@ class SignUpForm extends StatelessWidget {
     required this.passwordFocusNode,
     required this.onNicknameChanged,
     required this.onEmailChanged,
+    required this.onPasswordChanged,
     required this.isNicknameValid,
     required this.isEmailValid,
+    required this.isPasswordValid,
     this.nicknameErrorText,
     this.emailErrorText,
+    this.passwordErrorText,
   });
 
   final TextEditingController nicknameController;
@@ -57,10 +74,13 @@ class SignUpForm extends StatelessWidget {
   final FocusNode passwordFocusNode;
   final ValueChanged<String> onNicknameChanged;
   final ValueChanged<String> onEmailChanged;
+  final ValueChanged<String> onPasswordChanged;
   final bool isNicknameValid;
   final bool isEmailValid;
+  final bool isPasswordValid;
   final String? nicknameErrorText;
   final String? emailErrorText;
+  final String? passwordErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +116,10 @@ class SignUpForm extends StatelessWidget {
           label: '비밀번호',
           hintText: '비밀번호를 입력해주세요',
           obscureText: true,
+          validator: validatePassword,
+          errorText: passwordErrorText,
+          onChanged: onPasswordChanged,
+          showSuccessIcon: isPasswordValid,
         ),
       ],
     );
