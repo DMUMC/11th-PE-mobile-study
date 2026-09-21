@@ -83,7 +83,7 @@ class SignUpTextField extends StatelessWidget {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.x2,
+                            horizontal: AppSpacing.x1,
                           ),
                           child: TextField(
                             controller: controller,
@@ -93,7 +93,6 @@ class SignUpTextField extends StatelessWidget {
                             textInputAction: textInputAction,
                             obscureText: obscureText,
                             textAlign: TextAlign.start,
-                            textAlignVertical: TextAlignVertical.center,
                             style: textTheme.bodySmall?.copyWith(
                               color: colors.onSurface,
                             ),
