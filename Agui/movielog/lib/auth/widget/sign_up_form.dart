@@ -61,6 +61,8 @@ class SignUpForm extends StatelessWidget {
     required this.isNicknameValid,
     required this.isEmailValid,
     required this.isPasswordValid,
+    required this.isPasswordObscured,
+    required this.onTogglePasswordVisibility,
     this.nicknameErrorText,
     this.emailErrorText,
     this.passwordErrorText,
@@ -78,6 +80,8 @@ class SignUpForm extends StatelessWidget {
   final bool isNicknameValid;
   final bool isEmailValid;
   final bool isPasswordValid;
+  final bool isPasswordObscured;
+  final VoidCallback onTogglePasswordVisibility;
   final String? nicknameErrorText;
   final String? emailErrorText;
   final String? passwordErrorText;
@@ -120,12 +124,13 @@ class SignUpForm extends StatelessWidget {
           label: '비밀번호',
           hintText: '비밀번호를 입력해주세요',
           textInputAction: TextInputAction.done,
-          obscureText: true,
+          obscureText: isPasswordObscured,
           validator: validatePassword,
           errorText: passwordErrorText,
           onChanged: onPasswordChanged,
           onSubmitted: (_) => FocusScope.of(context).unfocus(),
           showSuccessIcon: isPasswordValid,
+          onToggleObscureText: onTogglePasswordVisibility,
         ),
       ],
     );

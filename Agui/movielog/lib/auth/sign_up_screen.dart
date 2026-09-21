@@ -32,6 +32,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool isNicknameValid = false;
   bool isEmailValid = false;
   bool isPasswordValid = false;
+  bool isPasswordObscured = true;
 
   bool get canSubmit =>
       isNicknameValid && isEmailValid && isPasswordValid && agreedToTerms;
@@ -89,6 +90,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             isNicknameValid: isNicknameValid,
                             isEmailValid: isEmailValid,
                             isPasswordValid: isPasswordValid,
+                            isPasswordObscured: isPasswordObscured,
+                            onTogglePasswordVisibility: () {
+                              setState(() {
+                                isPasswordObscured = !isPasswordObscured;
+                              });
+                            },
                             onNicknameChanged: (value) {
                               setState(() {
                                 final errorText = value.trim().isEmpty

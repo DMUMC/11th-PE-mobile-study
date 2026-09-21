@@ -17,6 +17,7 @@ class SignUpTextField extends StatelessWidget {
     this.onSubmitted,
     this.errorText,
     this.showSuccessIcon = false,
+    this.onToggleObscureText,
   });
 
   final TextEditingController controller;
@@ -31,6 +32,7 @@ class SignUpTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final String? errorText;
   final bool showSuccessIcon;
+  final VoidCallback? onToggleObscureText;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +120,11 @@ class SignUpTextField extends StatelessWidget {
                       ),
                       if (hasError)
                         Padding(
-                          padding: const EdgeInsets.only(right: AppSpacing.x2),
+                          padding: EdgeInsets.only(
+                            right: onToggleObscureText == null
+                                ? AppSpacing.x2
+                                : AppSpacing.x1,
+                          ),
                           child: Icon(
                             Icons.error_outline,
                             size: 25,
@@ -127,7 +133,11 @@ class SignUpTextField extends StatelessWidget {
                         )
                       else if (showSuccessIcon)
                         Padding(
-                          padding: const EdgeInsets.only(right: AppSpacing.x2),
+                          padding: EdgeInsets.only(
+                            right: onToggleObscureText == null
+                                ? AppSpacing.x2
+                                : AppSpacing.x1,
+                          ),
                           child: Container(
                             width: 24,
                             height: 24,
@@ -139,6 +149,26 @@ class SignUpTextField extends StatelessWidget {
                               Icons.check,
                               size: 16,
                               color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      if (onToggleObscureText != null)
+                        Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.x1),
+                          child: IconButton(
+                            onPressed: onToggleObscureText,
+                            tooltip: obscureText ? '비밀번호 표시' : '비밀번호 숨기기',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints.tightFor(
+                              width: 24,
+                              height: 24,
+                            ),
+                            icon: Icon(
+                              obscureText
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              size: 22,
+                              color: colors.outline,
                             ),
                           ),
                         ),
