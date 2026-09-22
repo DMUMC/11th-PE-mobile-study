@@ -1,0 +1,250 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "args",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/args-2.7.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "async",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/async-2.13.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "boolean_selector",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/boolean_selector-2.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "characters",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/characters-1.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "clock",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/clock-1.1.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "collection",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/collection-1.19.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "cupertino_icons",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/cupertino_icons-1.0.9",
+      "packageUri": "lib/",
+      "languageVersion": "3.9"
+    },
+    {
+      "name": "fake_async",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/fake_async-1.3.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "flutter",
+      "rootUri": "file:///Users/inseong/development/flutter/packages/flutter",
+      "packageUri": "lib/",
+      "languageVersion": "3.11"
+    },
+    {
+      "name": "flutter_lints",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/flutter_lints-6.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
+      "name": "flutter_svg",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/flutter_svg-2.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.9"
+    },
+    {
+      "name": "flutter_test",
+      "rootUri": "file:///Users/inseong/development/flutter/packages/flutter_test",
+      "packageUri": "lib/",
+      "languageVersion": "3.11"
+    },
+    {
+      "name": "http",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/http-1.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "http_parser",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/http_parser-4.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "leak_tracker",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/leak_tracker-11.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "leak_tracker_flutter_testing",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/leak_tracker_flutter_testing-3.0.10",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "leak_tracker_testing",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/leak_tracker_testing-3.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "lints",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/lints-6.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
+      "name": "matcher",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/matcher-0.12.20",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
+      "name": "material_color_utilities",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/material_color_utilities-0.13.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "meta",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/meta-1.19.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "path",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/path-1.9.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "path_parsing",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/path_parsing-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "petitparser",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/petitparser-7.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
+      "name": "sky_engine",
+      "rootUri": "file:///Users/inseong/development/flutter/bin/cache/pkg/sky_engine",
+      "packageUri": "lib/",
+      "languageVersion": "3.11"
+    },
+    {
+      "name": "source_span",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/source_span-1.10.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "stack_trace",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/stack_trace-1.12.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "stream_channel",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/stream_channel-2.1.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "string_scanner",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/string_scanner-1.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "term_glyph",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/term_glyph-1.2.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "test_api",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/test_api-0.7.12",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
+      "name": "typed_data",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/typed_data-1.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "vector_graphics",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/vector_graphics-1.2.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
+      "name": "vector_graphics_codec",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/vector_graphics_codec-1.1.13",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "vector_graphics_compiler",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/vector_graphics_compiler-1.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
+      "name": "vector_math",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/vector_math-2.4.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
+      "name": "vm_service",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/vm_service-15.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "web",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/web-1.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "xml",
+      "rootUri": "file:///Users/inseong/.pub-cache/hosted/pub.flutter-io.cn/xml-7.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.11"
+    },
+    {
+      "name": "vector_week01",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "3.13"
+    }
+  ],
+  "generator": "pub",
+  "generatorVersion": "3.13.3",
+  "flutterRoot": "file:///Users/inseong/development/flutter",
+  "flutterVersion": "3.47.4",
+  "pubCache": "file:///Users/inseong/.pub-cache"
+}
