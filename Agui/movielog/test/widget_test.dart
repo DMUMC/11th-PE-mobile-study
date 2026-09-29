@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/main.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
+import 'package:movielog/movie/widgets/movie_rating_input.dart';
 import 'package:movielog/router/app_router.dart';
 
 void main() {
@@ -28,9 +29,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('상세보기'));
     await tester.pumpAndSettle();
-    expect(find.text('영화 상세'), findsOneWidget);
+    expect(find.text('Cinema Archive'), findsOneWidget);
     expect(find.text('별빛 아래 우리'), findsOneWidget);
-    expect(find.text('로맨스 · 드라마 · 2025'), findsOneWidget);
+    expect(find.text('2024 · 로맨스/드라마 · 124분'), findsOneWidget);
+    expect(find.text('4.5 (1,245)'), findsOneWidget);
+    expect(find.text('시놉시스'), findsOneWidget);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
@@ -38,13 +41,13 @@ void main() {
 
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();
-    expect(find.text('영화 목록'), findsWidgets);
-    expect(find.text('속삭이는 숲'), findsOneWidget);
+    expect(find.text('우주의 끝에서'), findsOneWidget);
+    expect(find.text('별빛 아래 우리'), findsNWidgets(2));
 
     AppRouter.router.go('/movies/2');
     await tester.pumpAndSettle();
     expect(find.text('공허의 메아리'), findsOneWidget);
-    expect(find.text('SF · 2024'), findsOneWidget);
+    expect(find.text('2024 · SF'), findsOneWidget);
 
     AppRouter.router.go('/movies/42');
     await tester.pumpAndSettle();
@@ -74,9 +77,9 @@ void main() {
     await tester.tap(find.text('네 번째 오후'));
     await tester.pumpAndSettle();
 
-    expect(find.text('영화 상세'), findsOneWidget);
+    expect(find.text('Cinema Archive'), findsOneWidget);
     expect(find.text('네 번째 오후'), findsOneWidget);
-    expect(find.text('드라마 · 2025'), findsOneWidget);
+    expect(find.text('2025 · 드라마'), findsOneWidget);
   });
 
   testWidgets('home search and bottom tabs open their destinations', (
@@ -85,18 +88,118 @@ void main() {
     AppRouter.router.go('/home');
     await tester.pumpWidget(const MovieLogApp());
     await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.home_rounded), findsOneWidget);
 
     await tester.tap(find.byTooltip('영화 검색'));
     await tester.pumpAndSettle();
-    expect(find.text('영화 목록'), findsOneWidget);
+    expect(find.text('우주의 끝에서'), findsOneWidget);
+    expect(find.byIcon(Icons.movie_rounded), findsOneWidget);
 
     await tester.tap(find.text('마이'));
     await tester.pumpAndSettle();
     expect(find.text('내 프로필'), findsOneWidget);
+    expect(find.byIcon(Icons.person_rounded), findsOneWidget);
 
     await tester.tap(find.text('홈'));
     await tester.pumpAndSettle();
     expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
+    expect(find.byIcon(Icons.home_rounded), findsOneWidget);
+  });
+
+  testWidgets('movie catalog filters, searches, and opens the selected movie', (
+    tester,
+  ) async {
+    AppRouter.router.go('/movies');
+    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('별빛 아래 우리'), findsNWidgets(2));
+    expect(find.text('우주의 끝에서'), findsOneWidget);
+    expect(find.text('기억의 숲'), findsOneWidget);
+    await tester.tap(find.text('SF'));
+    await tester.pumpAndSettle();
+    expect(find.text('우주의 끝에서'), findsOneWidget);
+    expect(find.text('별빛 아래 우리'), findsNothing);
+
+    await tester.tap(find.text('전체'));
+    await tester.tap(find.byTooltip('영화 검색'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '우주의');
+    await tester.pumpAndSettle();
+    expect(find.text('우주의 끝에서'), findsOneWidget);
+    expect(find.text('기억의 숲'), findsNothing);
+
+    await tester.tap(find.text('우주의 끝에서'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cinema Archive'), findsOneWidget);
+    expect(find.text('2024 · SF'), findsOneWidget);
+  });
+
+  testWidgets('movie detail actions work from a direct route', (tester) async {
+    AppRouter.router.go('/movies/10');
+    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cinema Archive'), findsOneWidget);
+    expect(find.text('즐겨찾기'), findsOneWidget);
+    expect(find.text('평점 남기기'), findsOneWidget);
+    await tester.tap(find.text('즐겨찾기'));
+    await tester.pumpAndSettle();
+    expect(find.text('즐겨찾기 완료'), findsOneWidget);
+
+    await tester.tap(find.text('평점 남기기'));
+    await tester.pumpAndSettle();
+    expect(find.text('영화는 어떠셨나요?'), findsOneWidget);
+    expect(find.byType(MovieRatingInput), findsOneWidget);
+    await tester.tap(find.text('확인'));
+    await tester.pumpAndSettle();
+    expect(find.text('평점 남기기'), findsOneWidget);
+
+    await tester.tap(find.text('평점 남기기'));
+    await tester.pumpAndSettle();
+    expect(find.text('다시 선택하기'), findsOneWidget);
+    expect(
+      tester.widget<MovieRatingInput>(find.byType(MovieRatingInput)).enabled,
+      isFalse,
+    );
+    await tester.tap(find.text('다시 선택하기'));
+    await tester.pumpAndSettle();
+    expect(find.text('다시 선택하기'), findsNothing);
+    expect(
+      tester.widget<MovieRatingInput>(find.byType(MovieRatingInput)).enabled,
+      isTrue,
+    );
+    await tester.tap(find.text('확인'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('공유'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('영화 링크를 복사했습니다.'), findsOneWidget);
+    await tester.tap(find.byTooltip('뒤로 가기'));
+    await tester.pumpAndSettle();
+    expect(find.text('우주의 끝에서'), findsOneWidget);
+  });
+
+  testWidgets('movie detail keeps its actions visible on a phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    AppRouter.router.go('/movies/10');
+    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('즐겨찾기'), findsOneWidget);
+    expect(find.text('평점 남기기'), findsOneWidget);
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -700),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('시놉시스'), findsOneWidget);
+    expect(find.text('평점 남기기'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('start, register, and home do not return to prior screens', (

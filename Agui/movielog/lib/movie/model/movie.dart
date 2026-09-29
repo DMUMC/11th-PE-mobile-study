@@ -5,6 +5,7 @@ class Movie {
     required this.genre,
     required this.year,
     required this.posterAsset,
+    this.rating,
   });
 
   final int id;
@@ -12,4 +13,5 @@ class Movie {
   final String genre;
   final int year;
   final String posterAsset;
+  final double? rating;
 }

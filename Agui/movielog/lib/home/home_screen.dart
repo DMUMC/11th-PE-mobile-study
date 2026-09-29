@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final featured = findMovieById(6)!;
+    final featured = findMovieById(10)!;
     final popular = [
       (movie: findMovieById(7)!, rating: '9.6'),
       (movie: findMovieById(8)!, rating: '9.2'),

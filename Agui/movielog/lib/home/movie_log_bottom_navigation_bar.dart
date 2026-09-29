@@ -9,9 +9,24 @@ class MovieLogBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
 
   static const _tabs = [
-    (label: '홈', icon: 'home.svg', path: '/home'),
-    (label: '영화', icon: 'movie.svg', path: '/movies'),
-    (label: '마이', icon: 'person.svg', path: '/my'),
+    (
+      label: '홈',
+      icon: 'home.svg',
+      selectedIcon: Icons.home_rounded,
+      path: '/home',
+    ),
+    (
+      label: '영화',
+      icon: 'movie.svg',
+      selectedIcon: Icons.movie_rounded,
+      path: '/movies',
+    ),
+    (
+      label: '마이',
+      icon: 'person.svg',
+      selectedIcon: Icons.person_rounded,
+      path: '/my',
+    ),
   ];
 
   @override
@@ -43,17 +58,21 @@ class MovieLogBottomNavigationBar extends StatelessWidget {
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(100),
                         ),
-                        child: SvgPicture.asset(
-                          'assets/icons/${_tabs[index].icon}',
-                          width: 24,
-                          height: 24,
-                          colorFilter: ColorFilter.mode(
-                            currentIndex == index
-                                ? AppColors.primary600
-                                : AppColors.secondary500,
-                            BlendMode.srcIn,
-                          ),
-                        ),
+                        child: currentIndex == index
+                            ? Icon(
+                                _tabs[index].selectedIcon,
+                                size: 24,
+                                color: AppColors.primary600,
+                              )
+                            : SvgPicture.asset(
+                                'assets/icons/${_tabs[index].icon}',
+                                width: 24,
+                                height: 24,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.secondary500,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 4),
                       Text(
