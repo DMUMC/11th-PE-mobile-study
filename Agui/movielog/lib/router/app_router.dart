@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/home/home_screen.dart';
 import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
 import 'package:movielog/start_screen.dart';
@@ -14,10 +15,7 @@ class AppRouter {
     initialLocation: initialLocation,
     routes: [
       GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const _RoutePlaceholder(title: '홈'),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/movies',
         builder: (context, state) => const MovieListScreen(),

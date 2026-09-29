@@ -17,7 +17,12 @@ void main() {
 
     AppRouter.router.go('/home');
     await tester.pumpAndSettle();
-    expect(find.text('홈'), findsWidgets);
+    expect(find.text('추천 영화'), findsOneWidget);
+    expect(find.text('속삭이는 숲'), findsOneWidget);
+
+    await tester.tap(find.text('속삭이는 숲'));
+    await tester.pumpAndSettle();
+    expect(find.text('영화 ID: 1'), findsOneWidget);
 
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();

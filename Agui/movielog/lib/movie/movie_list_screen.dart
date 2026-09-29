@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
+import 'package:movielog/movie/widgets/movie_card.dart';
 
 class MovieListScreen extends StatelessWidget {
   const MovieListScreen({super.key});
@@ -19,35 +20,7 @@ class MovieListScreen extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           final movie = movies[index];
-          return Card(
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Image.asset(movie.posterAsset, fit: BoxFit.cover),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        movie.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      Text('${movie.genre} · ${movie.year}'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
+          return MovieCard(movie: movie);
         },
       ),
     );
