@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
 import 'package:movielog/start_screen.dart';
 
@@ -19,7 +20,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/movies',
-        builder: (context, state) => const _RoutePlaceholder(title: '영화 목록'),
+        builder: (context, state) => const MovieListScreen(),
         routes: [
           GoRoute(
             path: ':movieId',
