@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/home/movie_log_bottom_navigation_bar.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/widgets/movie_card.dart';
 
@@ -9,6 +10,7 @@ class MovieListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('영화 목록')),
+      bottomNavigationBar: const MovieLogBottomNavigationBar(currentIndex: 1),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: movies.length,

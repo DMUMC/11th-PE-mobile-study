@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/home/movie_log_bottom_navigation_bar.dart';
 import 'package:movielog/profile_screen/profile_body/favorite_genrs.dart';
 import 'package:movielog/profile_screen/profile_body/profile_header.dart';
 import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
@@ -21,6 +22,7 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const MovieLogAppBar(title: '내 프로필'),
+      bottomNavigationBar: const MovieLogBottomNavigationBar(currentIndex: 2),
       body: SafeArea(
         minimum: EdgeInsets.symmetric(),
         child: SingleChildScrollView(

@@ -36,6 +36,34 @@ const movies = <Movie>[
     year: 2022,
     posterAsset: 'assets/images/posters/poster_night_shadows.jpg',
   ),
+  Movie(
+    id: 6,
+    title: '별빛 아래 우리',
+    genre: '로맨스 · 드라마',
+    year: 2025,
+    posterAsset: 'assets/images/posters/hero_under_the_starlight.jpg',
+  ),
+  Movie(
+    id: 7,
+    title: '마션 레스큐',
+    genre: 'SF',
+    year: 2025,
+    posterAsset: 'assets/images/posters/poster_echoes_of_the_void.jpg',
+  ),
+  Movie(
+    id: 8,
+    title: '스파이 코드',
+    genre: '액션',
+    year: 2025,
+    posterAsset: 'assets/images/posters/poster_abyss_walker.jpg',
+  ),
+  Movie(
+    id: 9,
+    title: '비오는 날의 그림자',
+    genre: '스릴러',
+    year: 2024,
+    posterAsset: 'assets/images/posters/poster_night_shadows.jpg',
+  ),
 ];
 
 Movie? findMovieById(int? id) {
