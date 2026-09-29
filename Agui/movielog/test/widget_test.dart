@@ -1,30 +1,27 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:movielog/main.dart';
+import 'package:movielog/router/app_router.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('starts on /my and resolves movie routes', (tester) async {
     await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpAndSettle();
+    expect(find.text('내 프로필'), findsOneWidget);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    AppRouter.router.go('/home');
+    await tester.pumpAndSettle();
+    expect(find.text('홈'), findsWidgets);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    AppRouter.router.go('/movies');
+    await tester.pumpAndSettle();
+    expect(find.text('영화 목록'), findsWidgets);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    AppRouter.router.go('/movies/42');
+    await tester.pumpAndSettle();
+    expect(find.text('영화 ID: 42'), findsOneWidget);
+
+    AppRouter.router.go('/start');
+    await tester.pumpAndSettle();
+    expect(find.text('시작하기'), findsOneWidget);
   });
 }
