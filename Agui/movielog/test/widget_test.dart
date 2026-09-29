@@ -22,16 +22,27 @@ void main() {
 
     await tester.tap(find.text('속삭이는 숲'));
     await tester.pumpAndSettle();
-    expect(find.text('영화 ID: 1'), findsOneWidget);
+    expect(find.text('영화 상세'), findsOneWidget);
+    expect(find.text('속삭이는 숲'), findsOneWidget);
+    expect(find.text('판타지 · 2024'), findsOneWidget);
 
     AppRouter.router.go('/movies');
     await tester.pumpAndSettle();
     expect(find.text('영화 목록'), findsWidgets);
     expect(find.text('속삭이는 숲'), findsOneWidget);
 
+    AppRouter.router.go('/movies/2');
+    await tester.pumpAndSettle();
+    expect(find.text('공허의 메아리'), findsOneWidget);
+    expect(find.text('SF · 2024'), findsOneWidget);
+
     AppRouter.router.go('/movies/42');
     await tester.pumpAndSettle();
-    expect(find.text('영화 ID: 42'), findsOneWidget);
+    expect(find.text('영화를 찾을 수 없습니다.'), findsOneWidget);
+
+    AppRouter.router.go('/movies/not-a-number');
+    await tester.pumpAndSettle();
+    expect(find.text('영화를 찾을 수 없습니다.'), findsOneWidget);
 
     AppRouter.router.go('/start');
     await tester.pumpAndSettle();
