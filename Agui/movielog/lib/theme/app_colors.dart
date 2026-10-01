@@ -64,5 +64,6 @@ abstract final class AppColors {
   static const white = neutral100;
   static const black = onSurface;
   static const gray = neutral500;
-  static const error = Color(0xFFB3261E);
+  static const errorField = Color(0xFFFFDAD6);
+  static const errorBorder = Color(0xFFB3261E);
 }

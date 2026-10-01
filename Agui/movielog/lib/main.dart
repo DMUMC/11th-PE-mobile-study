@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/auth/sign_up_screen.dart';
 import 'package:movielog/start_screen.dart';
 import 'package:movielog/theme/app_theme.dart';
 
@@ -16,7 +17,7 @@ class MovieLogApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
       theme: AppTheme.light,
-      home: const StartScreen(), // 첫 실행 화면 지정
+      home: const SignUpScreen(), // 첫 실행 화면 지정
     );
   }
 }
