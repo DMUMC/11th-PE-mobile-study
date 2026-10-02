@@ -156,9 +156,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(added ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.'),
-        ),
+        SnackBar(content: Text(added ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.')),
       );
   }
 
@@ -179,6 +177,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     );
 
     if (rating == null || !mounted) return;
+    if (rating == 0) {
+      MovieRatingStore.clear(_currentMovieId);
+      setState(() {});
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('평점을 초기화했습니다.')));
+      return;
+    }
+
     MovieRatingStore.save(_currentMovieId, rating);
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(

@@ -7,4 +7,8 @@ abstract final class MovieRatingStore {
   static void save(int movieId, double rating) {
     _ratings[movieId] = rating;
   }
+
+  static void clear(int movieId) {
+    _ratings.remove(movieId);
+  }
 }

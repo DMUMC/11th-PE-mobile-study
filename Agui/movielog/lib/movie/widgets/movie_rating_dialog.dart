@@ -49,17 +49,36 @@ class _MovieRatingDialogState extends State<MovieRatingDialog> {
               onChanged: (rating) => setState(() => _rating = rating),
             ),
             if (widget.hasExistingRating && !_isEditing) ...[
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => setState(() => _isEditing = true),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary600,
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => setState(() => _isEditing = true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary600,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    child: const Text('다시 선택하기'),
                   ),
-                ),
-                child: const Text('다시 선택하기'),
+                  TextButton(
+                    onPressed: () => setState(() {
+                      _rating = 0;
+                      _isEditing = true;
+                    }),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.secondary500,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    child: const Text('평점 초기화'),
+                  ),
+                ],
               ),
             ],
             SizedBox(height: widget.hasExistingRating && !_isEditing ? 12 : 24),
