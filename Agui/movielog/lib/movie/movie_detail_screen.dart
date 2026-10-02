@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
@@ -214,12 +215,16 @@ class _DetailBody extends StatelessWidget {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          for (var index = 0; index < 5; index++)
-                            const Icon(
+                          RatingBarIndicator(
+                            rating: rating,
+                            itemCount: 5,
+                            itemSize: 20,
+                            unratedColor: AppColors.neutral400,
+                            itemBuilder: (context, index) => const Icon(
                               Icons.star_rounded,
                               color: AppColors.primary600,
-                              size: 20,
                             ),
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             isStarlight
