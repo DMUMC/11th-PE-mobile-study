@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/home/movie_log_bottom_navigation_bar.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/widgets/movie_card.dart';
 import 'package:movielog/theme/app_colors.dart';
@@ -107,7 +106,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
           child: Divider(height: 1, color: AppColors.surfaceContainer),
         ),
       ),
-      bottomNavigationBar: const MovieLogBottomNavigationBar(currentIndex: 1),
       body: SafeArea(
         bottom: false,
         child: Column(

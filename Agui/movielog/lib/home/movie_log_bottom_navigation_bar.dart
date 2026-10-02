@@ -4,36 +4,24 @@ import 'package:go_router/go_router.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieLogBottomNavigationBar extends StatelessWidget {
-  const MovieLogBottomNavigationBar({required this.currentIndex, super.key});
+  const MovieLogBottomNavigationBar({required this.navigationShell, super.key});
 
-  final int currentIndex;
+  final StatefulNavigationShell navigationShell;
 
   static const _tabs = [
-    (
-      label: '홈',
-      icon: 'home.svg',
-      selectedIcon: Icons.home_rounded,
-      path: '/home',
-    ),
-    (
-      label: '영화',
-      icon: 'movie.svg',
-      selectedIcon: Icons.movie_rounded,
-      path: '/movies',
-    ),
-    (
-      label: '마이',
-      icon: 'person.svg',
-      selectedIcon: Icons.person_rounded,
-      path: '/my',
-    ),
+    (label: '홈', icon: 'home.svg', selectedIcon: Icons.home_rounded),
+    (label: '영화', icon: 'movie.svg', selectedIcon: Icons.movie_rounded),
+    (label: '마이', icon: 'person.svg', selectedIcon: Icons.person_rounded),
   ];
 
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
-      selectedIndex: currentIndex,
-      onDestinationSelected: (index) => context.go(_tabs[index].path),
+      selectedIndex: navigationShell.currentIndex,
+      onDestinationSelected: (index) => navigationShell.goBranch(
+        index,
+        initialLocation: index == navigationShell.currentIndex,
+      ),
       backgroundColor: AppColors.surfaceBase,
       indicatorColor: AppColors.primary200,
       destinations: [
