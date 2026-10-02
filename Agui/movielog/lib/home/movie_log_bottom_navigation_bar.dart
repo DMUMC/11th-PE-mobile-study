@@ -31,69 +31,31 @@ class MovieLogBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        height: 80,
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceBase,
-          border: Border(top: BorderSide(color: AppColors.surfaceContainer)),
-        ),
-        child: Row(
-          children: [
-            for (var index = 0; index < _tabs.length; index++)
-              Expanded(
-                child: InkWell(
-                  onTap: () => context.go(_tabs[index].path),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: currentIndex == index
-                              ? AppColors.primary200
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: currentIndex == index
-                            ? Icon(
-                                _tabs[index].selectedIcon,
-                                size: 24,
-                                color: AppColors.primary600,
-                              )
-                            : SvgPicture.asset(
-                                'assets/icons/${_tabs[index].icon}',
-                                width: 24,
-                                height: 24,
-                                colorFilter: const ColorFilter.mode(
-                                  AppColors.secondary500,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _tabs[index].label,
-                        style: TextStyle(
-                          color: currentIndex == index
-                              ? AppColors.primary600
-                              : AppColors.secondary500,
-                          fontSize: 12,
-                          fontWeight: currentIndex == index
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return NavigationBar(
+      selectedIndex: currentIndex,
+      onDestinationSelected: (index) => context.go(_tabs[index].path),
+      backgroundColor: AppColors.surfaceBase,
+      indicatorColor: AppColors.primary200,
+      destinations: [
+        for (final tab in _tabs)
+          NavigationDestination(
+            label: tab.label,
+            icon: SvgPicture.asset(
+              'assets/icons/${tab.icon}',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColors.secondary500,
+                BlendMode.srcIn,
               ),
-          ],
-        ),
-      ),
+            ),
+            selectedIcon: Icon(
+              tab.selectedIcon,
+              size: 24,
+              color: AppColors.primary600,
+            ),
+          ),
+      ],
     );
   }
 }

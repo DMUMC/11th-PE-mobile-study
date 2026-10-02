@@ -13,13 +13,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final featured = findMovieById(10)!;
-    final popular = [
-      (movie: findMovieById(7)!, rating: '9.6'),
-      (movie: findMovieById(8)!, rating: '9.2'),
-      (movie: findMovieById(9)!, rating: '8.9'),
-      (movie: findMovieById(1)!, rating: '8.7'),
-      (movie: findMovieById(4)!, rating: '8.5'),
-    ];
+    final popular = movies
+        .where((movie) => const [7, 8, 9, 1, 4].contains(movie.id))
+        .toList();
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -106,11 +102,8 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: popular.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) => _PopularMovieCard(
-                    movie: popular[index].movie,
-                    rating: popular[index].rating,
-                    rank: index + 1,
-                  ),
+                  itemBuilder: (context, index) =>
+                      _PopularMovieCard(movie: popular[index], rank: index + 1),
                 ),
               ),
               const SizedBox(height: 8),
@@ -230,13 +223,8 @@ class _FeaturedMovieBanner extends StatelessWidget {
 }
 
 class _PopularMovieCard extends StatelessWidget {
-  const _PopularMovieCard({
-    required this.movie,
-    required this.rating,
-    required this.rank,
-  });
+  const _PopularMovieCard({required this.movie, required this.rank});
   final Movie movie;
-  final String rating;
   final int rank;
 
   @override
@@ -302,7 +290,10 @@ class _PopularMovieCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Text(rating, style: AppTextStyles.labelSmallMedium),
+                Text(
+                  movie.rating?.toStringAsFixed(1) ?? '-',
+                  style: AppTextStyles.labelSmallMedium,
+                ),
               ],
             ),
           ],

@@ -7,6 +7,7 @@ const movies = <Movie>[
     genre: '판타지',
     year: 2024,
     posterAsset: 'assets/images/posters/poster_whispering_woods.jpg',
+    rating: 8.7,
   ),
   Movie(
     id: 2,
@@ -28,6 +29,7 @@ const movies = <Movie>[
     genre: '드라마',
     year: 2025,
     posterAsset: 'assets/images/posters/poster_fourth_afternoon.jpg',
+    rating: 8.5,
   ),
   Movie(
     id: 5,
@@ -49,6 +51,7 @@ const movies = <Movie>[
     genre: 'SF',
     year: 2025,
     posterAsset: 'assets/images/posters/poster_echoes_of_the_void.jpg',
+    rating: 9.6,
   ),
   Movie(
     id: 8,
@@ -56,6 +59,7 @@ const movies = <Movie>[
     genre: '액션',
     year: 2025,
     posterAsset: 'assets/images/posters/poster_abyss_walker.jpg',
+    rating: 9.2,
   ),
   Movie(
     id: 9,
@@ -63,11 +67,9 @@ const movies = <Movie>[
     genre: '스릴러',
     year: 2024,
     posterAsset: 'assets/images/posters/poster_night_shadows.jpg',
+    rating: 8.9,
   ),
-];
-
-/// 피그마 영화 목록 화면에 표시되는 순서와 메타데이터입니다.
-const catalogMovies = <Movie>[
+  // Curated catalog records are part of the same canonical mock collection.
   Movie(
     id: 10,
     title: '별빛 아래 우리',
@@ -118,8 +120,11 @@ const catalogMovies = <Movie>[
   ),
 ];
 
+/// Movie list screen ordering; the movie records themselves stay in [movies].
+const catalogMovieIds = [10, 11, 12, 13, 14, 15];
+
 Movie? findMovieById(int? id) {
-  for (final movie in [...movies, ...catalogMovies]) {
+  for (final movie in movies) {
     if (movie.id == id) return movie;
   }
   return null;

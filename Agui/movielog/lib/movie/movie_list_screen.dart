@@ -21,7 +21,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final visibleMovies = catalogMovies.where((movie) {
+    final visibleMovies = movies.where((movie) {
+      if (!catalogMovieIds.contains(movie.id)) return false;
       final matchesGenre =
           _selectedGenre == '전체' || movie.genre == _selectedGenre;
       final matchesSearch =
@@ -96,36 +97,23 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 itemBuilder: (context, index) {
                   final genre = _genres[index];
                   final selected = genre == _selectedGenre;
-                  return Semantics(
-                    button: true,
+                  return FilterChip(
+                    label: Text(genre),
                     selected: selected,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(100),
-                      onTap: () => setState(() => _selectedGenre = genre),
-                      child: Container(
-                        height: 32,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.primary500
-                              : AppColors.secondary200,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Text(
-                          genre,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: selected
-                                ? Colors.white
-                                : AppColors.secondary700,
-                          ),
-                        ),
-                      ),
+                    showCheckmark: false,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    side: BorderSide.none,
+                    shape: const StadiumBorder(),
+                    backgroundColor: AppColors.secondary200,
+                    selectedColor: AppColors.primary500,
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected ? Colors.white : AppColors.secondary700,
                     ),
+                    onSelected: (_) => setState(() => _selectedGenre = genre),
                   );
                 },
               ),
