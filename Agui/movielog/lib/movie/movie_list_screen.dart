@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:movielog/home/movie_log_bottom_navigation_bar.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/widgets/movie_card.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieListScreen extends StatefulWidget {
-  const MovieListScreen({super.key});
+  const MovieListScreen({super.key, this.initialGenre});
+
+  final String? initialGenre;
 
   @override
   State<MovieListScreen> createState() => _MovieListScreenState();
@@ -15,9 +18,31 @@ class MovieListScreen extends StatefulWidget {
 class _MovieListScreenState extends State<MovieListScreen> {
   static const _genres = ['전체', '드라마', 'SF', '애니메이션', '스릴러'];
 
-  String _selectedGenre = '전체';
+  late String _selectedGenre;
   String _searchQuery = '';
   bool _isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedGenre = _validGenre(widget.initialGenre);
+  }
+
+  @override
+  void didUpdateWidget(covariant MovieListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialGenre != widget.initialGenre) {
+      _selectedGenre = _validGenre(widget.initialGenre);
+    }
+  }
+
+  String _validGenre(String? genre) => _genres.contains(genre) ? genre! : '전체';
+
+  void _selectGenre(String genre) {
+    setState(() => _selectedGenre = genre);
+    final location = Uri(path: '/movies', queryParameters: {'genre': genre});
+    context.go(location.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +138,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       color: selected ? Colors.white : AppColors.secondary700,
                     ),
-                    onSelected: (_) => setState(() => _selectedGenre = genre),
+                    onSelected: (_) => _selectGenre(genre),
                   );
                 },
               ),

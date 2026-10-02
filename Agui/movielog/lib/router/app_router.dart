@@ -23,7 +23,8 @@ class AppRouter {
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/movies',
-        builder: (context, state) => const MovieListScreen(),
+        builder: (context, state) =>
+            MovieListScreen(initialGenre: state.uri.queryParameters['genre']),
         routes: [
           GoRoute(
             path: ':movieId',
