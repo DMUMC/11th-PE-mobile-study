@@ -3,43 +3,73 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/widgets/movie_card.dart';
+import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieListScreen extends StatefulWidget {
-  const MovieListScreen({super.key, this.initialGenre});
+  const MovieListScreen({super.key, this.initialGenreQuery});
 
-  final String? initialGenre;
+  final String? initialGenreQuery;
 
   @override
   State<MovieListScreen> createState() => _MovieListScreenState();
 }
 
 class _MovieListScreenState extends State<MovieListScreen> {
-  static const _genres = ['전체', '드라마', 'SF', '애니메이션', '스릴러'];
+  static const _genres = [
+    '드라마',
+    'SF',
+    '애니메이션',
+    '스릴러',
+    '로맨스',
+    '코미디',
+    '판타지',
+    '다큐멘터리',
+  ];
 
-  late String _selectedGenre;
+  late Set<String> _selectedGenres;
   String _searchQuery = '';
   bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedGenre = _validGenre(widget.initialGenre);
+    _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
   }
 
   @override
   void didUpdateWidget(covariant MovieListScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialGenre != widget.initialGenre) {
-      _selectedGenre = _validGenre(widget.initialGenre);
+    if (oldWidget.initialGenreQuery != widget.initialGenreQuery) {
+      _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
     }
   }
 
-  String _validGenre(String? genre) => _genres.contains(genre) ? genre! : '전체';
+  Set<String> _genresFromQuery(String? query) => query == null
+      ? <String>{}
+      : query.split(',').where(_genres.contains).toSet();
 
-  void _selectGenre(String genre) {
-    setState(() => _selectedGenre = genre);
-    final location = Uri(path: '/movies', queryParameters: {'genre': genre});
+  Future<void> _showGenreFilter() async {
+    final selectedGenres = await showModalBottomSheet<Set<String>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => MovieGenreFilterSheet(
+        genres: _genres,
+        selectedGenres: _selectedGenres,
+      ),
+    );
+
+    if (selectedGenres == null || !mounted) return;
+    final appliedGenres = _genres.where(selectedGenres.contains).toSet();
+    setState(() => _selectedGenres = appliedGenres);
+
+    final genreQuery = _genres.where(appliedGenres.contains).join(',');
+    final location = Uri(
+      path: '/movies',
+      queryParameters: genreQuery.isEmpty ? null : {'genre': genreQuery},
+    );
     context.go(location.toString());
   }
 
@@ -48,7 +78,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
     final visibleMovies = movies.where((movie) {
       if (!catalogMovieIds.contains(movie.id)) return false;
       final matchesGenre =
-          _selectedGenre == '전체' || movie.genre == _selectedGenre;
+          _selectedGenres.isEmpty || _selectedGenres.contains(movie.genre);
       final matchesSearch =
           _searchQuery.isEmpty || movie.title.contains(_searchQuery.trim());
       return matchesGenre && matchesSearch;
@@ -110,35 +140,19 @@ class _MovieListScreenState extends State<MovieListScreen> {
         bottom: false,
         child: Column(
           children: [
-            SizedBox(
-              height: 56,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                itemCount: _genres.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final genre = _genres[index];
-                  final selected = genre == _selectedGenre;
-                  return FilterChip(
-                    label: Text(genre),
-                    selected: selected,
-                    showCheckmark: false,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                height: 40,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    tooltip: '장르 필터',
+                    onPressed: _showGenreFilter,
                     visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    backgroundColor: AppColors.secondary200,
-                    selectedColor: AppColors.primary500,
-                    labelStyle: TextStyle(
-                      fontSize: 12,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      color: selected ? Colors.white : AppColors.secondary700,
-                    ),
-                    onSelected: (_) => _selectGenre(genre),
-                  );
-                },
+                    icon: const Icon(Icons.filter_list),
+                  ),
+                ),
               ),
             ),
             Expanded(
@@ -146,7 +160,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   ? const Center(child: Text('검색 결과가 없습니다.'))
                   : LayoutBuilder(
                       builder: (context, constraints) => GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         itemCount: visibleMovies.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: constraints.maxWidth >= 700 ? 3 : 2,

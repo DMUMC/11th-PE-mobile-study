@@ -53,7 +53,7 @@ class AppRouter {
               GoRoute(
                 path: '/movies',
                 builder: (context, state) => MovieListScreen(
-                  initialGenre: state.uri.queryParameters['genre'],
+                  initialGenreQuery: state.uri.queryParameters['genre'],
                 ),
                 routes: [
                   GoRoute(
