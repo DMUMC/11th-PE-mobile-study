@@ -106,7 +106,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               child: SizedBox(
                 height: 48,
                 child: OutlinedButton.icon(
-                  onPressed: () => setState(() => _isFavorite = !_isFavorite),
+                  onPressed: _toggleFavorite,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary600,
                     side: const BorderSide(color: AppColors.primary600),
@@ -146,6 +146,20 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
         ),
       ),
     );
+  }
+
+  void _toggleFavorite() {
+    final added = !_isFavorite;
+    setState(() => _isFavorite = added);
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(added ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.'),
+        ),
+      );
   }
 
   void _copyMovieLink(Movie movie) {
