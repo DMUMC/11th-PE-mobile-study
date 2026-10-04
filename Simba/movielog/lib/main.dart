@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/profile_screen.dart';
+import 'screens/sign_up_screen.dart'; // 1. SignUpScreen import 추가
 import 'screens/start_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -16,9 +17,10 @@ class MovieLogApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
       theme: AppTheme.light,
-      // 시작 화면 확인 시: const StartScreen()
-      // 프로필 화면 확인 시: const ProfileScreen()
-      home: const ProfileScreen(),
+      // 시작 화면: const StartScreen()
+      // 프로필 화면: const ProfileScreen()
+      // 회원가입 화면: const SignUpScreen()
+      home: const SignUpScreen(), // 2. 회원가입 화면으로 지정
     );
   }
 }
