@@ -13,6 +13,8 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  static final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -38,7 +40,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _validateEmail(String? value) {
     final email = value?.trim() ?? '';
     if (email.isEmpty) return '이메일을 입력해주세요.';
-    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+    if (!_emailPattern.hasMatch(email)) {
       return '올바른 이메일 형식이 아닙니다.';
     }
     return null;
