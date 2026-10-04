@@ -1,7 +1,7 @@
 // src/book.repository.ts
 import { Injectable, Inject } from '@nestjs/common';
 import type { Pool } from 'mysql2/promise';
-import { DATABASE_CONNECTION } from './database.provider';
+import { DATABASE_CONNECTION } from '../database.provider';
 
 @Injectable() // NestJS 컨테이너에 "나 주입 가능한 부품이야!"라고 등록
 export class BookRepository {
@@ -30,5 +30,11 @@ export class BookRepository {
       body.description,
     ]);
     return result;
+  }
+
+  async findBookByCategoryId(categoryId: number): Promise<any> {
+    const sql = 'SELECT * FROM book WHERE category_id = ?';
+    const [rows] = await this.pool.query(sql, [categoryId]);
+    return rows;
   }
 }

@@ -1,5 +1,5 @@
 // src/book.controller.ts
-import { Controller, Get, Body, Post } from '@nestjs/common';
+import { Controller, Get, Body, Post, Param } from '@nestjs/common';
 import { BookService } from './book.service';
 
 @Controller('books') // 이 컨트롤러로 들어오는 기본 주소: /books
@@ -17,5 +17,12 @@ export class BookController {
   @Post()
   async createBook(@Body() body: Record<string, any>): Promise<string> {
     return await this.bookService.createBook(body);
+  }
+
+  @Get('category/:categoryId')
+  async getBooksByCategoryId(
+    @Param('categoryId') categoryId: number,
+  ): Promise<any> {
+    return await this.bookService.getBooksByCategoryId(categoryId);
   }
 }
