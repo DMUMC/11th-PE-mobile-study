@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'app_colors.dart';
+import 'app_text_styles.dart';
+
+abstract final class AppTheme {
+  static final ThemeData light = ThemeData(
+    useMaterial3: true,
+    fontFamily: 'Manrope',
+    scaffoldBackgroundColor: AppColors.warmWhite,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.violet,
+      primary: AppColors.violet,
+      surface: AppColors.warmWhite,
+      onPrimary: AppColors.white,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.warmWhite,
+      foregroundColor: AppColors.violet,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+    ),
+  );
+}
