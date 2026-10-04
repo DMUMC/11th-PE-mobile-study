@@ -6,6 +6,8 @@ import 'app_text_styles.dart';
 
 abstract final class AppTheme {
   static const _colorScheme = ColorScheme.light(
+    error: AppColors.error,
+    errorContainer: AppColors.errorContainer,
     primary: AppColors.primary500,
     onPrimary: AppColors.neutral100,
     primaryContainer: AppColors.primary200,

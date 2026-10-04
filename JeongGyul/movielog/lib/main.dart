@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'theme/app_theme.dart';
-
-import 'package:movielog/screens/start_screen.dart';
-import 'package:movielog/screens/profile_screen.dart';
+import 'package:movielog/screens/sign_up_screen.dart';
 
 void main() => runApp(const MovieLogApp());
 
@@ -13,6 +10,6 @@ class MovieLogApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: AppTheme.light,
-    home: const ProfileScreen(),
+    home: const SignUpScreen(),
   );
 }
