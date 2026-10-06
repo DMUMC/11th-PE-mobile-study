@@ -1,14 +1,19 @@
 # 11th-PE-mobile-study
 
 ## 🌲브랜치 규칙
-- 브랜치 명 : week00_닉네임(영어)
+- 프론트 작업 브랜치 명: week00_닉네임(영어)_fe
+- 백엔드 작업 브랜치 명: week00_닉네임(영어)_be
+
+예시: `week03_JeongGyul_fe`, `week03_JeongGyul_be`
+
 ---
 ## 📂폴더 구조
 - 본인 닉네임으로 생성된 폴더 내부에 프로젝트를 생성합니다.
 - 해당 프로젝트에서 실습을 진행해주시면 됩니다.
 ```
 ├── JeongGyul
-│    └── movielog
+│    └── movielog (Flutter 프로젝트)
+│    └── study (Spring/Node.js 프로젝트)
 │    └── ...
 ├── Juno
 ├── chunwol
@@ -16,7 +21,10 @@
 ```
 
 ## ✅ Pull Request 규칙
-- PR 제목: [week00] 닉네임 n주차 미션
+- PR 제목: [week0n] [FE/BE] 닉네임 n주차 미션
+- 예시: 
+    - `[week03] [FE] 정귤 3주차 미션`
+    - `[week03] [BE] 정귤 3주차 미션`
 - 내용 : 구현 내용, 실행 화면, 학습 내용, 오류와 해결 과정 작성
 
 PR 작성 이후에 우측부분에서 Assignee 지정해주세요!

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/genre_chip.dart';
-import '../widgets/stat_item.dart';
+import 'package:movielog/widgets/profile/genre_chip.dart';
+import 'package:movielog/widgets/profile/stat_item.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

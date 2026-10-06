@@ -1,0 +1,125 @@
+# macOS / Windows
+.DS_Store
+._*
+.AppleDouble/
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# IDE / editor settings
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.factorypath
+.history/
+*.swp
+*.swo
+*~
+
+# Environment variables / local secrets
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+!.env.sample
+!.env.template
+!*.env.example
+!*.env.sample
+!*.env.template
+application-local.properties
+application-local.yml
+application-local.yaml
+application-secret.properties
+application-secret.yml
+application-secret.yaml
+*.jks
+*.keystore
+*.p12
+*.pfx
+key.properties
+local.properties
+
+# Logs / temporary files
+*.log
+logs/
+.tmp/
+.temp/
+*.pid
+*.pid.lock
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+.widget_preview/
+build/
+coverage/
+**/doc/api/
+app.*.symbols
+app.*.map.json
+**/ios/Flutter/.last_build_id
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/captures/
+.cxx/
+.externalNativeBuild/
+**/android/**/GeneratedPluginRegistrant.java
+
+# Flutter iOS / macOS generated files
+Pods/
+.symlinks/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+**/Flutter/ephemeral/
+**/Flutter/App.framework/
+**/Flutter/Flutter.framework/
+**/Flutter/Flutter.podspec
+**/Flutter/Generated.xcconfig
+**/Flutter/flutter_export_environment.sh
+**/Flutter/flutter_assets/
+**/Flutter/app.flx
+**/Flutter/app.zip
+**/ios/Runner/GeneratedPluginRegistrant.*
+.build/
+.swiftpm/
+
+# Spring Boot / Java / Gradle / Maven
+.gradle/
+.kotlin/
+target/
+out/
+*.class
+*.hprof
+hs_err_pid*
+replay_pid*
+# Keep Gradle/Maven wrapper files and project dependencies under version control.
+# Do not ignore all *.jar files or the entire gradle/ directory.
+
+# NestJS / Node.js / TypeScript
+node_modules/
+dist/
+.nest/
+.cache/
+.npm/
+.pnpm-store/
+*.tsbuildinfo
+.nyc_output/
+.eslintcache
+.stylelintcache
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Keep pubspec.lock, package-lock.json, yarn.lock and pnpm-lock.yaml.
