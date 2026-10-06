@@ -14,7 +14,6 @@ class SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       automaticallyImplyLeading: false,
-      leading: const Icon(Icons.arrow_back),
       centerTitle: true,
       toolbarHeight: AppComponentHeight.appBar,
       title: Text(

@@ -47,4 +47,5 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
+week03.md
 flutter_layout_notes.md

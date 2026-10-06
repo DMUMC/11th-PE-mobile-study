@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -19,7 +20,7 @@ class StartScreen extends StatelessWidget {
               Column(
                 children: [
                   const SizedBox(height: 32),
-                  const Text('FLUTTER 1주차'),
+                  const Text('FLUTTER 0주차'),
                   const SizedBox(height: 64),
                   SvgPicture.asset(
                     'assets/logos/movielog_logo.svg',
@@ -45,7 +46,7 @@ class StartScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/register'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 48),
                     backgroundColor: colors.primary,

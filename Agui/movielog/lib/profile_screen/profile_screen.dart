@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/profile_screen/mock_profile_data.dart';
 import 'package:movielog/profile_screen/profile_body/favorite_genrs.dart';
 import 'package:movielog/profile_screen/profile_body/profile_header.dart';
 import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
@@ -12,13 +13,6 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final stats = const [
-      (label: '본 영화', value: '24'),
-      (label: '평점', value: '4.2'),
-      (label: '즐겨찾기', value: '58'),
-    ];
-    final genres = const ['드라마', 'SF', '애니메이션'];
-
     return Scaffold(
       appBar: const MovieLogAppBar(title: '내 프로필'),
       body: SafeArea(
@@ -33,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
               ProfileHeader(),
               SizedBox(height: AppSpacing.x4),
               Row(
-                children: stats
+                children: profileStats
                     .asMap()
                     .entries
                     .map<List<Widget>>(
@@ -61,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
                 child: Wrap(
                   spacing: AppSpacing.x1,
                   runSpacing: AppSpacing.x1,
-                  children: genres
+                  children: favoriteGenres
                       .map((genre) => FavoriteGenreChip(label: genre))
                       .toList(),
                 ),

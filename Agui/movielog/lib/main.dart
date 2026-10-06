@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:movielog/auth/sign_up_screen.dart';
-import 'package:movielog/start_screen.dart';
+import 'package:movielog/router/app_router.dart';
 import 'package:movielog/theme/app_theme.dart';
 
 void main() {
   runApp(const MovieLogApp());
 }
 
-// lib/movie_log_app.dart
 class MovieLogApp extends StatelessWidget {
   const MovieLogApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'MovieLog',
       theme: AppTheme.light,
-      home: const SignUpScreen(), // 첫 실행 화면 지정
+      routerConfig: AppRouter.router,
     );
   }
 }
