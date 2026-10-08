@@ -70,6 +70,8 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('applyGenreFilter')));
     await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
 
     expect(appRouter.state.uri.queryParametersAll['genre'], contains('SF'));
     expect(
