@@ -6,6 +6,7 @@ import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/movie/widgets/movie_grid.dart';
+import 'package:movielog/movie/widgets/movie_list_empty.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieListScreen extends StatefulWidget {
@@ -174,7 +175,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                       .toList();
 
                   return visibleMovies.isEmpty
-                      ? const Center(child: Text('검색 결과가 없습니다.'))
+                      ? const MovieListEmpty()
                       : MovieGrid(movies: visibleMovies);
                 },
               ),
