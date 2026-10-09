@@ -58,6 +58,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
       ? <String>{}
       : query.split(',').where(_genres.contains).toSet();
 
+  void _simulateEmpty() {
+    setState(() {
+      _moviesFuture = _movieService.fetchMovies(mode: MovieLoadMode.empty);
+    });
+  }
+
   void _simulateError() {
     setState(() {
       _moviesFuture = _movieService.fetchMovies(mode: MovieLoadMode.failure);
@@ -141,6 +147,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     ),
                   ),
           ),
+          if (kDebugMode)
+            IconButton(
+              tooltip: '빈 영화 목록 재현',
+              onPressed: _simulateEmpty,
+              icon: const Icon(Icons.inbox_outlined),
+            ),
           if (kDebugMode)
             IconButton(
               tooltip: '영화 로드 오류 재현',
