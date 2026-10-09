@@ -12,6 +12,7 @@ import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/movie/widgets/movie_grid.dart';
 import 'package:movielog/movie/widgets/movie_list_empty.dart';
 import 'package:movielog/movie/widgets/movie_list_error.dart';
+import 'package:movielog/movie/widgets/movie_list_loading.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieListScreen extends StatefulWidget {
@@ -240,7 +241,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 future: _moviesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const MovieListLoading();
                   }
 
                   if (snapshot.hasError) {
