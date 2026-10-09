@@ -13,6 +13,7 @@ import 'package:movielog/movie/widgets/movie_grid.dart';
 import 'package:movielog/movie/widgets/movie_list_empty.dart';
 import 'package:movielog/movie/widgets/movie_list_error.dart';
 import 'package:movielog/movie/widgets/movie_list_loading.dart';
+import 'package:movielog/movie/widgets/movie_list_timeout.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieListScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class MovieListScreen extends StatefulWidget {
 
 class _MovieListScreenState extends State<MovieListScreen> {
   static const _movieService = FakeMovieService();
+  static const _loadTimeout = Duration(seconds: 2);
   late final _genrePreference = GenrePreference();
 
   static const _genres = [
@@ -50,7 +52,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   void initState() {
     super.initState();
     _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
-    _moviesFuture = _movieService.fetchMovies();
+    _moviesFuture = _fetchMovies();
     _isRestoringGenres = widget.initialGenreQuery == null;
     if (_isRestoringGenres) unawaited(_restoreSelectedGenres());
   }
@@ -73,6 +75,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
   Set<String> _genresFromQuery(String? query) => query == null
       ? <String>{}
       : query.split(',').where(_genres.contains).toSet();
+
+  Future<List<Movie>> _fetchMovies({
+    MovieLoadMode mode = MovieLoadMode.success,
+  }) {
+    return _movieService.fetchMovies(mode: mode).timeout(_loadTimeout);
+  }
 
   Future<void> _restoreSelectedGenres() async {
     final revision = _genreSelectionRevision;
@@ -99,24 +107,30 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   void _simulateEmpty() {
     setState(() {
-      _moviesFuture = _movieService.fetchMovies(mode: MovieLoadMode.empty);
+      _moviesFuture = _fetchMovies(mode: MovieLoadMode.empty);
     });
   }
 
   void _simulateError() {
     setState(() {
-      _moviesFuture = _movieService.fetchMovies(mode: MovieLoadMode.failure);
+      _moviesFuture = _fetchMovies(mode: MovieLoadMode.failure);
+    });
+  }
+
+  void _simulateTimeout() {
+    setState(() {
+      _moviesFuture = _fetchMovies(mode: MovieLoadMode.slow);
     });
   }
 
   void _retry() {
     setState(() {
-      _moviesFuture = _movieService.fetchMovies();
+      _moviesFuture = _fetchMovies();
     });
   }
 
   Future<void> _refreshMovies() async {
-    final future = _movieService.fetchMovies();
+    final future = _fetchMovies();
     setState(() {
       _moviesFuture = future;
     });
@@ -224,6 +238,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
               onPressed: _simulateError,
               icon: const Icon(Icons.bug_report_outlined),
             ),
+          if (kDebugMode)
+            IconButton(
+              tooltip: '영화 로드 시간 초과 재현',
+              onPressed: _simulateTimeout,
+              icon: const Icon(Icons.timer_off_outlined),
+            ),
           const SizedBox(width: 8),
         ],
         bottom: const PreferredSize(
@@ -262,7 +282,9 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     }
 
                     if (snapshot.hasError) {
-                      return MovieListError(onRetry: _retry);
+                      return snapshot.error is TimeoutException
+                          ? MovieListTimeout(onRetry: _retry)
+                          : MovieListError(onRetry: _retry);
                     }
 
                     final visibleMovies = (snapshot.data ?? const <Movie>[])
