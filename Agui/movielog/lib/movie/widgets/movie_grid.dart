@@ -12,6 +12,7 @@ class MovieGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) => GridView.builder(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: movies.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: constraints.maxWidth >= 700 ? 3 : 2,

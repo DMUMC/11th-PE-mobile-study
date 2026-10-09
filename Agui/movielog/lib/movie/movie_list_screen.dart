@@ -115,6 +115,20 @@ class _MovieListScreenState extends State<MovieListScreen> {
     });
   }
 
+  Future<void> _refreshMovies() async {
+    final future = _movieService.fetchMovies();
+    setState(() {
+      _moviesFuture = future;
+    });
+
+    try {
+      await future;
+    } catch (error, stackTrace) {
+      debugPrint('영화 목록 새로고침 실패: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
   Future<void> _showGenreFilter() async {
     final selectedGenres = await showModalBottomSheet<Set<String>>(
       context: context,
@@ -237,34 +251,46 @@ class _MovieListScreenState extends State<MovieListScreen> {
               ),
             ),
             Expanded(
-              child: FutureBuilder<List<Movie>>(
-                future: _moviesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const MovieListLoading();
-                  }
+              child: RefreshIndicator(
+                onRefresh: _refreshMovies,
+                child: FutureBuilder<List<Movie>>(
+                  future: _moviesFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
+                      return const MovieListLoading();
+                    }
 
-                  if (snapshot.hasError) {
-                    return MovieListError(onRetry: _retry);
-                  }
+                    if (snapshot.hasError) {
+                      return MovieListError(onRetry: _retry);
+                    }
 
-                  final visibleMovies = (snapshot.data ?? const <Movie>[])
-                      .where((movie) {
-                        if (!catalogMovieIds.contains(movie.id)) return false;
-                        final matchesGenre =
-                            _selectedGenres.isEmpty ||
-                            _selectedGenres.contains(movie.genre);
-                        final matchesSearch =
-                            _searchQuery.isEmpty ||
-                            movie.title.contains(_searchQuery.trim());
-                        return matchesGenre && matchesSearch;
-                      })
-                      .toList();
+                    final visibleMovies = (snapshot.data ?? const <Movie>[])
+                        .where((movie) {
+                          if (!catalogMovieIds.contains(movie.id)) return false;
+                          final matchesGenre =
+                              _selectedGenres.isEmpty ||
+                              _selectedGenres.contains(movie.genre);
+                          final matchesSearch =
+                              _searchQuery.isEmpty ||
+                              movie.title.contains(_searchQuery.trim());
+                          return matchesGenre && matchesSearch;
+                        })
+                        .toList();
 
-                  return visibleMovies.isEmpty
-                      ? const MovieListEmpty()
-                      : MovieGrid(movies: visibleMovies);
-                },
+                    return visibleMovies.isEmpty
+                        ? const CustomScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            slivers: [
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: MovieListEmpty(),
+                              ),
+                            ],
+                          )
+                        : MovieGrid(movies: visibleMovies);
+                  },
+                ),
               ),
             ),
           ],
