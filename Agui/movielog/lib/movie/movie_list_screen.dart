@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:movielog/movie/data/fake_movie_service.dart';
 import 'package:movielog/movie/data/genre_preference.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
+import 'package:movielog/movie/data/movie_sort_preference.dart';
 import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/movie/widgets/movie_grid.dart';
@@ -29,6 +30,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   static const _movieService = FakeMovieService();
   static const _loadTimeout = Duration(seconds: 2);
   late final _genrePreference = GenrePreference();
+  late final _sortPreference = MovieSortPreference();
 
   static const _genres = [
     '드라마',
@@ -45,6 +47,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
   late Future<List<Movie>> _moviesFuture;
   late bool _isRestoringGenres;
   int _genreSelectionRevision = 0;
+  MovieSortOrder _sortOrder = MovieSortOrder.catalog;
+  int _sortSelectionRevision = 0;
   String _searchQuery = '';
   bool _isSearching = false;
 
@@ -55,6 +59,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
     _moviesFuture = _fetchMovies();
     _isRestoringGenres = widget.initialGenreQuery == null;
     if (_isRestoringGenres) unawaited(_restoreSelectedGenres());
+    unawaited(_restoreSortOrder());
   }
 
   @override
@@ -102,6 +107,55 @@ class _MovieListScreenState extends State<MovieListScreen> {
       debugPrintStack(stackTrace: stackTrace);
       if (!mounted || revision != _genreSelectionRevision) return;
       setState(() => _isRestoringGenres = false);
+    }
+  }
+
+  Future<void> _restoreSortOrder() async {
+    final revision = _sortSelectionRevision;
+    try {
+      final savedOrder = await _sortPreference.read();
+      if (!mounted || revision != _sortSelectionRevision) return;
+      setState(() => _sortOrder = savedOrder);
+    } catch (error, stackTrace) {
+      debugPrint('정렬 설정 읽기 실패: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _changeSortOrder(MovieSortOrder order) async {
+    if (_sortOrder == order) return;
+    _sortSelectionRevision++;
+    setState(() => _sortOrder = order);
+
+    try {
+      await _sortPreference.save(order);
+    } catch (error, stackTrace) {
+      debugPrint('정렬 설정 저장 실패: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('정렬 방식을 저장하지 못했습니다.')));
+      }
+    }
+  }
+
+  void _sortMovies(List<Movie> movies) {
+    int catalogOrder(Movie a, Movie b) =>
+        catalogMovieIds.indexOf(a.id).compareTo(catalogMovieIds.indexOf(b.id));
+
+    switch (_sortOrder) {
+      case MovieSortOrder.catalog:
+        return;
+      case MovieSortOrder.newest:
+        movies.sort((a, b) {
+          final byYear = b.year.compareTo(a.year);
+          return byYear != 0 ? byYear : catalogOrder(a, b);
+        });
+      case MovieSortOrder.highestRated:
+        movies.sort((a, b) {
+          final byRating = (b.rating ?? -1).compareTo(a.rating ?? -1);
+          return byRating != 0 ? byRating : catalogOrder(a, b);
+        });
     }
   }
 
@@ -258,15 +312,36 @@ class _MovieListScreenState extends State<MovieListScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(
-                height: 40,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    tooltip: '장르 필터',
-                    onPressed: _isRestoringGenres ? null : _showGenreFilter,
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.filter_list),
-                  ),
+                height: 48,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    PopupMenuButton<MovieSortOrder>(
+                      tooltip: '영화 정렬',
+                      initialValue: _sortOrder,
+                      onSelected: _changeSortOrder,
+                      itemBuilder: (context) => [
+                        for (final order in MovieSortOrder.values)
+                          PopupMenuItem(value: order, child: Text(order.label)),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_sortOrder.label),
+                            const Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: '장르 필터',
+                      onPressed: _isRestoringGenres ? null : _showGenreFilter,
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.filter_list),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -299,6 +374,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                           return matchesGenre && matchesSearch;
                         })
                         .toList();
+                    _sortMovies(visibleMovies);
 
                     return visibleMovies.isEmpty
                         ? const CustomScrollView(
