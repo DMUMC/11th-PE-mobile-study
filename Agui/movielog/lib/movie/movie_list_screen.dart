@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/movie/widgets/movie_grid.dart';
 import 'package:movielog/movie/widgets/movie_list_empty.dart';
+import 'package:movielog/movie/widgets/movie_list_error.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieListScreen extends StatefulWidget {
@@ -55,6 +57,18 @@ class _MovieListScreenState extends State<MovieListScreen> {
   Set<String> _genresFromQuery(String? query) => query == null
       ? <String>{}
       : query.split(',').where(_genres.contains).toSet();
+
+  void _simulateError() {
+    setState(() {
+      _moviesFuture = _movieService.fetchMovies(mode: MovieLoadMode.failure);
+    });
+  }
+
+  void _retry() {
+    setState(() {
+      _moviesFuture = _movieService.fetchMovies();
+    });
+  }
 
   Future<void> _showGenreFilter() async {
     final selectedGenres = await showModalBottomSheet<Set<String>>(
@@ -127,6 +141,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     ),
                   ),
           ),
+          if (kDebugMode)
+            IconButton(
+              tooltip: '영화 로드 오류 재현',
+              onPressed: _simulateError,
+              icon: const Icon(Icons.bug_report_outlined),
+            ),
           const SizedBox(width: 8),
         ],
         bottom: const PreferredSize(
@@ -159,6 +179,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return MovieListError(onRetry: _retry);
                   }
 
                   final visibleMovies = (snapshot.data ?? const <Movie>[])
