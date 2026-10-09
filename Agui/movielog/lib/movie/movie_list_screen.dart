@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/movie/data/fake_movie_service.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
+import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/movie/widgets/movie_grid.dart';
 import 'package:movielog/theme/app_colors.dart';
@@ -16,6 +18,8 @@ class MovieListScreen extends StatefulWidget {
 }
 
 class _MovieListScreenState extends State<MovieListScreen> {
+  static const _movieService = FakeMovieService();
+
   static const _genres = [
     '드라마',
     'SF',
@@ -28,6 +32,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   ];
 
   late Set<String> _selectedGenres;
+  late Future<List<Movie>> _moviesFuture;
   String _searchQuery = '';
   bool _isSearching = false;
 
@@ -35,6 +40,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   void initState() {
     super.initState();
     _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
+    _moviesFuture = _movieService.fetchMovies();
   }
 
   @override
@@ -75,15 +81,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final visibleMovies = movies.where((movie) {
-      if (!catalogMovieIds.contains(movie.id)) return false;
-      final matchesGenre =
-          _selectedGenres.isEmpty || _selectedGenres.contains(movie.genre);
-      final matchesSearch =
-          _searchQuery.isEmpty || movie.title.contains(_searchQuery.trim());
-      return matchesGenre && matchesSearch;
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 64,
@@ -156,9 +153,31 @@ class _MovieListScreenState extends State<MovieListScreen> {
               ),
             ),
             Expanded(
-              child: visibleMovies.isEmpty
-                  ? const Center(child: Text('검색 결과가 없습니다.'))
-                  : MovieGrid(movies: visibleMovies),
+              child: FutureBuilder<List<Movie>>(
+                future: _moviesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final visibleMovies = (snapshot.data ?? const <Movie>[])
+                      .where((movie) {
+                        if (!catalogMovieIds.contains(movie.id)) return false;
+                        final matchesGenre =
+                            _selectedGenres.isEmpty ||
+                            _selectedGenres.contains(movie.genre);
+                        final matchesSearch =
+                            _searchQuery.isEmpty ||
+                            movie.title.contains(_searchQuery.trim());
+                        return matchesGenre && matchesSearch;
+                      })
+                      .toList();
+
+                  return visibleMovies.isEmpty
+                      ? const Center(child: Text('검색 결과가 없습니다.'))
+                      : MovieGrid(movies: visibleMovies);
+                },
+              ),
             ),
           ],
         ),
