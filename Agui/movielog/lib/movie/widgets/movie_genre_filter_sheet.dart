@@ -37,11 +37,10 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
       snapSizes: const [0.55, 0.92],
       controller: _sheetController,
       builder: (context, scrollController) {
-        return DecoratedBox(
-          decoration: const BoxDecoration(
-            color: AppColors.surfaceBase,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
+        return Material(
+          color: AppColors.surfaceBase,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
               const SizedBox(height: 12),

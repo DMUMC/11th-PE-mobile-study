@@ -4,8 +4,15 @@ import 'package:movielog/main.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/widgets/movie_rating_input.dart';
 import 'package:movielog/router/app_router.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   test('findMovieById returns a movie or null', () {
     expect(findMovieById(1)?.title, '속삭이는 숲');
     expect(findMovieById(null), isNull);
