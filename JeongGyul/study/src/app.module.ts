@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseProviders } from './database.provider';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { BookController } from './book/book.controller';
-import { BookService } from './book/book.service';
-import { BookRepository } from './book/book.repository';
+import { BooksModule } from './books/books.module';
 import { RentalController } from './rental/rental.controller';
 import { RentalService } from './rental/rental.service';
 import { RentalRepository } from './rental/rental.repository';
@@ -15,13 +14,25 @@ import { RentalRepository } from './rental/rental.repository';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.getOrThrow('DB_HOST'),
+        port: 3306,
+        username: configService.getOrThrow('DB_USER'),
+        password: configService.getOrThrow('DB_PASSWORD'),
+        database: configService.getOrThrow('DB_NAME'),
+        autoLoadEntities: true,
+        synchronize: false,
+      }),
+    }),
+    BooksModule,
   ],
-  controllers: [AppController, BookController, RentalController],
+  controllers: [AppController, RentalController],
   providers: [
     ...databaseProviders,
     AppService,
-    BookService,
-    BookRepository,
     RentalService,
     RentalRepository,
   ],
