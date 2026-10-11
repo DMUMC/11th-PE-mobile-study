@@ -23,14 +23,18 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 32, 16, 24),
           child: Column(
             children: [
               CircleAvatar(
-                radius: 64,
-                backgroundImage: AssetImage(
-                  'assets/images/profile/profile_movielog.jpg',
+                radius: 65,
+                backgroundColor: colors.primaryContainer,
+                child: const CircleAvatar(
+                  radius: 64,
+                  backgroundImage: AssetImage(
+                    'assets/images/profile/profile_movielog.jpg',
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -42,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화로 보고 기록하는 것을 좋아합니다.',
+                '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,

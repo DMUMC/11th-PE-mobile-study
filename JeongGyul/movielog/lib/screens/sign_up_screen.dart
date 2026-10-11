@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:movielog/widgets/sign_up/sign_up_header.dart';
 import 'package:movielog/widgets/sign_up/sign_up_fields.dart';
@@ -57,6 +57,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid || !_canSubmit) return;
     FocusScope.of(context).unfocus();
+    context.go('/home');
   }
 
   @override
@@ -66,14 +67,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: Center(
-          child: SvgPicture.asset(
-            'assets/icons/arrow_back.svg',
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(colors.onSurface, BlendMode.srcIn),
-          ),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(
           '회원가입',
           style: textTheme.headlineMedium?.copyWith(

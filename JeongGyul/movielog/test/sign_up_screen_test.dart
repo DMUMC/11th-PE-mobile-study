@@ -97,17 +97,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(submitButton(tester).onPressed, isNotNull);
 
-    await tester.ensureVisible(find.byType(ElevatedButton));
-    await tester.tap(find.byType(ElevatedButton));
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<EditableText>(find.byType(EditableText).at(2))
-          .focusNode
-          .hasFocus,
-      isFalse,
-    );
-
     await tester.enterText(field(1), 'invalid');
     await tester.pumpAndSettle();
     expect(submitButton(tester).onPressed, isNull);

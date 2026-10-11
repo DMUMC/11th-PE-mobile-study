@@ -47,6 +47,10 @@ abstract final class AppTheme {
     scaffoldBackgroundColor: AppColors.surfaceBase,
     colorScheme: _colorScheme,
     textTheme: _textTheme,
+    navigationBarTheme: const NavigationBarThemeData(
+      backgroundColor: AppColors.surfaceBase,
+      indicatorColor: AppColors.primary200,
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.surfaceBase,
       foregroundColor: AppColors.neutral900,
