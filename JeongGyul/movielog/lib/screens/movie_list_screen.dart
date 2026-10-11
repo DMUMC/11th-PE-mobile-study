@@ -18,9 +18,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   Widget build(BuildContext context) {
     final filteredMovies = movies
         .where(
-          (movie) =>
-              !movie.isPopular &&
-              (_selectedGenre == '전체' || movie.genre == _selectedGenre),
+          (movie) => _selectedGenre == '전체' || movie.genre == _selectedGenre,
         )
         .toList();
     return Scaffold(
