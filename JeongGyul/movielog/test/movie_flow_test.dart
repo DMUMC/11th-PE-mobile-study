@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:movielog/main.dart';
 import 'package:movielog/router/app_router.dart';
 import 'package:movielog/screens/movie_detail_screen.dart';
@@ -9,6 +11,11 @@ import 'package:movielog/widgets/movie/movie_rating_input.dart';
 import 'package:movielog/widgets/movie/rating_dialog.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   Future<void> openApp(
     WidgetTester tester,
     String route, {
@@ -19,6 +26,7 @@ void main() {
     addTearDown(tester.view.reset);
     AppRouter.router.go(route);
     await tester.pumpWidget(const MovieLogApp());
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
   }
 
@@ -63,6 +71,8 @@ void main() {
   testWidgets('탭과 장르를 선택하고 해당 영화 ID의 상세에서 목록으로 돌아온다', (tester) async {
     await openApp(tester, '/home');
     await tester.tap(find.byType(NavigationDestination).at(1));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
@@ -70,9 +80,9 @@ void main() {
     );
     await tester.tap(find.widgetWithText(ChoiceChip, 'SF'));
     await tester.pumpAndSettle();
-    expect(find.byType(MovieCard), findsOneWidget);
+    expect(find.byType(MovieCard), findsNWidgets(2));
     expect(find.text('우주의 끝에서'), findsOneWidget);
-    await tester.tap(find.byType(MovieCard));
+    await tester.tap(find.widgetWithText(MovieCard, '우주의 끝에서'));
     await tester.pumpAndSettle();
     expect(find.text('Cinema Archive'), findsOneWidget);
     expect(
@@ -154,6 +164,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('영화를 찾을 수 없습니다.'), findsOneWidget);
     await tester.tap(find.byTooltip('뒤로가기'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
     expect(find.byType(GridView), findsOneWidget);
     expect(tester.takeException(), isNull);

@@ -7,7 +7,7 @@ class GenreFilter extends StatelessWidget {
     required this.onChanged,
   });
   final String selectedGenre;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onChanged;
   static const genres = ['전체', '드라마', 'SF', '애니메이션', '스릴러', '로맨스', '다큐멘터리'];
 
   @override
@@ -30,7 +30,9 @@ class GenreFilter extends StatelessWidget {
                 ? Colors.white
                 : Theme.of(context).colorScheme.onSurface,
           ),
-          onSelected: (_) => onChanged(genres[index]),
+          onSelected: onChanged == null
+              ? null
+              : (_) => onChanged!(genres[index]),
         );
       },
     ),
