@@ -3,10 +3,21 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../theme/app_colors.dart';
 
+class MovieRatingResult {
+  const MovieRatingResult({required this.movieId, required this.score});
+  final int movieId;
+  final double score;
+}
+
 class MovieRatingInput extends StatefulWidget {
-  const MovieRatingInput({required this.movieTitle, super.key});
+  const MovieRatingInput({
+    required this.movieId,
+    required this.movieTitle,
+    super.key,
+  });
 
   final String movieTitle;
+  final int movieId;
 
   @override
   State<MovieRatingInput> createState() => _MovieRatingInputState();
@@ -30,6 +41,12 @@ class _MovieRatingInputState extends State<MovieRatingInput> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
+            Text(
+              widget.movieTitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
             KeyedSubtree(
               key: const Key('ratingInput'),
               child: RatingBar.builder(
@@ -65,7 +82,13 @@ class _MovieRatingInputState extends State<MovieRatingInput> {
               height: 48,
               child: FilledButton(
                 onPressed: hasRating
-                    ? () => Navigator.pop(context, _rating)
+                    ? () => Navigator.pop(
+                        context,
+                        MovieRatingResult(
+                          movieId: widget.movieId,
+                          score: _rating,
+                        ),
+                      )
                     : null,
                 child: const Text('확인'),
               ),
