@@ -1,0 +1,187 @@
+{
+  "testedAt": "2026-10-29T08:52:36.616Z",
+  "database": "MySQL",
+  "cases": [
+    {
+      "name": "POST 도서 등록",
+      "status": 201,
+      "response": {
+        "bookId": 12,
+        "title": "미션검증-1793263956616-스프링",
+        "description": "실제 MySQL 검증",
+        "categoryName": "미션검증-1793263956616",
+        "isAvailable": true
+      }
+    },
+    {
+      "name": "POST 선택 설명 생략",
+      "status": 201,
+      "response": {
+        "bookId": 13,
+        "title": "미션검증-1793263956616-NestJS",
+        "description": null,
+        "categoryName": "미션검증-1793263956616",
+        "isAvailable": true
+      }
+    },
+    {
+      "name": "GET 전체 목록",
+      "status": 200,
+      "response": [
+        {
+          "bookId": 13,
+          "title": "미션검증-1793263956616-NestJS",
+          "description": null,
+          "categoryName": "미션검증-1793263956616",
+          "isAvailable": true
+        },
+        {
+          "bookId": 12,
+          "title": "미션검증-1793263956616-스프링",
+          "description": "실제 MySQL 검증",
+          "categoryName": "미션검증-1793263956616",
+          "isAvailable": false
+        },
+        {
+          "bookId": 10,
+          "title": "워크북검증-1793263853495",
+          "description": "4주차 Postman 검증",
+          "categoryName": "프로그래밍",
+          "isAvailable": true
+        },
+        {
+          "bookId": 2,
+          "title": "도서 대여 중 예시",
+          "description": null,
+          "categoryName": "소설",
+          "isAvailable": false
+        },
+        {
+          "bookId": 1,
+          "title": "스프링 입문",
+          "description": "스프링 기초 학습",
+          "categoryName": "프로그래밍",
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "name": "GET 제목 부분 검색",
+      "status": 200,
+      "response": [
+        {
+          "bookId": 12,
+          "title": "미션검증-1793263956616-스프링",
+          "description": "실제 MySQL 검증",
+          "categoryName": "미션검증-1793263956616",
+          "isAvailable": false
+        }
+      ]
+    },
+    {
+      "name": "GET 검색 결과 없음",
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "POST 중복 제목",
+      "status": 409,
+      "response": {
+        "message": "이미 등록된 도서 제목입니다.",
+        "error": "Conflict",
+        "statusCode": 409
+      }
+    },
+    {
+      "name": "POST 없는 카테고리",
+      "status": 404,
+      "response": {
+        "message": "존재하지 않는 카테고리입니다.",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+    },
+    {
+      "name": "POST 잘못된 제목 (0자)",
+      "status": 400,
+      "response": {
+        "message": [
+          "title은 공백만 입력할 수 없습니다."
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "POST 잘못된 제목 (3자)",
+      "status": 400,
+      "response": {
+        "message": [
+          "title은 공백만 입력할 수 없습니다."
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "POST 잘못된 제목 (101자)",
+      "status": 400,
+      "response": {
+        "message": [
+          "title must be shorter than or equal to 100 characters"
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "POST 잘못된 카테고리 자료형",
+      "status": 400,
+      "response": {
+        "message": [
+          "categoryId must not be greater than 2147483647",
+          "categoryId must not be less than 1",
+          "categoryId must be an integer number"
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "POST 특수문자 제목",
+      "status": 201,
+      "response": {
+        "bookId": 15,
+        "title": "미션검증-1793263956616-100%_완료",
+        "description": null,
+        "categoryName": "미션검증-1793263956616",
+        "isAvailable": true
+      }
+    },
+    {
+      "name": "GET LIKE 특수문자 검색",
+      "status": 200,
+      "response": [
+        {
+          "bookId": 15,
+          "title": "미션검증-1793263956616-100%_완료",
+          "description": null,
+          "categoryName": "미션검증-1793263956616",
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "name": "동시 중복 등록 방지",
+      "statuses": [
+        201,
+        409
+      ]
+    },
+    {
+      "name": "직접 SQL 중복 INSERT 차단",
+      "code": "ER_DUP_ENTRY"
+    }
+  ],
+  "result": "PASS"
+}
