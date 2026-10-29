@@ -1,0 +1,285 @@
+{
+  "info": {
+    "name": "HoGiSim 5주차 MovieLog 회원·평점 API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 닉네임 중복",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/nickname/%EC%88%98%ED%98%84"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:false}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 닉네임 사용 가능",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/nickname/%EC%8B%A0%EA%B7%9C%EC%98%81%ED%99%94%ED%8C%AC"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:true}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 이메일 중복",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/email/noco%40umc.com"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:false}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 이메일 사용 가능",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/email/new%40example.com"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:true}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 회원 평점 최신순",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/1/ratings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+              "pm.test(\"최신순 DTO\",()=>{const r=pm.response.json();pm.expect(r).to.have.lengthOf(2);pm.expect(r[0].ratingId).to.be.above(r[1].ratingId);r.forEach(v=>pm.expect(v).to.have.all.keys(\"ratingId\",\"movieId\",\"score\",\"comment\",\"createdAt\",\"updatedAt\"));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 다른 회원 평점",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/2/ratings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 평점 없는 회원",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/3/ratings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 없는 회원",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/999999/ratings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\",()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 닉네임 형식 오류",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/nickname/%EA%B0%80"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 이메일 형식 오류",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/email/invalid"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 첫 페이지",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/1/ratings?page=0&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 다음 페이지",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/1/ratings?page=1&size=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 페이지 크기 오류",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/1/ratings?size=0"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 회원 ID 형식 오류",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/members/abc/ratings"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
