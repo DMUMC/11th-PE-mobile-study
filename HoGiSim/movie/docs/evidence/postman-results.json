@@ -1,0 +1,4077 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "fadbe643-9484-45b6-80e8-258c12a110d4",
+        "name": "01 닉네임 중복",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "nickname",
+              "%EC%88%98%ED%98%84"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "d121de55-4122-4f9e-adce-4debbac82efa",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:false}));"
+              ],
+              "_lastExecutionId": "cc69bfe5-a3c9-4101-8c13-d4f603d31d50"
+            }
+          }
+        ]
+      },
+      {
+        "id": "573bac17-91e8-4a9a-9e68-32e5d4112ed1",
+        "name": "02 닉네임 사용 가능",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "nickname",
+              "%EC%8B%A0%EA%B7%9C%EC%98%81%ED%99%94%ED%8C%AC"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "c30a085b-d35b-402e-ac60-ea47cea0d141",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:true}));"
+              ],
+              "_lastExecutionId": "cc67ad1b-948e-42b1-89aa-200dc50368fb"
+            }
+          }
+        ]
+      },
+      {
+        "id": "eb1b9077-ca89-42bc-87ef-ffb2eaec8368",
+        "name": "03 이메일 중복",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "email",
+              "noco%40umc.com"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "dd470ebb-ee91-48bf-a1ab-89482ba1349c",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:false}));"
+              ],
+              "_lastExecutionId": "b98b2ebf-098e-4c7a-ad9c-1a855ca7bdaf"
+            }
+          }
+        ]
+      },
+      {
+        "id": "6266b282-06e3-4da7-9e5b-85e162677cae",
+        "name": "04 이메일 사용 가능",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "email",
+              "new%40example.com"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "08ad2d26-7822-4bc8-8bc7-6b8f9d7b5687",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:true}));"
+              ],
+              "_lastExecutionId": "d077b748-c493-4b99-b9c0-c206b2673240"
+            }
+          }
+        ]
+      },
+      {
+        "id": "668a7cf1-8fce-4c3f-b851-f4616e2e76df",
+        "name": "05 회원 평점 최신순",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "f94cdb4c-cab9-4f23-81a0-cc3a957596b3",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                "pm.test(\"최신순 DTO\",()=>{const r=pm.response.json();pm.expect(r).to.have.lengthOf(2);pm.expect(r[0].ratingId).to.be.above(r[1].ratingId);r.forEach(v=>pm.expect(v).to.have.all.keys(\"ratingId\",\"movieId\",\"score\",\"comment\",\"createdAt\",\"updatedAt\"));});"
+              ],
+              "_lastExecutionId": "e4b01062-48c7-4c5a-bc4a-dd135bff41cd"
+            }
+          }
+        ]
+      },
+      {
+        "id": "06010e64-b347-459e-b2e8-125043bf84a0",
+        "name": "06 다른 회원 평점",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "2",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "6a921e9c-cf45-467d-a253-82a2e7c9f569",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+              ],
+              "_lastExecutionId": "6d12dd31-e80f-4029-a583-44add7794961"
+            }
+          }
+        ]
+      },
+      {
+        "id": "efc4e2f5-33de-4970-bce0-d15e22a95e5c",
+        "name": "07 평점 없는 회원",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "3",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "69735a6c-20b1-4c61-9782-3ea0c2e104fe",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+              ],
+              "_lastExecutionId": "d468c856-9606-479b-b3c9-253315b9492c"
+            }
+          }
+        ]
+      },
+      {
+        "id": "44f7f9b6-46eb-4f97-9bd8-1499bd011851",
+        "name": "08 없는 회원",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "999999",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "a11b935a-b0ad-436e-ab96-06b4ba5a3f01",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 404\",()=>pm.response.to.have.status(404));"
+              ],
+              "_lastExecutionId": "663f091f-197b-41d0-a4f4-38cce6fb6245"
+            }
+          }
+        ]
+      },
+      {
+        "id": "66e2ead9-d844-498a-9512-4d7ead22da8c",
+        "name": "09 닉네임 형식 오류",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "nickname",
+              "%EA%B0%80"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "c2429f94-b1bf-4f39-9cb0-ca5590bbabef",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+              ],
+              "_lastExecutionId": "0fbf7e2b-f12f-44fb-bf6f-db3e2a355623"
+            }
+          }
+        ]
+      },
+      {
+        "id": "d16643cb-10d4-4076-926f-543eea852162",
+        "name": "10 이메일 형식 오류",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "email",
+              "invalid"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "a328e002-9610-46bc-8dd0-851066b5da36",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+              ],
+              "_lastExecutionId": "65d28c73-e707-44d7-8ab7-c3b77e730cf8"
+            }
+          }
+        ]
+      },
+      {
+        "id": "c0b6ae90-f050-4ad4-a3f9-a949ff4c80c7",
+        "name": "11 첫 페이지",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [
+              {
+                "key": "page",
+                "value": "0"
+              },
+              {
+                "key": "size",
+                "value": "1"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "499cbb42-f60d-426d-b523-49033f53357e",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+              ],
+              "_lastExecutionId": "bac89f8e-3d54-48f2-96c6-f882dc8e8b86"
+            }
+          }
+        ]
+      },
+      {
+        "id": "e16c3243-150a-4447-aff0-de7d250161ac",
+        "name": "12 다음 페이지",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [
+              {
+                "key": "page",
+                "value": "1"
+              },
+              {
+                "key": "size",
+                "value": "1"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "343a59d4-45a1-41c4-b3a5-37f2f6f8c3e8",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+              ],
+              "_lastExecutionId": "181570ef-9c8d-493a-8fe6-851a08d25a82"
+            }
+          }
+        ]
+      },
+      {
+        "id": "2d941c3e-b7a9-47ec-8018-c2efa531dc67",
+        "name": "13 페이지 크기 오류",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [
+              {
+                "key": "size",
+                "value": "0"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "251cbe9e-52a4-4b84-9493-30e8a2c6645f",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+              ],
+              "_lastExecutionId": "f49ed5c5-973e-4201-9710-dfa28a1eda62"
+            }
+          }
+        ]
+      },
+      {
+        "id": "c241a0c1-098f-48f4-b266-0bec605445ff",
+        "name": "14 회원 ID 형식 오류",
+        "request": {
+          "url": {
+            "path": [
+              "members",
+              "abc",
+              "ratings"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "be68a86f-0c43-4cc9-858d-f9d36083fbe7",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+              ],
+              "_lastExecutionId": "6d0c595e-0247-41d7-9442-60941dd1413f"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "http://localhost:3001",
+        "key": "baseUrl"
+      }
+    ],
+    "info": {
+      "_postman_id": "03f7ee3b-ae5e-41fa-b37b-876c01cc3587",
+      "name": "HoGiSim 5주차 MovieLog 회원·평점 API",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "id": "56b42e34-6fa1-444f-a2c1-75816cd22d9a",
+    "values": []
+  },
+  "globals": {
+    "id": "dba17dd2-6221-4f2e-8be4-ea317c723239",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 19,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 7.214285714285714,
+      "responseMin": 2,
+      "responseMax": 25,
+      "responseSd": 5.4925738362755565,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1793269828229,
+      "completed": 1793269829509
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 14,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "0f4d49d4-16f0-42c5-ad67-11e9a04e5efe",
+          "httpRequestId": "907ae69d-e65c-49e7-a3d3-1fb7bf3dabfd"
+        },
+        "item": {
+          "id": "fadbe643-9484-45b6-80e8-258c12a110d4",
+          "name": "01 닉네임 중복",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "nickname",
+                "%EC%88%98%ED%98%84"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "d121de55-4122-4f9e-adce-4debbac82efa",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:false}));"
+                ],
+                "_lastExecutionId": "cc69bfe5-a3c9-4101-8c13-d4f603d31d50"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "nickname",
+              "%EC%88%98%ED%98%84"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "e5ee1f90-b74c-4ccc-b57a-aadda5a8df1e",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "eb6a31fa-568f-4d35-a455-efedf7f4ee7e",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "19"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"13-vcCiU2TJw/EWt4qzlkcCHduWaTQ\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              97,
+              118,
+              97,
+              105,
+              108,
+              97,
+              98,
+              108,
+              101,
+              34,
+              58,
+              102,
+              97,
+              108,
+              115,
+              101,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 25,
+          "responseSize": 19
+        },
+        "id": "fadbe643-9484-45b6-80e8-258c12a110d4",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "available",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "afbeb26d-a208-44a1-a4fb-85e73c0f9247",
+          "length": 14,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "6669088e-e505-4fb5-bda5-19f7334c455d"
+        },
+        "item": {
+          "id": "573bac17-91e8-4a9a-9e68-32e5d4112ed1",
+          "name": "02 닉네임 사용 가능",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "nickname",
+                "%EC%8B%A0%EA%B7%9C%EC%98%81%ED%99%94%ED%8C%AC"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c30a085b-d35b-402e-ac60-ea47cea0d141",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:true}));"
+                ],
+                "_lastExecutionId": "cc67ad1b-948e-42b1-89aa-200dc50368fb"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "nickname",
+              "%EC%8B%A0%EA%B7%9C%EC%98%81%ED%99%94%ED%8C%AC"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "4b3b007b-91ca-4f05-b649-3d189c8a3c5c",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "8be6c34d-8e60-4092-ad9a-a41ac3ccd458",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "18"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"12-Aimy5TBnYW7WAzHpRLoSkMxmC1Y\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              97,
+              118,
+              97,
+              105,
+              108,
+              97,
+              98,
+              108,
+              101,
+              34,
+              58,
+              116,
+              114,
+              117,
+              101,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 9,
+          "responseSize": 18
+        },
+        "id": "573bac17-91e8-4a9a-9e68-32e5d4112ed1",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "available",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "97c705cc-bc79-4199-a58d-f60cbf7cea70",
+          "length": 14,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "619874f4-4faa-45f0-aada-92d5136d9255"
+        },
+        "item": {
+          "id": "eb1b9077-ca89-42bc-87ef-ffb2eaec8368",
+          "name": "03 이메일 중복",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "email",
+                "noco%40umc.com"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "dd470ebb-ee91-48bf-a1ab-89482ba1349c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:false}));"
+                ],
+                "_lastExecutionId": "b98b2ebf-098e-4c7a-ad9c-1a855ca7bdaf"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "email",
+              "noco%40umc.com"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "407e0cbd-37a4-4955-8c1d-6eb4ad81b3f7",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "1dd4810c-618f-460a-8662-122dcca30c1b",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "19"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"13-vcCiU2TJw/EWt4qzlkcCHduWaTQ\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              97,
+              118,
+              97,
+              105,
+              108,
+              97,
+              98,
+              108,
+              101,
+              34,
+              58,
+              102,
+              97,
+              108,
+              115,
+              101,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 6,
+          "responseSize": 19
+        },
+        "id": "eb1b9077-ca89-42bc-87ef-ffb2eaec8368",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "available",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "2212a076-e3e9-4ba2-b205-4097a81588b6",
+          "length": 14,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "2f587071-e780-445f-b812-cf6d93a912f0"
+        },
+        "item": {
+          "id": "6266b282-06e3-4da7-9e5b-85e162677cae",
+          "name": "04 이메일 사용 가능",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "email",
+                "new%40example.com"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "08ad2d26-7822-4bc8-8bc7-6b8f9d7b5687",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "pm.test(\"available\",()=>pm.expect(pm.response.json()).to.eql({available:true}));"
+                ],
+                "_lastExecutionId": "d077b748-c493-4b99-b9c0-c206b2673240"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "email",
+              "new%40example.com"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "777f9b35-41fc-4c92-9e4f-70fe4b5c9e97",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "41683ec5-b5cc-46d9-90cd-1347760111b0",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "18"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"12-Aimy5TBnYW7WAzHpRLoSkMxmC1Y\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              97,
+              118,
+              97,
+              105,
+              108,
+              97,
+              98,
+              108,
+              101,
+              34,
+              58,
+              116,
+              114,
+              117,
+              101,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 18
+        },
+        "id": "6266b282-06e3-4da7-9e5b-85e162677cae",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "available",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "2c4bd783-a63c-46d8-8b64-72456bd911e7",
+          "length": 14,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "8b2102dc-4744-4cae-9ecb-184baeadc79c"
+        },
+        "item": {
+          "id": "668a7cf1-8fce-4c3f-b851-f4616e2e76df",
+          "name": "05 회원 평점 최신순",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "1",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f94cdb4c-cab9-4f23-81a0-cc3a957596b3",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+                  "pm.test(\"최신순 DTO\",()=>{const r=pm.response.json();pm.expect(r).to.have.lengthOf(2);pm.expect(r[0].ratingId).to.be.above(r[1].ratingId);r.forEach(v=>pm.expect(v).to.have.all.keys(\"ratingId\",\"movieId\",\"score\",\"comment\",\"createdAt\",\"updatedAt\"));});"
+                ],
+                "_lastExecutionId": "e4b01062-48c7-4c5a-bc4a-dd135bff41cd"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "a0b4b49b-654a-42ca-aec9-70aab6941f3e",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "8dad2a9b-2088-48c8-85b0-a7dfc3e9c164",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "298"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"12a-FJZf6w+uWHcpdyOCdSmaqfDLPAo\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              123,
+              34,
+              114,
+              97,
+              116,
+              105,
+              110,
+              103,
+              73,
+              100,
+              34,
+              58,
+              50,
+              44,
+              34,
+              109,
+              111,
+              118,
+              105,
+              101,
+              73,
+              100,
+              34,
+              58,
+              49,
+              53,
+              53,
+              44,
+              34,
+              115,
+              99,
+              111,
+              114,
+              101,
+              34,
+              58,
+              52,
+              44,
+              34,
+              99,
+              111,
+              109,
+              109,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              235,
+              139,
+              164,
+              236,
+              139,
+              156,
+              32,
+              235,
+              180,
+              144,
+              235,
+              143,
+              132,
+              32,
+              235,
+              170,
+              133,
+              236,
+              158,
+              145,
+              34,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              125,
+              44,
+              123,
+              34,
+              114,
+              97,
+              116,
+              105,
+              110,
+              103,
+              73,
+              100,
+              34,
+              58,
+              49,
+              44,
+              34,
+              109,
+              111,
+              118,
+              105,
+              101,
+              73,
+              100,
+              34,
+              58,
+              53,
+              53,
+              48,
+              44,
+              34,
+              115,
+              99,
+              111,
+              114,
+              101,
+              34,
+              58,
+              53,
+              44,
+              34,
+              99,
+              111,
+              109,
+              109,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              236,
+              181,
+              156,
+              234,
+              179,
+              160,
+              236,
+              157,
+              152,
+              32,
+              236,
+              152,
+              129,
+              237,
+              153,
+              148,
+              33,
+              34,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              125,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 8,
+          "responseSize": 298
+        },
+        "id": "668a7cf1-8fce-4c3f-b851-f4616e2e76df",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "최신순 DTO",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "db25fc5f-0342-4f09-b54a-d10442cc7fdb",
+          "length": 14,
+          "cycles": 1,
+          "position": 5,
+          "iteration": 0,
+          "httpRequestId": "f7064d9c-93d3-4476-ab21-c73ac97a3e8b"
+        },
+        "item": {
+          "id": "06010e64-b347-459e-b2e8-125043bf84a0",
+          "name": "06 다른 회원 평점",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "2",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "6a921e9c-cf45-467d-a253-82a2e7c9f569",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+                ],
+                "_lastExecutionId": "6d12dd31-e80f-4029-a583-44add7794961"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "2",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "65525f9c-b7e7-4fab-9cf7-6db27be0c68c",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "6edd0b49-8ef9-4242-93c8-80673afc28c0",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "164"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"a4-bxE4jWdhqR43IbQPU4bWuE/RQ10\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              123,
+              34,
+              114,
+              97,
+              116,
+              105,
+              110,
+              103,
+              73,
+              100,
+              34,
+              58,
+              51,
+              44,
+              34,
+              109,
+              111,
+              118,
+              105,
+              101,
+              73,
+              100,
+              34,
+              58,
+              53,
+              53,
+              48,
+              44,
+              34,
+              115,
+              99,
+              111,
+              114,
+              101,
+              34,
+              58,
+              51,
+              44,
+              34,
+              99,
+              111,
+              109,
+              109,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              237,
+              152,
+              184,
+              235,
+              182,
+              136,
+              237,
+              152,
+              184,
+              234,
+              176,
+              128,
+              32,
+              234,
+              176,
+              136,
+              235,
+              166,
+              180,
+              32,
+              234,
+              178,
+              131,
+              32,
+              234,
+              176,
+              153,
+              236,
+              149,
+              132,
+              236,
+              154,
+              148,
+              34,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              125,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 7,
+          "responseSize": 164
+        },
+        "id": "06010e64-b347-459e-b2e8-125043bf84a0",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "83b97d4b-c3ff-44b6-97e5-0c014f0949c4",
+          "length": 14,
+          "cycles": 1,
+          "position": 6,
+          "iteration": 0,
+          "httpRequestId": "f18407e3-f1b0-4e50-bbdb-61d4f2576fa3"
+        },
+        "item": {
+          "id": "efc4e2f5-33de-4970-bce0-d15e22a95e5c",
+          "name": "07 평점 없는 회원",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "3",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "69735a6c-20b1-4c61-9782-3ea0c2e104fe",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+                ],
+                "_lastExecutionId": "d468c856-9606-479b-b3c9-253315b9492c"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "3",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9f472caa-9844-4b7d-86f3-c2b446e62eb6",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "ca91e4bc-a3a8-4932-ad8a-b591e7b08fa1",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "2"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"2-l9Fw4VUO7kr8CvBlt4zaMCqXZ0w\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 7,
+          "responseSize": 2
+        },
+        "id": "efc4e2f5-33de-4970-bce0-d15e22a95e5c",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "1775fdf9-75fc-4ec5-9eae-00aca30ee05a",
+          "length": 14,
+          "cycles": 1,
+          "position": 7,
+          "iteration": 0,
+          "httpRequestId": "4481e235-322a-432a-970c-74a2b6656009"
+        },
+        "item": {
+          "id": "44f7f9b6-46eb-4f97-9bd8-1499bd011851",
+          "name": "08 없는 회원",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "999999",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "a11b935a-b0ad-436e-ab96-06b4ba5a3f01",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\",()=>pm.response.to.have.status(404));"
+                ],
+                "_lastExecutionId": "663f091f-197b-41d0-a4f4-38cce6fb6245"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "999999",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "e50f6e88-e887-48e8-a50f-208a2c4fc446",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "1ef293d1-6fa8-4b1d-a841-771df4d2e10c",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "87"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"57-O0XEN/Lpk2VxSduW4LmPvS0nOhU\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              236,
+              161,
+              180,
+              236,
+              158,
+              172,
+              237,
+              149,
+              152,
+              236,
+              167,
+              128,
+              32,
+              236,
+              149,
+              138,
+              235,
+              138,
+              148,
+              32,
+              236,
+              156,
+              160,
+              236,
+              160,
+              128,
+              236,
+              158,
+              133,
+              235,
+              139,
+              136,
+              235,
+              139,
+              164,
+              46,
+              34,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              78,
+              111,
+              116,
+              32,
+              70,
+              111,
+              117,
+              110,
+              100,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              67,
+              111,
+              100,
+              101,
+              34,
+              58,
+              52,
+              48,
+              52,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 87
+        },
+        "id": "44f7f9b6-46eb-4f97-9bd8-1499bd011851",
+        "assertions": [
+          {
+            "assertion": "HTTP 404",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "33d14a23-f4e0-4b1e-a637-bc079c768dd5",
+          "length": 14,
+          "cycles": 1,
+          "position": 8,
+          "iteration": 0,
+          "httpRequestId": "6b4104b3-1f9e-4928-88b9-ec5d99f81afb"
+        },
+        "item": {
+          "id": "66e2ead9-d844-498a-9512-4d7ead22da8c",
+          "name": "09 닉네임 형식 오류",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "nickname",
+                "%EA%B0%80"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c2429f94-b1bf-4f39-9cb0-ca5590bbabef",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+                ],
+                "_lastExecutionId": "0fbf7e2b-f12f-44fb-bf6f-db3e2a355623"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "nickname",
+              "%EA%B0%80"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "360f3194-7d69-41bd-a9ab-274628ca4de6",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "58e5c099-133d-4d85-84b3-8ee6b366ec04",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "92"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"5c-zu1RcK3zjBEVIFL8/pWfce8rqZ0\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:28 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              91,
+              34,
+              235,
+              139,
+              137,
+              235,
+              132,
+              164,
+              236,
+              158,
+              132,
+              236,
+              157,
+              128,
+              32,
+              50,
+              126,
+              49,
+              50,
+              236,
+              158,
+              144,
+              236,
+              151,
+              172,
+              236,
+              149,
+              188,
+              32,
+              237,
+              149,
+              169,
+              235,
+              139,
+              136,
+              235,
+              139,
+              164,
+              46,
+              34,
+              93,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              66,
+              97,
+              100,
+              32,
+              82,
+              101,
+              113,
+              117,
+              101,
+              115,
+              116,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              67,
+              111,
+              100,
+              101,
+              34,
+              58,
+              52,
+              48,
+              48,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 92
+        },
+        "id": "66e2ead9-d844-498a-9512-4d7ead22da8c",
+        "assertions": [
+          {
+            "assertion": "HTTP 400",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "0c98b8d1-3515-4a48-8f76-ee934e1271b6",
+          "length": 14,
+          "cycles": 1,
+          "position": 9,
+          "iteration": 0,
+          "httpRequestId": "2a44406c-41c7-43b2-9932-6ef28eec3807"
+        },
+        "item": {
+          "id": "d16643cb-10d4-4076-926f-543eea852162",
+          "name": "10 이메일 형식 오류",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "email",
+                "invalid"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "a328e002-9610-46bc-8dd0-851066b5da36",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+                ],
+                "_lastExecutionId": "65d28c73-e707-44d7-8ab7-c3b77e730cf8"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "email",
+              "invalid"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1614dfdd-a67a-47d8-a447-d3c67c868aab",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "58c39f7d-e97e-4cab-8201-88121ef7129d",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "98"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"62-OI7Ea+7scof8K0Et1OtIkJAXHPI\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:29 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              91,
+              34,
+              236,
+              152,
+              172,
+              235,
+              176,
+              148,
+              235,
+              165,
+              184,
+              32,
+              236,
+              157,
+              180,
+              235,
+              169,
+              148,
+              236,
+              157,
+              188,
+              32,
+              237,
+              152,
+              149,
+              236,
+              139,
+              157,
+              236,
+              157,
+              180,
+              32,
+              236,
+              149,
+              132,
+              235,
+              139,
+              153,
+              235,
+              139,
+              136,
+              235,
+              139,
+              164,
+              46,
+              34,
+              93,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              66,
+              97,
+              100,
+              32,
+              82,
+              101,
+              113,
+              117,
+              101,
+              115,
+              116,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              67,
+              111,
+              100,
+              101,
+              34,
+              58,
+              52,
+              48,
+              48,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 98
+        },
+        "id": "d16643cb-10d4-4076-926f-543eea852162",
+        "assertions": [
+          {
+            "assertion": "HTTP 400",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "d18e5c43-6a31-498a-ac09-33a3fdc390af",
+          "length": 14,
+          "cycles": 1,
+          "position": 10,
+          "iteration": 0,
+          "httpRequestId": "4a632316-665b-4afc-b865-af7a72a06075"
+        },
+        "item": {
+          "id": "c0b6ae90-f050-4ad4-a3f9-a949ff4c80c7",
+          "name": "11 첫 페이지",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "1",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "1"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "499cbb42-f60d-426d-b523-49033f53357e",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+                ],
+                "_lastExecutionId": "bac89f8e-3d54-48f2-96c6-f882dc8e8b86"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "page",
+                "value": "0"
+              },
+              {
+                "key": "size",
+                "value": "1"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "5273c8a8-4429-42a0-8b69-a08ca53aca20",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "fa6aa239-d321-446f-b231-0cc2c48f3cd7",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "151"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"97-7YWmtv/sUX92EWe5Fcxe/gRlblc\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:29 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              123,
+              34,
+              114,
+              97,
+              116,
+              105,
+              110,
+              103,
+              73,
+              100,
+              34,
+              58,
+              50,
+              44,
+              34,
+              109,
+              111,
+              118,
+              105,
+              101,
+              73,
+              100,
+              34,
+              58,
+              49,
+              53,
+              53,
+              44,
+              34,
+              115,
+              99,
+              111,
+              114,
+              101,
+              34,
+              58,
+              52,
+              44,
+              34,
+              99,
+              111,
+              109,
+              109,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              235,
+              139,
+              164,
+              236,
+              139,
+              156,
+              32,
+              235,
+              180,
+              144,
+              235,
+              143,
+              132,
+              32,
+              235,
+              170,
+              133,
+              236,
+              158,
+              145,
+              34,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              125,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 8,
+          "responseSize": 151
+        },
+        "id": "c0b6ae90-f050-4ad4-a3f9-a949ff4c80c7",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "ef98dd66-1bab-4196-af19-6b3bf80ecb5c",
+          "length": 14,
+          "cycles": 1,
+          "position": 11,
+          "iteration": 0,
+          "httpRequestId": "7582c7e6-88ef-4049-9652-c0c421865a7c"
+        },
+        "item": {
+          "id": "e16c3243-150a-4447-aff0-de7d250161ac",
+          "name": "12 다음 페이지",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "1",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "1"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "343a59d4-45a1-41c4-b3a5-37f2f6f8c3e8",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));"
+                ],
+                "_lastExecutionId": "181570ef-9c8d-493a-8fe6-851a08d25a82"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "page",
+                "value": "1"
+              },
+              {
+                "key": "size",
+                "value": "1"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "7be40c0a-617e-4b87-8aed-317216cdfb34",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "e8a5bc0d-e1dc-42b5-99ab-4edcd2bcaee4",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "148"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"94-Evoiza1mt7zyzwq4VnXfvnfCIp4\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:29 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              123,
+              34,
+              114,
+              97,
+              116,
+              105,
+              110,
+              103,
+              73,
+              100,
+              34,
+              58,
+              49,
+              44,
+              34,
+              109,
+              111,
+              118,
+              105,
+              101,
+              73,
+              100,
+              34,
+              58,
+              53,
+              53,
+              48,
+              44,
+              34,
+              115,
+              99,
+              111,
+              114,
+              101,
+              34,
+              58,
+              53,
+              44,
+              34,
+              99,
+              111,
+              109,
+              109,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              236,
+              181,
+              156,
+              234,
+              179,
+              160,
+              236,
+              157,
+              152,
+              32,
+              236,
+              152,
+              129,
+              237,
+              153,
+              148,
+              33,
+              34,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              57,
+              84,
+              49,
+              48,
+              58,
+              50,
+              50,
+              58,
+              51,
+              50,
+              46,
+              48,
+              48,
+              48,
+              90,
+              34,
+              125,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 10,
+          "responseSize": 148
+        },
+        "id": "e16c3243-150a-4447-aff0-de7d250161ac",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "8b42b243-4aba-4bf8-8093-c34ae637b3c7",
+          "length": 14,
+          "cycles": 1,
+          "position": 12,
+          "iteration": 0,
+          "httpRequestId": "c254fb3e-94bc-4df0-8257-8b93bc5acbaa"
+        },
+        "item": {
+          "id": "2d941c3e-b7a9-47ec-8018-c2efa531dc67",
+          "name": "13 페이지 크기 오류",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "1",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "0"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "251cbe9e-52a4-4b84-9493-30e8a2c6645f",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+                ],
+                "_lastExecutionId": "f49ed5c5-973e-4201-9710-dfa28a1eda62"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "1",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "size",
+                "value": "0"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "7643bc10-4b5c-4341-8656-3e740ea18f4a",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "b2c78085-a57e-433a-9c27-4f259557790f",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "83"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"53-7cEzlf8KxwSTpNZ8ZIExaQqcXu8\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:29 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              91,
+              34,
+              115,
+              105,
+              122,
+              101,
+              32,
+              109,
+              117,
+              115,
+              116,
+              32,
+              110,
+              111,
+              116,
+              32,
+              98,
+              101,
+              32,
+              108,
+              101,
+              115,
+              115,
+              32,
+              116,
+              104,
+              97,
+              110,
+              32,
+              49,
+              34,
+              93,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              66,
+              97,
+              100,
+              32,
+              82,
+              101,
+              113,
+              117,
+              101,
+              115,
+              116,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              67,
+              111,
+              100,
+              101,
+              34,
+              58,
+              52,
+              48,
+              48,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 2,
+          "responseSize": 83
+        },
+        "id": "2d941c3e-b7a9-47ec-8018-c2efa531dc67",
+        "assertions": [
+          {
+            "assertion": "HTTP 400",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "5c8fa810-9578-482d-8b5f-bdd8f410c75d",
+          "length": 14,
+          "cycles": 1,
+          "position": 13,
+          "iteration": 0,
+          "httpRequestId": "b98bc965-4645-446a-8fe1-d85b1564be7d"
+        },
+        "item": {
+          "id": "c241a0c1-098f-48f4-b266-0bec605445ff",
+          "name": "14 회원 ID 형식 오류",
+          "request": {
+            "url": {
+              "path": [
+                "members",
+                "abc",
+                "ratings"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "be68a86f-0c43-4cc9-858d-f9d36083fbe7",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));"
+                ],
+                "_lastExecutionId": "6d0c595e-0247-41d7-9442-60941dd1413f"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3001",
+            "path": [
+              "members",
+              "abc",
+              "ratings"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "721bb964-6b32-4ca5-b28d-2b2747a1719f",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3001",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "7c6df813-bfac-41c5-b906-c60d2cdbf963",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Vary",
+              "value": "Origin"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "102"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"66-EkJw7L5Mj9lLBTsGgSx0PIbtxm0\""
+            },
+            {
+              "key": "Date",
+              "value": "Thu, 29 Oct 2026 10:30:29 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              109,
+              101,
+              109,
+              98,
+              101,
+              114,
+              73,
+              100,
+              235,
+              138,
+              148,
+              32,
+              236,
+              150,
+              145,
+              236,
+              157,
+              152,
+              32,
+              236,
+              149,
+              136,
+              236,
+              160,
+              132,
+              32,
+              236,
+              160,
+              149,
+              236,
+              136,
+              152,
+              236,
+              151,
+              172,
+              236,
+              149,
+              188,
+              32,
+              237,
+              149,
+              169,
+              235,
+              139,
+              136,
+              235,
+              139,
+              164,
+              46,
+              34,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              66,
+              97,
+              100,
+              32,
+              82,
+              101,
+              113,
+              117,
+              101,
+              115,
+              116,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              67,
+              111,
+              100,
+              101,
+              34,
+              58,
+              52,
+              48,
+              48,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 2,
+          "responseSize": 102
+        },
+        "id": "c241a0c1-098f-48f4-b266-0bec605445ff",
+        "assertions": [
+          {
+            "assertion": "HTTP 400",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 1299
+    },
+    "failures": [],
+    "error": null
+  }
+}
