@@ -1,0 +1,111 @@
+{
+  "testedAt": "2026-10-29T09:35:38.497673Z",
+  "result": "PASS",
+  "popularCount": 5,
+  "discoverCount": 30,
+  "filteredGenreId": 28,
+  "filteredCount": 30,
+  "filteredMovieIds": [
+    1058424,
+    969681,
+    1368337,
+    1148365,
+    1384216,
+    1561726,
+    1657630,
+    1228834,
+    1294189,
+    1153576,
+    1236045,
+    1288445,
+    1003596,
+    1377237,
+    1375646,
+    1284046,
+    1476746,
+    299534,
+    1233413,
+    299536,
+    460458,
+    980431,
+    27205,
+    155,
+    120,
+    634649,
+    533535,
+    361743,
+    1110034,
+    911430
+  ],
+  "requests": [
+    {
+      "path": "/movie/popular",
+      "query": {
+        "language": "ko-KR",
+        "page": 1
+      },
+      "status": 200
+    },
+    {
+      "path": "/genre/movie/list",
+      "query": {
+        "language": "ko"
+      },
+      "status": 200
+    },
+    {
+      "path": "/discover/movie",
+      "query": {
+        "language": "ko-KR",
+        "page": 1,
+        "sort_by": "popularity.desc",
+        "include_adult": false,
+        "include_video": false
+      },
+      "status": 200
+    },
+    {
+      "path": "/discover/movie",
+      "query": {
+        "language": "ko-KR",
+        "page": 2,
+        "sort_by": "popularity.desc",
+        "include_adult": false,
+        "include_video": false
+      },
+      "status": 200
+    },
+    {
+      "path": "/discover/movie",
+      "query": {
+        "language": "ko-KR",
+        "page": 1,
+        "sort_by": "popularity.desc",
+        "include_adult": false,
+        "include_video": false,
+        "with_genres": "28"
+      },
+      "status": 200
+    },
+    {
+      "path": "/discover/movie",
+      "query": {
+        "language": "ko-KR",
+        "page": 2,
+        "sort_by": "popularity.desc",
+        "include_adult": false,
+        "include_video": false,
+        "with_genres": "28"
+      },
+      "status": 200
+    }
+  ],
+  "invalidTokenStatus": 401,
+  "maskedErrorLogs": [
+    "[TMDB 요청] GET https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1",
+    "[TMDB 인증] Authorization: Bearer ***",
+    "[TMDB 오류] https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1",
+    "[TMDB 오류 내용] type=badResponse, status=401"
+  ],
+  "tokenIncludedInEvidence": false
+}

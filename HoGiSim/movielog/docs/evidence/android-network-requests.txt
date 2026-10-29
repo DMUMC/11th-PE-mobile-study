@@ -1,0 +1,19 @@
+10-29 09:50:13.440 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1
+10-29 09:50:14.916 16457 16457 I flutter : [TMDB 오류] https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1
+10-29 09:50:14.917 16457 16457 I flutter : [TMDB 오류 내용] type=connectionError, status=연결 실패
+10-29 09:50:17.442 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/movie/popular?language=ko-KR&page=1
+10-29 09:50:28.054 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/genre/movie/list?language=ko
+10-29 09:50:29.130 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false
+10-29 09:50:29.370 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=2&sort_by=popularity.desc&include_adult=false&include_video=false
+10-29 09:58:59.100 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false
+10-29 09:59:01.204 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=2&sort_by=popularity.desc&include_adult=false&include_video=false
+10-29 10:00:45.445 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=28
+10-29 10:00:46.740 16457 16457 I flutter : [TMDB 오류] https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=28
+10-29 10:00:46.741 16457 16457 I flutter : [TMDB 오류 내용] type=connectionError, status=연결 실패
+10-29 10:01:30.543 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=28
+10-29 10:01:31.574 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=2&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=28
+10-29 10:02:21.740 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=12%7C28
+10-29 10:02:23.130 16457 16457 I flutter : [TMDB 오류] https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=12%7C28
+10-29 10:02:23.130 16457 16457 I flutter : [TMDB 오류 내용] type=connectionError, status=연결 실패
+10-29 10:02:45.468 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=1&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=12%7C28
+10-29 10:02:46.649 16457 16457 I flutter : [TMDB 요청] GET https://api.themoviedb.org/3/discover/movie?language=ko-KR&page=2&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=12%7C28
