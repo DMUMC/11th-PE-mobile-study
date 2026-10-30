@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/config/movielog_config.dart';
 import '../data/models/tmdb_movie_dto.dart';
+import '../data/services/movielog_member_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/main_screen.dart';
@@ -13,12 +15,15 @@ import '../screens/sign_up_screen.dart';
 import '../screens/start_screen.dart';
 import '../view_models/movie_home_view_model.dart';
 import '../view_models/movie_list_view_model.dart';
+import '../view_models/my_page_view_model.dart';
+import '../view_models/sign_up_view_model.dart';
 
 class AppRouter {
   AppRouter._();
 
   static final router = GoRouter(
-    initialLocation: '/home',
+    // 시작 화면 → 회원가입(닉네임/이메일 중복 체크) → 홈
+    initialLocation: '/start',
     routes: [
       // 0주차 시작 화면
       GoRoute(
@@ -28,7 +33,11 @@ class AppRouter {
       // 1주차 회원가입 화면 (뒤로가기 방지용 교체 진입)
       GoRoute(
         path: '/register',
-        builder: (context, state) => const SignUpScreen(),
+        builder: (context, state) => ChangeNotifierProvider<SignUpViewModel>(
+          create: (context) =>
+              SignUpViewModel(context.read<MovieLogMemberService>()),
+          child: const SignUpScreen(),
+        ),
       ),
       // 탭 네비게이션 & 독립 스택 유지
       StatefulShellRoute.indexedStack(
@@ -85,7 +94,15 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/my',
-                builder: (context, state) => const MyPageScreen(),
+                builder: (context, state) =>
+                    ChangeNotifierProvider<MyPageViewModel>(
+                      create: (context) => MyPageViewModel(
+                        memberService: context.read<MovieLogMemberService>(),
+                        tmdbService: context.read<TmdbMovieService>(),
+                        memberId: MovieLogConfig.demoMemberId,
+                      )..loadRatings(),
+                      child: const MyPageScreen(),
+                    ),
               ),
             ],
           ),

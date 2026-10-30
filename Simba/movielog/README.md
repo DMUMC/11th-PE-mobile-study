@@ -10,7 +10,15 @@ UMC 11th PE Flutter 스터디 MovieLog 프로젝트 (Simba)
    TMDB_ACCESS_TOKEN=발급받은_READ_ACCESS_TOKEN
    ```
    `.env`는 `.gitignore`에 등록되어 있어 커밋되지 않습니다. `pubspec.yaml`에 asset으로 등록되어 있으므로 파일이 없으면 빌드가 실패합니다.
-3. 패키지를 설치하고 실행합니다.
+3. MovieLog 자체 API(`Simba/movie`, NestJS)를 먼저 실행합니다. 서버 주소는 `.env`의 `MOVIELOG_API_BASE_URL`을 비워 두면 자동으로 정해집니다.
+   | 실행 환경 | 서버 주소 |
+   | --- | --- |
+   | Android 에뮬레이터 | `http://10.0.2.2:3000` (debug 빌드에서 http 허용) |
+   | iOS 시뮬레이터 / 웹 / 데스크톱 | `http://localhost:3000` |
+   | 실제 휴대폰 | `.env`에 PC의 IP 주소 입력 |
+
+   웹(`flutter run -d chrome`)은 브라우저라 CORS 허용 출처와 포트를 맞춰야 합니다: `flutter run -d chrome --web-port 5173`
+4. 패키지를 설치하고 실행합니다.
    ```bash
    flutter pub get
    flutter analyze

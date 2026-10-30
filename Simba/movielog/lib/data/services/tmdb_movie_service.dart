@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/tmdb_genre_dto.dart';
+import '../models/tmdb_movie_dto.dart';
 import '../models/tmdb_movie_page.dart';
 
 /// TMDB와 통신하고 응답 JSON을 DTO로 변환하는 일만 담당한다.
@@ -41,6 +42,15 @@ class TmdbMovieService {
       },
     );
     return TmdbMoviePageDto.fromJson(response.data ?? const {});
+  }
+
+  /// 영화 한 편의 상세 정보. MovieLog 평점의 movieId(TMDB id)로 제목/포스터를 다시 조회할 때 쓴다.
+  Future<TmdbMovieDto> fetchMovieDetail(int movieId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/movie/$movieId',
+      queryParameters: {'language': 'ko-KR'},
+    );
+    return TmdbMovieDto.fromJson(response.data ?? const {});
   }
 
   Future<List<TmdbGenreDto>> fetchGenres() async {
