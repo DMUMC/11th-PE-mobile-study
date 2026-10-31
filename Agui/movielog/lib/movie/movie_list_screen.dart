@@ -207,6 +207,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
   }
 
   Future<void> _selectGenre(int? genreId) async {
+    if (_viewModel.status == MovieListLoadStatus.loading) return;
+
     final appliedGenres = _viewModel.genres
         .where((genre) => genre.id == genreId)
         .map((genre) => genre.name)
@@ -334,6 +336,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         tooltip: '장르 필터',
                         onPressed:
                             _isRestoringGenres ||
+                                viewModel.status ==
+                                    MovieListLoadStatus.loading ||
                                 viewModel.genreStatus !=
                                     MovieListLoadStatus.success
                             ? null
@@ -350,6 +354,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
               height: 48,
               child: Consumer<MovieListViewModel>(
                 builder: (context, viewModel, child) {
+                  final isLoading =
+                      viewModel.status == MovieListLoadStatus.loading;
                   return switch (viewModel.genreStatus) {
                     MovieListLoadStatus.idle ||
                     MovieListLoadStatus.loading => const Center(
@@ -384,9 +390,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
                             key: const ValueKey('all'),
                             label: const Text('전체'),
                             selected: viewModel.selectedGenreId == null,
-                            onSelected: (selected) {
-                              if (selected) unawaited(_selectGenre(null));
-                            },
+                            onSelected: isLoading
+                                ? null
+                                : (selected) {
+                                    if (selected) unawaited(_selectGenre(null));
+                                  },
                           );
                         }
                         final genre = viewModel.genres[index - 1];
@@ -394,9 +402,13 @@ class _MovieListScreenState extends State<MovieListScreen> {
                           key: ValueKey(genre.id),
                           label: Text(genre.name),
                           selected: viewModel.selectedGenreId == genre.id,
-                          onSelected: (selected) {
-                            if (selected) unawaited(_selectGenre(genre.id));
-                          },
+                          onSelected: isLoading
+                              ? null
+                              : (selected) {
+                                  if (selected) {
+                                    unawaited(_selectGenre(genre.id));
+                                  }
+                                },
                         );
                       },
                     ),

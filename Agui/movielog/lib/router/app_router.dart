@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/auth/sign_up_screen.dart';
 import 'package:movielog/home/app_shell.dart';
@@ -76,6 +77,9 @@ class AppRouter {
                     path: ':movieId',
                     builder: (context, state) => MovieDetailScreen(
                       movieId: state.pathParameters['movieId']!,
+                      movie: state.extra is TmdbMovieDto
+                          ? state.extra as TmdbMovieDto
+                          : null,
                     ),
                   ),
                 ],

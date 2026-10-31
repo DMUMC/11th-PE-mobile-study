@@ -260,7 +260,7 @@ class _PopularMovieCard extends StatelessWidget {
       width: 140,
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => context.push('/movies/${movie.id}'),
+        onTap: () => context.push('/movies/${movie.id}', extra: movie),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

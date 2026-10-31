@@ -86,6 +86,8 @@ class MovieListViewModel extends ChangeNotifier {
   }
 
   Future<void> selectGenre(int? genreId) async {
+    if (status == MovieListLoadStatus.loading) return;
+
     if (selectedGenreId == genreId && status != MovieListLoadStatus.idle) {
       return;
     }
