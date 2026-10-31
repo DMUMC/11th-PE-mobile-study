@@ -376,10 +376,20 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     MovieListLoadStatus.success => ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: viewModel.genres.length,
+                      itemCount: viewModel.genres.length + 1,
                       separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
-                        final genre = viewModel.genres[index];
+                        if (index == 0) {
+                          return ChoiceChip(
+                            key: const ValueKey('all'),
+                            label: const Text('전체'),
+                            selected: viewModel.selectedGenreId == null,
+                            onSelected: (selected) {
+                              if (selected) unawaited(_selectGenre(null));
+                            },
+                          );
+                        }
+                        final genre = viewModel.genres[index - 1];
                         return ChoiceChip(
                           key: ValueKey(genre.id),
                           label: Text(genre.name),
