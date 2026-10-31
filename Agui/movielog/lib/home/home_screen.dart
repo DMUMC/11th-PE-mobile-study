@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_style.dart';
+import 'package:movielog/view_models/movie_home_view_model.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,9 +16,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final featured = findMovieById(10)!;
-    final popular = movies
-        .where((movie) => const [7, 8, 9, 1, 4].contains(movie.id))
-        .toList();
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -96,13 +97,41 @@ class HomeScreen extends StatelessWidget {
               ),
               SizedBox(
                 height: 272,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: popular.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) =>
-                      _PopularMovieCard(movie: popular[index], rank: index + 1),
+                child: Consumer<MovieHomeViewModel>(
+                  builder: (context, viewModel, child) {
+                    return switch (viewModel.status) {
+                      MovieHomeLoadStatus.idle || MovieHomeLoadStatus.loading =>
+                        const Center(child: CircularProgressIndicator()),
+                      MovieHomeLoadStatus.error => Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(viewModel.message ?? '인기 영화를 불러오지 못했어요.'),
+                            const SizedBox(height: 16),
+                            FilledButton(
+                              onPressed: () => context
+                                  .read<MovieHomeViewModel>()
+                                  .loadPopular(),
+                              child: const Text('다시 시도'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      MovieHomeLoadStatus.empty => const Center(
+                        child: Text('인기 영화가 없습니다.'),
+                      ),
+                      MovieHomeLoadStatus.success => ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: viewModel.popularMovies.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) => _PopularMovieCard(
+                          movie: viewModel.popularMovies[index],
+                          rank: index + 1,
+                        ),
+                      ),
+                    };
+                  },
                 ),
               ),
               const SizedBox(height: 8),
@@ -222,7 +251,7 @@ class _FeaturedMovieBanner extends StatelessWidget {
 
 class _PopularMovieCard extends StatelessWidget {
   const _PopularMovieCard({required this.movie, required this.rank});
-  final Movie movie;
+  final TmdbMovieDto movie;
   final int rank;
 
   @override
@@ -239,8 +268,8 @@ class _PopularMovieCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    movie.posterAsset,
+                  child: TmdbPosterImage(
+                    posterPath: movie.posterPath,
                     width: 140,
                     height: 200,
                     fit: BoxFit.cover,
@@ -289,7 +318,7 @@ class _PopularMovieCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  movie.rating?.toStringAsFixed(1) ?? '-',
+                  movie.voteAverage.toStringAsFixed(1),
                   style: AppTextStyles.labelSmallMedium,
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/auth/sign_up_screen.dart';
 import 'package:movielog/home/app_shell.dart';
 import 'package:movielog/home/home_screen.dart';
@@ -7,6 +8,8 @@ import 'package:movielog/movie/movie_detail_screen.dart';
 import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
 import 'package:movielog/start_screen.dart';
+import 'package:movielog/view_models/movie_home_view_model.dart';
+import 'package:provider/provider.dart';
 
 class AppRouter {
   AppRouter._();
@@ -43,7 +46,13 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) =>
+                    ChangeNotifierProvider<MovieHomeViewModel>(
+                      create: (context) =>
+                          MovieHomeViewModel(context.read<TmdbMovieService>())
+                            ..loadPopular(),
+                      child: const HomeScreen(),
+                    ),
               ),
             ],
           ),
