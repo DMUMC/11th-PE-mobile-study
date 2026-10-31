@@ -37,13 +37,36 @@ class MovieListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<List<TmdbMovieDto>> fetchUpToThirtyMovies({int? genreId}) async {
+    final byId = <int, TmdbMovieDto>{};
+    var pageNumber = 1;
+    var hasNextPage = true;
+
+    while (byId.length < 30 && hasNextPage) {
+      final page = await _service.discoverMovies(
+        page: pageNumber,
+        genreId: genreId,
+      );
+
+      for (final movie in page.results) {
+        byId[movie.id] = movie;
+        if (byId.length == 30) break;
+      }
+
+      hasNextPage = pageNumber < page.totalPages && page.results.isNotEmpty;
+      pageNumber++;
+    }
+
+    return byId.values.take(30).toList();
+  }
+
   Future<void> loadMovies() async {
     movieMessage = null;
 
     try {
-      final page = await _service.discoverMovies(page: 1);
+      final result = await fetchUpToThirtyMovies();
       if (_disposed) return;
-      movies = page.results;
+      movies = result;
     } on DioException {
       if (_disposed) return;
       movieMessage = '영화를 불러오지 못했어요.';
