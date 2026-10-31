@@ -12,26 +12,27 @@ class MovieListViewModel extends ChangeNotifier {
 
   List<TmdbGenreDto> genres = const [];
   List<TmdbMovieDto> movies = const [];
+  MovieListLoadStatus genreStatus = MovieListLoadStatus.idle;
   MovieListLoadStatus status = MovieListLoadStatus.idle;
+  String? genreMessage;
   String? message;
-  String? movieMessage;
   bool _disposed = false;
 
   Future<void> loadGenres() async {
-    status = MovieListLoadStatus.loading;
+    genreStatus = MovieListLoadStatus.loading;
     notifyListeners();
 
     try {
       final result = await _service.fetchGenres();
       if (_disposed) return;
       genres = result;
-      status = genres.isEmpty
+      genreStatus = genres.isEmpty
           ? MovieListLoadStatus.empty
           : MovieListLoadStatus.success;
     } on DioException {
       if (_disposed) return;
-      status = MovieListLoadStatus.error;
-      message = '장르를 불러오지 못했어요.';
+      genreStatus = MovieListLoadStatus.error;
+      genreMessage = '장르를 불러오지 못했어요.';
     }
 
     notifyListeners();
@@ -61,15 +62,21 @@ class MovieListViewModel extends ChangeNotifier {
   }
 
   Future<void> loadMovies() async {
-    movieMessage = null;
+    status = MovieListLoadStatus.loading;
+    message = null;
+    notifyListeners();
 
     try {
       final result = await fetchUpToThirtyMovies();
       if (_disposed) return;
       movies = result;
+      status = movies.isEmpty
+          ? MovieListLoadStatus.empty
+          : MovieListLoadStatus.success;
     } on DioException {
       if (_disposed) return;
-      movieMessage = '영화를 불러오지 못했어요.';
+      status = MovieListLoadStatus.error;
+      message = '영화를 불러오지 못했어요. 다시 시도해 주세요.';
     }
 
     notifyListeners();

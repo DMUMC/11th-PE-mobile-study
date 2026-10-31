@@ -1,20 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:movielog/movie/data/fake_movie_service.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/genre_preference.dart';
-import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/data/movie_sort_preference.dart';
-import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
 import 'package:movielog/movie/widgets/movie_grid.dart';
 import 'package:movielog/movie/widgets/movie_list_empty.dart';
 import 'package:movielog/movie/widgets/movie_list_error.dart';
 import 'package:movielog/movie/widgets/movie_list_loading.dart';
-import 'package:movielog/movie/widgets/movie_list_timeout.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:provider/provider.dart';
@@ -29,8 +25,6 @@ class MovieListScreen extends StatefulWidget {
 }
 
 class _MovieListScreenState extends State<MovieListScreen> {
-  static const _movieService = FakeMovieService();
-  static const _loadTimeout = Duration(seconds: 2);
   late final _genrePreference = GenrePreference();
   late final _sortPreference = MovieSortPreference();
 
@@ -41,7 +35,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
       .toList();
 
   late Set<String> _selectedGenres;
-  late Future<List<Movie>> _moviesFuture;
   late bool _isRestoringGenres;
   int _genreSelectionRevision = 0;
   MovieSortOrder _sortOrder = MovieSortOrder.catalog;
@@ -53,7 +46,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
   void initState() {
     super.initState();
     _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
-    _moviesFuture = _fetchMovies();
     _isRestoringGenres = widget.initialGenreQuery == null;
     if (_isRestoringGenres) unawaited(_restoreSelectedGenres());
     unawaited(_restoreSortOrder());
@@ -80,12 +72,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
             .split(',')
             .where((genre) => genre.isNotEmpty && genre != '전체')
             .toSet();
-
-  Future<List<Movie>> _fetchMovies({
-    MovieLoadMode mode = MovieLoadMode.success,
-  }) {
-    return _movieService.fetchMovies(mode: mode).timeout(_loadTimeout);
-  }
 
   Future<void> _restoreSelectedGenres() async {
     final revision = _genreSelectionRevision;
@@ -139,63 +125,33 @@ class _MovieListScreenState extends State<MovieListScreen> {
     }
   }
 
-  void _sortMovies(List<Movie> movies) {
-    int catalogOrder(Movie a, Movie b) =>
-        catalogMovieIds.indexOf(a.id).compareTo(catalogMovieIds.indexOf(b.id));
+  void _sortMovies(List<TmdbMovieDto> movies) {
+    final original = context.read<MovieListViewModel>().movies;
+    int catalogOrder(TmdbMovieDto a, TmdbMovieDto b) =>
+        original.indexOf(a).compareTo(original.indexOf(b));
 
     switch (_sortOrder) {
       case MovieSortOrder.catalog:
         return;
       case MovieSortOrder.newest:
         movies.sort((a, b) {
-          final byYear = b.year.compareTo(a.year);
-          return byYear != 0 ? byYear : catalogOrder(a, b);
+          final byDate = (b.releaseDate ?? '').compareTo(a.releaseDate ?? '');
+          return byDate != 0 ? byDate : catalogOrder(a, b);
         });
       case MovieSortOrder.highestRated:
         movies.sort((a, b) {
-          final byRating = (b.rating ?? -1).compareTo(a.rating ?? -1);
+          final byRating = b.voteAverage.compareTo(a.voteAverage);
           return byRating != 0 ? byRating : catalogOrder(a, b);
         });
     }
   }
 
-  void _simulateEmpty() {
-    setState(() {
-      _moviesFuture = _fetchMovies(mode: MovieLoadMode.empty);
-    });
-  }
-
-  void _simulateError() {
-    setState(() {
-      _moviesFuture = _fetchMovies(mode: MovieLoadMode.failure);
-    });
-  }
-
-  void _simulateTimeout() {
-    setState(() {
-      _moviesFuture = _fetchMovies(mode: MovieLoadMode.slow);
-    });
-  }
-
   void _retry() {
-    setState(() {
-      _moviesFuture = _fetchMovies();
-    });
+    unawaited(context.read<MovieListViewModel>().loadMovies());
   }
 
-  Future<void> _refreshMovies() async {
-    final future = _fetchMovies();
-    setState(() {
-      _moviesFuture = future;
-    });
-
-    try {
-      await future;
-    } catch (error, stackTrace) {
-      debugPrint('영화 목록 새로고침 실패: $error');
-      debugPrintStack(stackTrace: stackTrace);
-    }
-  }
+  Future<void> _refreshMovies() =>
+      context.read<MovieListViewModel>().loadMovies();
 
   Future<void> _showGenreFilter() async {
     final selectedGenres = await showModalBottomSheet<Set<String>>(
@@ -280,24 +236,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     ),
                   ),
           ),
-          if (kDebugMode)
-            IconButton(
-              tooltip: '빈 영화 목록 재현',
-              onPressed: _simulateEmpty,
-              icon: const Icon(Icons.inbox_outlined),
-            ),
-          if (kDebugMode)
-            IconButton(
-              tooltip: '영화 로드 오류 재현',
-              onPressed: _simulateError,
-              icon: const Icon(Icons.bug_report_outlined),
-            ),
-          if (kDebugMode)
-            IconButton(
-              tooltip: '영화 로드 시간 초과 재현',
-              onPressed: _simulateTimeout,
-              icon: const Icon(Icons.timer_off_outlined),
-            ),
           const SizedBox(width: 8),
         ],
         bottom: const PreferredSize(
@@ -340,7 +278,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         tooltip: '장르 필터',
                         onPressed:
                             _isRestoringGenres ||
-                                viewModel.status != MovieListLoadStatus.success
+                                viewModel.genreStatus !=
+                                    MovieListLoadStatus.success
                             ? null
                             : _showGenreFilter,
                         visualDensity: VisualDensity.compact,
@@ -355,7 +294,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
               height: 48,
               child: Consumer<MovieListViewModel>(
                 builder: (context, viewModel, child) {
-                  return switch (viewModel.status) {
+                  return switch (viewModel.genreStatus) {
                     MovieListLoadStatus.idle ||
                     MovieListLoadStatus.loading => const Center(
                       child: SizedBox(
@@ -367,7 +306,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     MovieListLoadStatus.error => Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(viewModel.message ?? '장르를 불러오지 못했어요.'),
+                        Text(viewModel.genreMessage ?? '장르를 불러오지 못했어요.'),
                         TextButton(
                           onPressed: () =>
                               context.read<MovieListViewModel>().loadGenres(),
@@ -398,32 +337,39 @@ class _MovieListScreenState extends State<MovieListScreen> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshMovies,
-                child: FutureBuilder<List<Movie>>(
-                  future: _moviesFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting &&
-                        !snapshot.hasData) {
-                      return const MovieListLoading();
+                child: Consumer<MovieListViewModel>(
+                  builder: (context, viewModel, child) {
+                    switch (viewModel.status) {
+                      case MovieListLoadStatus.idle:
+                      case MovieListLoadStatus.loading:
+                        return const MovieListLoading();
+                      case MovieListLoadStatus.error:
+                        return MovieListError(
+                          message: viewModel.message,
+                          onRetry: _retry,
+                        );
+                      case MovieListLoadStatus.empty:
+                        return const MovieListEmpty();
+                      case MovieListLoadStatus.success:
+                        break;
                     }
 
-                    if (snapshot.hasError) {
-                      return snapshot.error is TimeoutException
-                          ? MovieListTimeout(onRetry: _retry)
-                          : MovieListError(onRetry: _retry);
-                    }
-
-                    final visibleMovies = (snapshot.data ?? const <Movie>[])
-                        .where((movie) {
-                          if (!catalogMovieIds.contains(movie.id)) return false;
-                          final matchesGenre =
-                              _selectedGenres.isEmpty ||
-                              _selectedGenres.contains(movie.genre);
-                          final matchesSearch =
-                              _searchQuery.isEmpty ||
-                              movie.title.contains(_searchQuery.trim());
-                          return matchesGenre && matchesSearch;
-                        })
-                        .toList();
+                    final genreNamesById = {
+                      for (final genre in viewModel.genres)
+                        genre.id: genre.name,
+                    };
+                    final visibleMovies = viewModel.movies.where((movie) {
+                      final matchesGenre =
+                          _selectedGenres.isEmpty ||
+                          movie.genreIds.any(
+                            (id) =>
+                                _selectedGenres.contains(genreNamesById[id]),
+                          );
+                      final matchesSearch =
+                          _searchQuery.isEmpty ||
+                          movie.title.contains(_searchQuery.trim());
+                      return matchesGenre && matchesSearch;
+                    }).toList();
                     _sortMovies(visibleMovies);
 
                     return visibleMovies.isEmpty
@@ -436,7 +382,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
                               ),
                             ],
                           )
-                        : MovieGrid(movies: visibleMovies);
+                        : MovieGrid(
+                            movies: visibleMovies,
+                            genres: viewModel.genres,
+                          );
                   },
                 ),
               ),
