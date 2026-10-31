@@ -16,6 +16,8 @@ import 'package:movielog/movie/widgets/movie_list_error.dart';
 import 'package:movielog/movie/widgets/movie_list_loading.dart';
 import 'package:movielog/movie/widgets/movie_list_timeout.dart';
 import 'package:movielog/theme/app_colors.dart';
+import 'package:movielog/view_models/movie_list_view_model.dart';
+import 'package:provider/provider.dart';
 
 class MovieListScreen extends StatefulWidget {
   const MovieListScreen({super.key, this.initialGenreQuery});
@@ -32,16 +34,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
   late final _genrePreference = GenrePreference();
   late final _sortPreference = MovieSortPreference();
 
-  static const _genres = [
-    '드라마',
-    'SF',
-    '애니메이션',
-    '스릴러',
-    '로맨스',
-    '코미디',
-    '판타지',
-    '다큐멘터리',
-  ];
+  List<String> get _genres => context
+      .read<MovieListViewModel>()
+      .genres
+      .map((genre) => genre.name)
+      .toList();
 
   late Set<String> _selectedGenres;
   late Future<List<Movie>> _moviesFuture;
@@ -79,7 +76,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   Set<String> _genresFromQuery(String? query) => query == null
       ? <String>{}
-      : query.split(',').where(_genres.contains).toSet();
+      : query
+            .split(',')
+            .where((genre) => genre.isNotEmpty && genre != '전체')
+            .toSet();
 
   Future<List<Movie>> _fetchMovies({
     MovieLoadMode mode = MovieLoadMode.success,
@@ -335,14 +335,64 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: '장르 필터',
-                      onPressed: _isRestoringGenres ? null : _showGenreFilter,
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.filter_list),
+                    Consumer<MovieListViewModel>(
+                      builder: (context, viewModel, child) => IconButton(
+                        tooltip: '장르 필터',
+                        onPressed:
+                            _isRestoringGenres ||
+                                viewModel.status != MovieListLoadStatus.success
+                            ? null
+                            : _showGenreFilter,
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.filter_list),
+                      ),
                     ),
                   ],
                 ),
+              ),
+            ),
+            SizedBox(
+              height: 48,
+              child: Consumer<MovieListViewModel>(
+                builder: (context, viewModel, child) {
+                  return switch (viewModel.status) {
+                    MovieListLoadStatus.idle ||
+                    MovieListLoadStatus.loading => const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    MovieListLoadStatus.error => Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(viewModel.message ?? '장르를 불러오지 못했어요.'),
+                        TextButton(
+                          onPressed: () =>
+                              context.read<MovieListViewModel>().loadGenres(),
+                          child: const Text('다시 시도'),
+                        ),
+                      ],
+                    ),
+                    MovieListLoadStatus.empty => const Center(
+                      child: Text('장르가 없습니다.'),
+                    ),
+                    MovieListLoadStatus.success => ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: viewModel.genres.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final genre = viewModel.genres[index];
+                        return Chip(
+                          key: ValueKey(genre.id),
+                          label: Text(genre.name),
+                        );
+                      },
+                    ),
+                  };
+                },
               ),
             ),
             Expanded(
