@@ -47,5 +47,8 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-week04.md
+workbook.md
 flutter_layout_notes.md
+
+# TMDB 환경변수
+.env
