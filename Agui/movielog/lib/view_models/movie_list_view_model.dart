@@ -12,10 +12,12 @@ class MovieListViewModel extends ChangeNotifier {
 
   List<TmdbGenreDto> genres = const [];
   List<TmdbMovieDto> movies = const [];
+  int? selectedGenreId;
   MovieListLoadStatus genreStatus = MovieListLoadStatus.idle;
   MovieListLoadStatus status = MovieListLoadStatus.idle;
   String? genreMessage;
   String? message;
+  int _requestVersion = 0;
   bool _disposed = false;
 
   Future<void> loadGenres() async {
@@ -62,19 +64,20 @@ class MovieListViewModel extends ChangeNotifier {
   }
 
   Future<void> loadMovies() async {
+    final version = ++_requestVersion;
     status = MovieListLoadStatus.loading;
     message = null;
     notifyListeners();
 
     try {
-      final result = await fetchUpToThirtyMovies();
-      if (_disposed) return;
+      final result = await fetchUpToThirtyMovies(genreId: selectedGenreId);
+      if (_disposed || version != _requestVersion) return;
       movies = result;
       status = movies.isEmpty
           ? MovieListLoadStatus.empty
           : MovieListLoadStatus.success;
     } on DioException {
-      if (_disposed) return;
+      if (_disposed || version != _requestVersion) return;
       status = MovieListLoadStatus.error;
       message = '영화를 불러오지 못했어요. 다시 시도해 주세요.';
     }
@@ -82,9 +85,19 @@ class MovieListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> selectGenre(int? genreId) async {
+    if (selectedGenreId == genreId && status != MovieListLoadStatus.idle) {
+      return;
+    }
+    selectedGenreId = genreId;
+    movies = const [];
+    await loadMovies();
+  }
+
   @override
   void dispose() {
     _disposed = true;
+    _requestVersion++;
     super.dispose();
   }
 }

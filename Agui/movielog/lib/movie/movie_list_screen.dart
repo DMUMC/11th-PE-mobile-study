@@ -36,6 +36,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
   late Set<String> _selectedGenres;
   late bool _isRestoringGenres;
+  late final MovieListViewModel _viewModel;
+  bool _hasAppliedInitialGenre = false;
   int _genreSelectionRevision = 0;
   MovieSortOrder _sortOrder = MovieSortOrder.catalog;
   int _sortSelectionRevision = 0;
@@ -47,8 +49,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
     super.initState();
     _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
     _isRestoringGenres = widget.initialGenreQuery == null;
+    _viewModel = context.read<MovieListViewModel>();
+    _viewModel.addListener(_applyInitialGenre);
     if (_isRestoringGenres) unawaited(_restoreSelectedGenres());
     unawaited(_restoreSortOrder());
+    scheduleMicrotask(_applyInitialGenre);
   }
 
   @override
@@ -56,12 +61,14 @@ class _MovieListScreenState extends State<MovieListScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialGenreQuery != widget.initialGenreQuery) {
       _genreSelectionRevision++;
+      _hasAppliedInitialGenre = false;
       if (widget.initialGenreQuery == null) {
         _isRestoringGenres = true;
         unawaited(_restoreSelectedGenres());
       } else {
         _selectedGenres = _genresFromQuery(widget.initialGenreQuery);
         _isRestoringGenres = false;
+        scheduleMicrotask(_applyInitialGenre);
       }
     }
   }
@@ -71,7 +78,28 @@ class _MovieListScreenState extends State<MovieListScreen> {
       : query
             .split(',')
             .where((genre) => genre.isNotEmpty && genre != '전체')
+            .take(1)
             .toSet();
+
+  void _applyInitialGenre() {
+    if (!mounted ||
+        _hasAppliedInitialGenre ||
+        _isRestoringGenres ||
+        _viewModel.genreStatus == MovieListLoadStatus.idle ||
+        _viewModel.genreStatus == MovieListLoadStatus.loading) {
+      return;
+    }
+
+    _hasAppliedInitialGenre = true;
+    int? genreId;
+    for (final genre in _viewModel.genres) {
+      if (_selectedGenres.contains(genre.name)) {
+        genreId = genre.id;
+        break;
+      }
+    }
+    unawaited(_viewModel.selectGenre(genreId));
+  }
 
   Future<void> _restoreSelectedGenres() async {
     final revision = _genreSelectionRevision;
@@ -88,11 +116,13 @@ class _MovieListScreenState extends State<MovieListScreen> {
         _selectedGenres = _genresFromQuery(storedGenres);
         _isRestoringGenres = false;
       });
+      _applyInitialGenre();
     } catch (error, stackTrace) {
       debugPrint('장르 설정 읽기 실패: $error');
       debugPrintStack(stackTrace: stackTrace);
       if (!mounted || revision != _genreSelectionRevision) return;
       setState(() => _isRestoringGenres = false);
+      _applyInitialGenre();
     }
   }
 
@@ -166,11 +196,30 @@ class _MovieListScreenState extends State<MovieListScreen> {
     );
 
     if (selectedGenres == null || !mounted) return;
-    final appliedGenres = _genres.where(selectedGenres.contains).toSet();
-    _genreSelectionRevision++;
-    setState(() => _selectedGenres = appliedGenres);
+    int? genreId;
+    for (final genre in _viewModel.genres) {
+      if (selectedGenres.contains(genre.name)) {
+        genreId = genre.id;
+        break;
+      }
+    }
+    await _selectGenre(genreId);
+  }
 
-    final genreQuery = _genres.where(appliedGenres.contains).join(',');
+  Future<void> _selectGenre(int? genreId) async {
+    final appliedGenres = _viewModel.genres
+        .where((genre) => genre.id == genreId)
+        .map((genre) => genre.name)
+        .toSet();
+    final revision = ++_genreSelectionRevision;
+    _hasAppliedInitialGenre = true;
+    setState(() {
+      _selectedGenres = appliedGenres;
+      _isRestoringGenres = false;
+    });
+    final request = _viewModel.selectGenre(genreId);
+
+    final genreQuery = appliedGenres.join(',');
     try {
       await _genrePreference.save(genreQuery);
     } catch (error, stackTrace) {
@@ -181,12 +230,19 @@ class _MovieListScreenState extends State<MovieListScreen> {
           .showSnackBar(const SnackBar(content: Text('장르 선택을 저장하지 못했습니다.')));
     }
 
-    if (!mounted) return;
+    if (!mounted || revision != _genreSelectionRevision) return;
     final location = Uri(
       path: '/movies',
       queryParameters: genreQuery.isEmpty ? null : {'genre': genreQuery},
     );
     context.go(location.toString());
+    await request;
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_applyInitialGenre);
+    super.dispose();
   }
 
   @override
@@ -324,9 +380,13 @@ class _MovieListScreenState extends State<MovieListScreen> {
                       separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final genre = viewModel.genres[index];
-                        return Chip(
+                        return ChoiceChip(
                           key: ValueKey(genre.id),
                           label: Text(genre.name),
+                          selected: viewModel.selectedGenreId == genre.id,
+                          onSelected: (selected) {
+                            if (selected) unawaited(_selectGenre(genre.id));
+                          },
                         );
                       },
                     ),
@@ -354,21 +414,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         break;
                     }
 
-                    final genreNamesById = {
-                      for (final genre in viewModel.genres)
-                        genre.id: genre.name,
-                    };
                     final visibleMovies = viewModel.movies.where((movie) {
-                      final matchesGenre =
-                          _selectedGenres.isEmpty ||
-                          movie.genreIds.any(
-                            (id) =>
-                                _selectedGenres.contains(genreNamesById[id]),
-                          );
                       final matchesSearch =
                           _searchQuery.isEmpty ||
                           movie.title.contains(_searchQuery.trim());
-                      return matchesGenre && matchesSearch;
+                      return matchesSearch;
                     }).toList();
                     _sortMovies(visibleMovies);
 

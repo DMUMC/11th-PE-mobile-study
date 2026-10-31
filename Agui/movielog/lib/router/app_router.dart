@@ -66,8 +66,7 @@ class AppRouter {
                     ChangeNotifierProvider<MovieListViewModel>(
                       create: (context) =>
                           MovieListViewModel(context.read<TmdbMovieService>())
-                            ..loadGenres()
-                            ..loadMovies(),
+                            ..loadGenres(),
                       child: MovieListScreen(
                         initialGenreQuery: state.uri.queryParameters['genre'],
                       ),

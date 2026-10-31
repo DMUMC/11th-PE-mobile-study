@@ -16,7 +16,7 @@ class MovieGenreFilterSheet extends StatefulWidget {
 }
 
 class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
-  late final Set<String> _draftGenres = {...widget.selectedGenres};
+  late final Set<String> _draftGenres = {...widget.selectedGenres.take(1)};
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
 
@@ -99,7 +99,7 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        '여러 장르를 선택할 수 있어요',
+                        '장르를 하나 선택해 주세요',
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           color: AppColors.secondary500,
@@ -132,10 +132,9 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
                       activeColor: AppColors.primary600,
                       onChanged: (checked) {
                         setState(() {
+                          _draftGenres.clear();
                           if (checked ?? false) {
                             _draftGenres.add(genre);
-                          } else {
-                            _draftGenres.remove(genre);
                           }
                         });
                       },
