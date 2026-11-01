@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/data/models/tmdb_genre_dto.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieGenreFilterSheet extends StatefulWidget {
   const MovieGenreFilterSheet({
     required this.genres,
-    required this.selectedGenres,
+    required this.selectedGenreIds,
     super.key,
   });
 
-  final List<String> genres;
-  final Set<String> selectedGenres;
+  final List<TmdbGenreDto> genres;
+  final List<int>? selectedGenreIds;
 
   @override
   State<MovieGenreFilterSheet> createState() => _MovieGenreFilterSheetState();
 }
 
 class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
-  late final Set<String> _draftGenres = {...widget.selectedGenres.take(1)};
+  late final List<int> _draftGenreIds = [...?widget.selectedGenreIds];
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
 
@@ -99,7 +100,7 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        '장르를 하나 선택해 주세요',
+                        '원하는 장르를 여러 개 선택해 주세요',
                         textAlign: TextAlign.left,
                         style: TextStyle(
                           color: AppColors.secondary500,
@@ -118,8 +119,8 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
                   itemBuilder: (context, index) {
                     final genre = widget.genres[index];
                     return CheckboxListTile(
-                      value: _draftGenres.contains(genre),
-                      title: Text(genre, textAlign: TextAlign.left),
+                      value: _draftGenreIds.contains(genre.id),
+                      title: Text(genre.name, textAlign: TextAlign.left),
                       controlAffinity: ListTileControlAffinity.leading,
                       dense: true,
                       visualDensity: const VisualDensity(
@@ -132,9 +133,10 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
                       activeColor: AppColors.primary600,
                       onChanged: (checked) {
                         setState(() {
-                          _draftGenres.clear();
                           if (checked ?? false) {
-                            _draftGenres.add(genre);
+                            _draftGenreIds.add(genre.id);
+                          } else {
+                            _draftGenreIds.remove(genre.id);
                           }
                         });
                       },
@@ -150,7 +152,9 @@ class _MovieGenreFilterSheetState extends State<MovieGenreFilterSheet> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(_draftGenres),
+                      onPressed: () =>
+                          Navigator.of(context)
+                              .pop(List<int>.of(_draftGenreIds)),
                       child: const Text('확인'),
                     ),
                   ),

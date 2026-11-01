@@ -17,8 +17,11 @@ class TmdbMovieService {
 
   Future<TmdbMoviePageDto> discoverMovies({
     required int page,
-    int? genreId,
+    List<int>? genreIds,
   }) async {
+    final genreQuery = genreIds == null || genreIds.isEmpty
+        ? null
+        : genreIds.join('|');
     final response = await _dio.get(
       '/discover/movie',
       queryParameters: {
@@ -27,7 +30,7 @@ class TmdbMovieService {
         'sort_by': 'popularity.desc',
         'include_adult': false,
         'include_video': false,
-        'with_genres': ?genreId,
+        'with_genres': ?genreQuery,
       },
     );
     return TmdbMoviePageDto.fromJson(response.data as Map<String, dynamic>);

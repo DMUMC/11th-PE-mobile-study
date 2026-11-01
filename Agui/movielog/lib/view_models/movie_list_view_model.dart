@@ -12,11 +12,18 @@ class MovieListViewModel extends ChangeNotifier {
 
   List<TmdbGenreDto> genres = const [];
   List<TmdbMovieDto> movies = const [];
-  int? selectedGenreId;
+  List<int>? selectedGenreIds;
   MovieListLoadStatus genreStatus = MovieListLoadStatus.idle;
   MovieListLoadStatus status = MovieListLoadStatus.idle;
   String? genreMessage;
   String? message;
+  bool isRefreshing = false;
+  bool isRetrying = false;
+  bool get isLoading =>
+      status == MovieListLoadStatus.loading || isRefreshing || isRetrying;
+  int failureVersion = 0;
+  List<TmdbMovieDto>? _lastSuccessfulMovies;
+  List<int>? _failedGenreIds;
   int _requestVersion = 0;
   bool _disposed = false;
 
@@ -40,7 +47,9 @@ class MovieListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<TmdbMovieDto>> fetchUpToThirtyMovies({int? genreId}) async {
+  Future<List<TmdbMovieDto>> fetchUpToThirtyMovies({
+    List<int>? genreIds,
+  }) async {
     final byId = <int, TmdbMovieDto>{};
     var pageNumber = 1;
     var hasNextPage = true;
@@ -48,7 +57,7 @@ class MovieListViewModel extends ChangeNotifier {
     while (byId.length < 30 && hasNextPage) {
       final page = await _service.discoverMovies(
         page: pageNumber,
-        genreId: genreId,
+        genreIds: genreIds,
       );
 
       for (final movie in page.results) {
@@ -63,35 +72,69 @@ class MovieListViewModel extends ChangeNotifier {
     return byId.values.take(30).toList();
   }
 
-  Future<void> loadMovies() async {
+  Future<void> loadMovies() => _loadMovies(refresh: false);
+
+  Future<void> refreshMovies() => _loadMovies(refresh: true);
+
+  Future<void> retryMovies() => _loadMovies(refresh: false, retry: true);
+
+  Future<void> _loadMovies({required bool refresh, bool retry = false}) async {
+    if (isLoading) return;
+
     final version = ++_requestVersion;
-    status = MovieListLoadStatus.loading;
+    final genreIds = retry ? _failedGenreIds : selectedGenreIds;
+    isRefreshing = refresh;
+    isRetrying = retry;
+    if ((refresh || retry) && _lastSuccessfulMovies != null) {
+      movies = _lastSuccessfulMovies!;
+      status = movies.isEmpty
+          ? MovieListLoadStatus.empty
+          : MovieListLoadStatus.success;
+    } else {
+      status = MovieListLoadStatus.loading;
+    }
     message = null;
     notifyListeners();
 
     try {
-      final result = await fetchUpToThirtyMovies(genreId: selectedGenreId);
+      final result = await fetchUpToThirtyMovies(genreIds: genreIds);
       if (_disposed || version != _requestVersion) return;
       movies = result;
+      _lastSuccessfulMovies = result;
       status = movies.isEmpty
           ? MovieListLoadStatus.empty
           : MovieListLoadStatus.success;
     } on DioException {
       if (_disposed || version != _requestVersion) return;
-      status = MovieListLoadStatus.error;
-      message = '영화를 불러오지 못했어요. 다시 시도해 주세요.';
+      _failedGenreIds = genreIds;
+      if (_lastSuccessfulMovies != null) {
+        movies = _lastSuccessfulMovies!;
+        status = movies.isEmpty
+            ? MovieListLoadStatus.empty
+            : MovieListLoadStatus.success;
+      } else {
+        status = MovieListLoadStatus.error;
+      }
+      message = '영화를 불러오지 못했어요. 네트워크 연결을 확인하고 다시 시도해 주세요.';
+      failureVersion++;
     }
 
+    isRefreshing = false;
+    isRetrying = false;
     notifyListeners();
   }
 
-  Future<void> selectGenre(int? genreId) async {
-    if (status == MovieListLoadStatus.loading) return;
+  Future<void> selectGenres(List<int>? genreIds) async {
+    if (isLoading) return;
 
-    if (selectedGenreId == genreId && status != MovieListLoadStatus.idle) {
+    final nextIds = genreIds == null || genreIds.isEmpty
+        ? null
+        : List<int>.unmodifiable(genreIds.toSet());
+    if (listEquals(selectedGenreIds, nextIds) &&
+        status != MovieListLoadStatus.idle) {
       return;
     }
-    selectedGenreId = genreId;
+    selectedGenreIds = nextIds;
     movies = const [];
     await loadMovies();
   }

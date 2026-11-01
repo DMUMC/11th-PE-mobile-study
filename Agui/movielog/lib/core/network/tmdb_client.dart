@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:movielog/core/config/tmdb_config.dart';
+import 'package:movielog/core/network/tmdb_debug_network_interceptor.dart';
 import 'package:movielog/core/network/tmdb_logging_interceptor.dart';
 
 Dio createTmdbClient() {
@@ -18,6 +19,7 @@ Dio createTmdbClient() {
 
   if (kDebugMode) {
     dio.interceptors.add(TmdbLoggingInterceptor());
+    dio.interceptors.add(TmdbDebugNetworkInterceptor());
   }
   return dio;
 }
