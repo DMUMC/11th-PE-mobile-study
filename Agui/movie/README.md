@@ -48,4 +48,30 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 - `entity`: 테이블 매핑
 - `dto`: 요청·응답 데이터 구조
 
-현재는 워크북의 프로젝트 설정 단계까지 준비했으며 엔티티와 API는 다음 실습에서 구현합니다.
+워크북의 프로젝트 설정과 `BaseTimeEntity`, `Member`, `Rating` 엔티티 작성을 완료했습니다.
+`MemberRepository`, `RatingRepository`와 응답 DTO 3개(`NicknameCheckResponse`, `EmailCheckResponse`,
+`RatingResponse`)도 작성했습니다.
+
+실습 1의 `MemberService`, `MemberController`를 작성했으며, 워크북 예제에 함께 포함된
+닉네임·이메일 중복 체크를 모두 제공합니다.
+
+| Method | URL | 응답 |
+| --- | --- | --- |
+| GET | `/members/nickname/{nickname}` | `{"available": true}` 또는 `{"available": false}` |
+| GET | `/members/email/{email}` | `{"available": true}` 또는 `{"available": false}` |
+| GET | `/members/{memberId}/ratings` | 평점 목록 (`ratingId` 내림차순) |
+
+이미 등록된 값이면 `available: false`, 미등록 값이면 `available: true`를 반환합니다.
+서버를 재시작한 뒤 Postman으로 확인합니다. 워크북 시드 데이터를 넣었다면
+`GET http://localhost:8080/members/nickname/수현`과
+`GET http://localhost:8080/members/email/noco@umc.com`은 모두 `available: false`가 예상됩니다.
+
+실습 3의 `RatingService`, `RatingController`는 회원별 평점을 `RatingResponse` 배열로 반환합니다.
+존재하는 회원에게 평점이 없으면 `[]`, 회원이 존재하지 않으면 404를 응답합니다.
+워크북 시드 데이터 기준 `GET http://localhost:8080/members/1/ratings`는 평점 2건을
+`ratingId` 내림차순으로 반환해야 합니다. 존재하지 않는 ID로 404도 확인합니다.
+
+`WebConfig`에서 모든 경로에 대해 `http://localhost:5173` 출처를 허용합니다.
+허용 메서드는 `GET`, `POST`, `PATCH`, `DELETE`이며 모든 요청 헤더를 허용합니다.
+서버 재시작 후 `Agui/mock-frontend`를 5173 포트에서 실행하고 닉네임 중복 체크 버튼을 눌러
+이전 CORS 오류 대신 `available` JSON이 화면에 표시되는지 확인합니다.
