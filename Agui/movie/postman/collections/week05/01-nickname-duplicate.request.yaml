@@ -1,0 +1,15 @@
+$kind: http-request
+name: "닉네임 중복"
+method: GET
+url: '{{base_url}}/members/nickname/%EC%88%98%ED%98%84'
+order: 1000
+headers:
+  - key: Origin
+    value: 'http://localhost:5173'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('CORS permits the frontend', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('http://localhost:5173'));
+      pm.test('Already registered', () => pm.expect(pm.response.json()).to.eql({available:false}));

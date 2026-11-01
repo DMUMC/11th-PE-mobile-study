@@ -73,5 +73,19 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 
 `WebConfig`에서 모든 경로에 대해 `http://localhost:5173` 출처를 허용합니다.
 허용 메서드는 `GET`, `POST`, `PATCH`, `DELETE`이며 모든 요청 헤더를 허용합니다.
-서버 재시작 후 `Agui/mock-frontend`를 5173 포트에서 실행하고 닉네임 중복 체크 버튼을 눌러
-이전 CORS 오류 대신 `available` JSON이 화면에 표시되는지 확인합니다.
+서버 재시작 후 `Agui/mock-frontend`를 5173 포트에서 실행하면 API 3개를 모두 사용할 수 있습니다.
+실제 웹 화면에서 중복·미등록 응답, 회원별 평점 2건과 없는 회원의 404를 확인했습니다.
+
+## 필수 미션 및 검증 자료
+
+- [미션 기록과 핵심 코드, Postman·웹 인증 캡처](mission-submission.md)
+- [Postman 실행 결과: 요청 6개, 검증 20개 통과](postman/reports/week05-run.txt)
+
+백엔드가 실행 중인 상태에서 이 폴더를 기준으로 로컬 컬렉션을 실행합니다.
+
+```sh
+postman collection lint postman/collections/week05
+postman collection run postman/collections/week05 --no-report-events --timeout-request 10000
+```
+
+이 컬렉션은 실제 서버를 조회하며, DB 데이터를 변경하지 않습니다.

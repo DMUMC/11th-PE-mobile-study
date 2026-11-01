@@ -1,0 +1,14 @@
+$kind: http-request
+name: "존재하지 않는 회원"
+method: GET
+url: '{{base_url}}/members/999/ratings'
+order: 6000
+headers:
+  - key: Origin
+    value: 'http://localhost:5173'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('HTTP 404', () => pm.response.to.have.status(404));
+      pm.test('CORS also permits the error response', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('http://localhost:5173'));
