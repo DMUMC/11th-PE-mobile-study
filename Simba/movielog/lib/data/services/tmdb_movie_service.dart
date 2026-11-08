@@ -53,6 +53,17 @@ class TmdbMovieService {
     return TmdbMovieDto.fromJson(response.data ?? const {});
   }
 
+  /// [fetchMovieDetail]의 404(TMDB에 없는 영화)만 null로 바꾼다.
+  /// 다른 네트워크 오류는 그대로 던져서 호출한 쪽이 판단하게 한다.
+  Future<TmdbMovieDto?> findMovieById(int movieId) async {
+    try {
+      return await fetchMovieDetail(movieId);
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
   Future<List<TmdbGenreDto>> fetchGenres() async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/genre/movie/list',
