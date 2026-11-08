@@ -1,0 +1,96 @@
+{
+  "info": {
+    "name": "4주차 ORM — 실제 테스트 전 준비본",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "missingCategoryId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 GET 도서 목록 — ID 최신순",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books"
+      }
+    },
+    {
+      "name": "02 POST 등록 — 실행 전 데이터 추가 승인 필요",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"4주차 ORM 제출 테스트\",\n  \"description\": \"사용자 승인 후 생성하는 테스트 도서\",\n  \"categoryId\": {{categoryId}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "03 POST 잘못된 DTO — 400 확인",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"description\": \"DTO 검증 테스트\",\n  \"categoryId\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "04 POST 없는 카테고리 — 해당 ID 부재 확인 후 실행",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"카테고리 오류 테스트\",\n  \"description\": \"없는 카테고리 검증\",\n  \"categoryId\": {{missingCategoryId}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
