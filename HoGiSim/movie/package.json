@@ -25,7 +25,8 @@
     "frontend": "node scripts/serve-frontend.mjs",
     "frontend:other": "node scripts/serve-frontend.mjs 5174",
     "db:setup": "node --env-file=.env scripts/db-setup.mjs",
-    "test:postman": "npx --yes newman@6.2.3 run postman/week05-movie.postman_collection.json --reporters cli,json --reporter-json-export docs/evidence/postman-results.json"
+    "test:postman": "npx --yes newman@6.2.3 run postman/week05-movie.postman_collection.json --reporters cli,json --reporter-json-export docs/evidence/postman-results.json",
+    "test:e2e:week06": "npm run build && node --env-file=.env --test test/week06.mysql.test.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -33,6 +34,7 @@
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/typeorm": "^12.0.2",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "mysql2": "^3.24.6",
@@ -45,6 +47,7 @@
     "@nestjs/mau": "^0.2.6",
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
