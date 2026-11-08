@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 
@@ -17,10 +18,10 @@ class MyScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
-        children: const [
-          _ProfileSummary(),
-          SizedBox(height: 28),
-          Row(
+        children: [
+          const _ProfileSummary(),
+          const SizedBox(height: 28),
+          const Row(
             children: [
               Expanded(
                 child: _StatCard(value: '342', label: '본 영화'),
@@ -35,13 +36,19 @@ class MyScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 28),
-          Text(
+          const SizedBox(height: 28),
+          ListTile(
+            title: const Text('내가 등록한 평점'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/my/ratings'),
+          ),
+          const SizedBox(height: 16),
+          const Text(
             '선호하는 장르',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
-          SizedBox(height: 12),
-          Wrap(
+          const SizedBox(height: 12),
+          const Wrap(
             spacing: 8,
             children: [
               Chip(label: Text('드라마')),
