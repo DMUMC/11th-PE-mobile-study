@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../models/movie.dart';
+import '../data/models/tmdb_movie_dto.dart';
+import '../data/models/tmdb_genre_dto.dart';
 import '../theme/app_colors.dart';
+import 'tmdb_poster_image.dart';
 
 class MovieCard extends StatelessWidget {
   const MovieCard({
     required this.movie,
     required this.onTap,
+    this.genres = const [],
     this.width,
     super.key,
   });
 
-  final Movie movie;
+  final TmdbMovieDto movie;
+  final List<TmdbGenreDto> genres;
   final VoidCallback onTap;
   final double? width;
 
@@ -36,8 +40,8 @@ class MovieCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         child: Hero(
                           tag: 'poster-${movie.id}',
-                          child: Image.asset(
-                            movie.posterAsset,
+                          child: TmdbPosterImage(
+                            posterPath: movie.posterPath,
                             width: double.infinity,
                             fit: BoxFit.cover,
                           ),
@@ -58,7 +62,7 @@ class MovieCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           child: Text(
-                            '★ ${movie.averageRating.toStringAsFixed(1)}',
+                            '★ ${movie.voteAverage.toStringAsFixed(1)}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,
@@ -83,7 +87,13 @@ class MovieCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${movie.year} · ${movie.genreLabel}',
+                [
+                  if ((movie.releaseDate?.length ?? 0) >= 4)
+                    movie.releaseDate!.substring(0, 4),
+                  ...genres
+                      .where((genre) => movie.genreIds.contains(genre.id))
+                      .map((genre) => genre.name),
+                ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

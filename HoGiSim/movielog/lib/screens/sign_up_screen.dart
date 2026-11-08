@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/movie_log_text_form_field.dart';
+import '../widgets/movielog_button.dart';
+import '../view_models/sign_up_view_model.dart';
 
 abstract final class SignUpValidators {
   static String? nickname(String? value) {
@@ -92,6 +95,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final checks = context.watch<SignUpViewModel>();
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -147,10 +151,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 passwordHasError:
                                     (_passwordTouched || _submitted) &&
                                     !_passwordValid,
-                                onNicknameChanged: (_) =>
-                                    _onFieldChanged(_SignUpField.nickname),
-                                onEmailChanged: (_) =>
-                                    _onFieldChanged(_SignUpField.email),
+                                onNicknameChanged: (value) {
+                                  _onFieldChanged(_SignUpField.nickname);
+                                  checks.onNicknameChanged(value);
+                                },
+                                onEmailChanged: (value) {
+                                  _onFieldChanged(_SignUpField.email);
+                                  checks.onEmailChanged(value);
+                                },
                                 onPasswordChanged: (_) =>
                                     _onFieldChanged(_SignUpField.password),
                                 onTogglePassword: () => setState(
@@ -168,7 +176,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               const SizedBox(height: 24),
                               SignUpActionArea(
-                                enabled: _canSubmit,
+                                enabled:
+                                    _canSubmit &&
+                                    checks.nickname.errorText == null &&
+                                    checks.email.errorText == null &&
+                                    checks.nickname.status !=
+                                        CheckStatus.checking &&
+                                    checks.email.status != CheckStatus.checking,
                                 onSubmit: _submit,
                               ),
                               SizedBox(height: isWide ? 26 : 38),
@@ -284,6 +298,7 @@ class SignUpFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final checks = context.watch<SignUpViewModel>();
     return Column(
       children: [
         MovieLogTextFormField(
@@ -296,6 +311,16 @@ class SignUpFields extends StatelessWidget {
           textInputAction: TextInputAction.next,
           isValid: nicknameValid,
           showErrorState: nicknameHasError,
+          serverErrorText: checks.nickname.errorText,
+          successText: checks.nickname.successText,
+          trailing: MovieLogButton(
+            key: const Key('nicknameCheckButton'),
+            label: '중복 확인',
+            isLoading: checks.nickname.status == CheckStatus.checking,
+            onPressed: nicknameValid && checks.nickname.canCheck
+                ? checks.checkNickname
+                : null,
+          ),
           onFieldSubmitted: (_) => emailFocusNode.requestFocus(),
         ),
         const SizedBox(height: 24),
@@ -311,6 +336,16 @@ class SignUpFields extends StatelessWidget {
           textInputAction: TextInputAction.next,
           isValid: emailValid,
           showErrorState: emailHasError,
+          serverErrorText: checks.email.errorText,
+          successText: checks.email.successText,
+          trailing: MovieLogButton(
+            key: const Key('emailCheckButton'),
+            label: '중복 확인',
+            isLoading: checks.email.status == CheckStatus.checking,
+            onPressed: emailValid && checks.email.canCheck
+                ? checks.checkEmail
+                : null,
+          ),
           onFieldSubmitted: (_) => passwordFocusNode.requestFocus(),
         ),
         const SizedBox(height: 24),
@@ -379,24 +414,12 @@ class SignUpActionArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return MovieLogButton(
+      key: const Key('signUpButton'),
+      label: '가입하기',
+      width: double.infinity,
       height: 58,
-      child: ElevatedButton(
-        key: const Key('signUpButton'),
-        onPressed: enabled ? onSubmit : null,
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          disabledBackgroundColor: AppColors.disabledPrimary,
-          disabledForegroundColor: AppColors.onPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-        ),
-        child: const Text('가입하기'),
-      ),
+      onPressed: enabled ? onSubmit : null,
     );
   }
 }
@@ -411,7 +434,8 @@ class _LoginPrompt extends StatelessWidget {
       children: [
         const Text('이미 계정이 있나요? ', style: TextStyle(fontSize: 15)),
         TextButton(
-          onPressed: () {},
+          key: const Key('loginButton'),
+          onPressed: () => context.go('/home'),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 2),

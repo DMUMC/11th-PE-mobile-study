@@ -1,15 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-import '../models/movie.dart';
+import '../data/models/tmdb_movie_dto.dart';
+import '../data/models/tmdb_genre_dto.dart';
+import '../view_models/movie_detail_view_model.dart';
+import '../view_models/movie_load_status.dart';
+import '../widgets/movie_list_states.dart';
+import '../widgets/tmdb_poster_image.dart';
 import '../theme/app_colors.dart';
 import '../widgets/movie_rating_input.dart';
 
-class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({required this.movie, super.key});
+class MovieDetailPage extends StatelessWidget {
+  const MovieDetailPage({super.key});
 
-  final Movie movie;
+  @override
+  Widget build(BuildContext context) => Consumer<MovieDetailViewModel>(
+    builder: (context, vm, _) =>
+        vm.status == MovieLoadStatus.success && vm.movie != null
+        ? MovieDetailScreen(movie: vm.movie!, genres: vm.genres)
+        : Scaffold(
+            appBar: AppBar(leading: const BackButton()),
+            body: vm.status == MovieLoadStatus.error
+                ? MovieErrorView(message: vm.message, onRetry: vm.load)
+                : const MovieLoadingView(),
+          ),
+  );
+}
+
+class MovieDetailScreen extends StatefulWidget {
+  const MovieDetailScreen({
+    required this.movie,
+    this.genres = const [],
+    super.key,
+  });
+
+  final TmdbMovieDto movie;
+  final List<TmdbGenreDto> genres;
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
@@ -32,15 +60,18 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   }
 
   Future<void> _openRatingDialog() async {
-    final rating = await showDialog<double>(
+    final rating = await showDialog<MovieRatingResult>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (_) => MovieRatingInput(movieTitle: widget.movie.title),
+      builder: (_) => MovieRatingInput(
+        movieId: widget.movie.id,
+        movieTitle: widget.movie.title,
+      ),
     );
     if (rating == null || !mounted) return;
-    setState(() => _myRating = rating);
+    setState(() => _myRating = rating.score);
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('평점 $rating점을 저장했습니다.')));
+        .showSnackBar(SnackBar(content: Text('평점 ${rating.score}점을 선택했습니다.')));
   }
 
   @override
@@ -73,7 +104,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             aspectRatio: 0.67,
             child: Hero(
               tag: 'poster-${movie.id}',
-              child: Image.asset(movie.posterAsset, fit: BoxFit.cover),
+              child: TmdbPosterImage(posterPath: movie.posterPath),
             ),
           ),
           Padding(
@@ -90,7 +121,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '${movie.year} · ${movie.genreLabel} · ${movie.runtime}분',
+                  [
+                    if ((movie.releaseDate?.length ?? 0) >= 4)
+                      movie.releaseDate!.substring(0, 4),
+                    ...widget.genres
+                        .where((genre) => movie.genreIds.contains(genre.id))
+                        .map((genre) => genre.name),
+                    if (movie.runtime != null) '${movie.runtime}분',
+                  ].join(' · '),
                   style: const TextStyle(
                     color: AppColors.onSurfaceVariant,
                     fontSize: 13,
@@ -102,8 +140,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 Wrap(
                   spacing: 8,
                   children: [
-                    ...movie.genres.map((genre) => Chip(label: Text(genre))),
-                    const Chip(label: Text('감동적인')),
+                    ...widget.genres
+                        .where((genre) => movie.genreIds.contains(genre.id))
+                        .map((genre) => Chip(label: Text(genre.name))),
                   ],
                 ),
                 const Divider(height: 38),
@@ -113,7 +152,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  movie.overview,
+                  movie.overview.trim().isEmpty
+                      ? '줄거리 정보가 없어요.'
+                      : movie.overview,
                   style: const TextStyle(fontSize: 15, height: 1.65),
                 ),
               ],
@@ -155,7 +196,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 class _RatingSummary extends StatelessWidget {
   const _RatingSummary({required this.movie});
 
-  final Movie movie;
+  final TmdbMovieDto movie;
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +205,7 @@ class _RatingSummary extends StatelessWidget {
         KeyedSubtree(
           key: const Key('averageRatingIndicator'),
           child: RatingBarIndicator(
-            rating: movie.averageRating,
+            rating: movie.voteAverage / 2,
             itemCount: 5,
             itemSize: 18,
             itemBuilder: (_, _) =>
@@ -174,7 +215,7 @@ class _RatingSummary extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Text(
-          '${movie.averageRating.toStringAsFixed(1)} (${_formatCount(movie.reviewCount)})',
+          '${movie.voteAverage.toStringAsFixed(1)} / 10 (${_formatCount(movie.voteCount)})',
           style: const TextStyle(fontSize: 13),
         ),
       ],
