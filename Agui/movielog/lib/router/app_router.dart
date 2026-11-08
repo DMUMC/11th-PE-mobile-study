@@ -6,6 +6,7 @@ import 'package:movielog/home/home_screen.dart';
 import 'package:movielog/movie/movie_detail_screen.dart';
 import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
+import 'package:movielog/profile_screen/my_ratings_screen.dart';
 import 'package:movielog/start_screen.dart';
 
 class AppRouter {
@@ -72,6 +73,13 @@ class AppRouter {
               GoRoute(
                 path: '/my',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'ratings',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const MyRatingsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

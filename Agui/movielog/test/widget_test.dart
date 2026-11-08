@@ -107,6 +107,21 @@ void main() {
     expect(find.text('내 프로필'), findsOneWidget);
     expect(find.byIcon(Icons.person_rounded), findsOneWidget);
 
+    await tester.ensureVisible(find.text('내가 등록한 평점'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('내가 등록한 평점'));
+    await tester.pumpAndSettle();
+    expect(find.text('영화 제목'), findsOneWidget);
+    expect(find.text('영화 #13'), findsOneWidget);
+    expect(find.text('별점 4 / 5'), findsOneWidget);
+    expect(find.text('별점 3 / 5'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+
+    await tester.tap(find.byTooltip('뒤로 가기'));
+    await tester.pumpAndSettle();
+    expect(find.text('내 프로필'), findsOneWidget);
+    expect(find.byIcon(Icons.person_rounded), findsOneWidget);
+
     await tester.tap(find.text('홈'));
     await tester.pumpAndSettle();
     expect(find.text('오늘은 어떤\n영화를 볼까요?'), findsOneWidget);
@@ -217,14 +232,15 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('시작하기'));
-    await tester.pumpAndSettle();
+    // The design preview intentionally keeps the email spinner running.
+    await tester.pump(const Duration(milliseconds: 500));
     final signUpButton = find.widgetWithText(ElevatedButton, '가입하기');
     expect(signUpButton, findsOneWidget);
     expect(tester.widget<ElevatedButton>(signUpButton).onPressed, isNull);
     expect(AppRouter.router.canPop(), isFalse);
 
     await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(signUpButton, findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), '가');
@@ -243,14 +259,8 @@ void main() {
       tester.widget<TextField>(find.byType(TextField).at(2)).obscureText,
       isTrue,
     );
-    await tester.tap(find.byTooltip('비밀번호 표시'));
-    await tester.pumpAndSettle();
-    expect(
-      tester.widget<TextField>(find.byType(TextField).at(2)).obscureText,
-      isFalse,
-    );
     await tester.ensureVisible(find.byType(Checkbox));
-    await tester.tap(find.byType(Checkbox));
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
     await tester.pumpAndSettle();
     expect(tester.widget<ElevatedButton>(signUpButton).onPressed, isNotNull);
 
@@ -272,7 +282,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     AppRouter.router.go('/register');
     await tester.pumpWidget(const MovieLogApp());
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('환영합니다!'), findsOneWidget);
     expect(find.text('회원가입'), findsOneWidget);

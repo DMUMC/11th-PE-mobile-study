@@ -11,20 +11,25 @@ class SignUpSubmitButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: AppComponentHeight.button,
+      height: 44,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          disabledBackgroundColor: Theme.of(context)
-              .colorScheme
-              .primaryContainer,
+          disabledBackgroundColor: Theme.of(context).colorScheme.primary
+              .withValues(alpha: 0.32),
           disabledForegroundColor: Theme.of(context).colorScheme.onPrimary,
           elevation: 0,
           shape: const RoundedRectangleBorder(
             borderRadius: AppRadius.borderRadius,
           ),
         ),
-        child: const Text('가입하기'),
+        child: Text(
+          '가입하기',
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }

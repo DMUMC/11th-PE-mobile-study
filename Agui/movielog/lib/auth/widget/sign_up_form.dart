@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import '../../widgets/movielog_button.dart';
 import 'sign_up_text_field.dart';
 
 String? validateNickname(String? value) {
@@ -58,11 +59,10 @@ class SignUpForm extends StatelessWidget {
     required this.onNicknameChanged,
     required this.onEmailChanged,
     required this.onPasswordChanged,
-    required this.isNicknameValid,
-    required this.isEmailValid,
-    required this.isPasswordValid,
-    required this.isPasswordObscured,
-    required this.onTogglePasswordVisibility,
+    required this.isNicknameChecked,
+    required this.isEmailCheckLoading,
+    required this.onCheckNickname,
+    required this.onCheckEmail,
     this.nicknameErrorText,
     this.emailErrorText,
     this.passwordErrorText,
@@ -77,11 +77,10 @@ class SignUpForm extends StatelessWidget {
   final ValueChanged<String> onNicknameChanged;
   final ValueChanged<String> onEmailChanged;
   final ValueChanged<String> onPasswordChanged;
-  final bool isNicknameValid;
-  final bool isEmailValid;
-  final bool isPasswordValid;
-  final bool isPasswordObscured;
-  final VoidCallback onTogglePasswordVisibility;
+  final bool isNicknameChecked;
+  final bool isEmailCheckLoading;
+  final VoidCallback onCheckNickname;
+  final VoidCallback onCheckEmail;
   final String? nicknameErrorText;
   final String? emailErrorText;
   final String? passwordErrorText;
@@ -101,9 +100,12 @@ class SignUpForm extends StatelessWidget {
           errorText: nicknameErrorText,
           onChanged: onNicknameChanged,
           onSubmitted: (_) => emailFocusNode.requestFocus(),
-          showSuccessIcon: isNicknameValid,
+          showSuccessIcon: isNicknameChecked,
+          helperText: isNicknameChecked ? '사용 가능한 닉네임입니다.' : null,
+          helperColor: const Color(0xFF2E7D32),
+          trailing: MovieLogButton(label: '중복 확인', onPressed: onCheckNickname),
         ),
-        const SizedBox(height: AppSpacing.x2),
+        const SizedBox(height: AppSpacing.x1),
         SignUpTextField(
           controller: emailController,
           label: '이메일',
@@ -115,22 +117,26 @@ class SignUpForm extends StatelessWidget {
           errorText: emailErrorText,
           onChanged: onEmailChanged,
           onSubmitted: (_) => passwordFocusNode.requestFocus(),
-          showSuccessIcon: isEmailValid,
+          helperText: isEmailCheckLoading ? '이메일 사용 가능 여부를 확인 중입니다.' : null,
+          helperColor: const Color(0xFF1565C0),
+          trailing: MovieLogButton(
+            label: '중복 확인',
+            isLoading: isEmailCheckLoading,
+            onPressed: onCheckEmail,
+          ),
         ),
-        const SizedBox(height: AppSpacing.x2),
+        const SizedBox(height: AppSpacing.x1),
         SignUpTextField(
           controller: passwordController,
           focusNode: passwordFocusNode,
           label: '비밀번호',
           hintText: '비밀번호를 입력해주세요',
           textInputAction: TextInputAction.done,
-          obscureText: isPasswordObscured,
+          obscureText: true,
           validator: validatePassword,
           errorText: passwordErrorText,
           onChanged: onPasswordChanged,
           onSubmitted: (_) => FocusScope.of(context).unfocus(),
-          showSuccessIcon: isPasswordValid,
-          onToggleObscureText: onTogglePasswordVisibility,
         ),
       ],
     );

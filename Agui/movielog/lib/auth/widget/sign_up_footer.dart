@@ -11,13 +11,15 @@ class SignUpFooter extends StatelessWidget {
     return Text.rich(
       TextSpan(
         text: '이미 계정이 있나요? ',
-        style: textTheme.bodySmall,
+        style: textTheme.bodyMedium?.copyWith(color: colors.onSurface),
         children: [
           TextSpan(
             text: '로그인',
-            style: textTheme.bodySmall?.copyWith(
+            style: textTheme.bodyMedium?.copyWith(
               color: colors.primary,
               fontWeight: FontWeight.w700,
+              decoration: TextDecoration.underline,
+              decorationColor: colors.primary,
             ),
           ),
         ],

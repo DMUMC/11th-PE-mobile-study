@@ -18,25 +18,37 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final formKey = GlobalKey<FormState>();
-  final nicknameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  // W6-01 디자인의 예시 상태입니다. 중복 확인 API는 다음 미션에서 연결합니다.
+  final nicknameController = TextEditingController(text: '영화광');
+  final emailController = TextEditingController(text: 'movie@umc.com');
+  final passwordController = TextEditingController(text: '12345678');
 
   final nicknameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
 
-  bool agreedToTerms = false;
+  bool agreedToTerms = true;
   String? nicknameErrorText;
   String? emailErrorText;
   String? passwordErrorText;
-  bool isNicknameValid = false;
-  bool isEmailValid = false;
-  bool isPasswordValid = false;
-  bool isPasswordObscured = true;
+  bool isNicknameValid = true;
+  bool isEmailValid = true;
+  bool isPasswordValid = true;
+  bool isNicknameChecked = true;
+  bool isEmailCheckLoading = true;
 
   bool get canSubmit =>
-      isNicknameValid && isEmailValid && isPasswordValid && agreedToTerms;
+      isNicknameValid &&
+      isEmailValid &&
+      isPasswordValid &&
+      agreedToTerms &&
+      !isEmailCheckLoading;
+
+  void showPreviewNotice() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('화면 미리보기입니다.')));
+  }
 
   @override
   void dispose() {
@@ -63,19 +75,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
               final isWideScreen = constraints.maxWidth >= 700;
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.x2,
-                  AppSpacing.x3,
-                  AppSpacing.x2,
-                  AppSpacing.x3,
-                ),
+                padding: const EdgeInsets.fromLTRB(18, 48, 18, 40),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Center(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxWidth: isWideScreen ? 560 : double.infinity,
-                      minHeight: constraints.maxHeight - (AppSpacing.x3 * 2),
+                      minHeight: (constraints.maxHeight - 88).clamp(
+                        0,
+                        double.infinity,
+                      ),
                     ),
                     child: Form(
                       key: formKey,
@@ -112,21 +122,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 nicknameErrorText: nicknameErrorText,
                                 emailErrorText: emailErrorText,
                                 passwordErrorText: passwordErrorText,
-                                isNicknameValid: isNicknameValid,
-                                isEmailValid: isEmailValid,
-                                isPasswordValid: isPasswordValid,
-                                isPasswordObscured: isPasswordObscured,
-                                onTogglePasswordVisibility: () {
-                                  setState(() {
-                                    isPasswordObscured = !isPasswordObscured;
-                                  });
-                                },
+                                isNicknameChecked: isNicknameChecked,
+                                isEmailCheckLoading: isEmailCheckLoading,
+                                onCheckNickname: showPreviewNotice,
+                                onCheckEmail: showPreviewNotice,
                                 onNicknameChanged: (value) {
                                   setState(() {
                                     final errorText = value.trim().isEmpty
                                         ? null
                                         : validateNickname(value);
                                     nicknameErrorText = errorText;
+                                    isNicknameChecked = false;
                                     isNicknameValid =
                                         value.trim().isNotEmpty &&
                                         errorText == null;
@@ -138,6 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         ? null
                                         : validateEmail(value);
                                     emailErrorText = errorText;
+                                    isEmailCheckLoading = false;
                                     isEmailValid =
                                         value.trim().isNotEmpty &&
                                         errorText == null;
@@ -168,7 +175,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   });
                                 },
                               ),
-                              const SizedBox(height: AppSpacing.x2),
+                              const SizedBox(height: AppSpacing.x3),
                               SignUpSubmitButton(
                                 onPressed: canSubmit
                                     ? () {
@@ -181,7 +188,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       }
                                     : null,
                               ),
-                              const SizedBox(height: AppSpacing.x3),
+                              const SizedBox(height: 56),
                               const SignUpFooter(),
                             ],
                           ),
