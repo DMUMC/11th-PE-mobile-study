@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MovieLog · 회원과 평점</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">MovieLog<span>MEMBERS & RATINGS</span></a
+      ><span class="badge">5주차 · 화면과 API 연결</span>
+    </header>
+    <main>
+      <section class="intro">
+        <p class="eyebrow">YOUR OWN MOVIE RECORD</p>
+        <h1>영화 취향의 시작,<br />나만의 기록.</h1>
+        <p>
+          닉네임과 이메일을 확인하고, 회원이 남긴 영화 평점을 조회해 보세요.
+        </p>
+      </section>
+      <aside class="connection">
+        <label for="api-base">API 연결 주소</label>
+        <div class="address">
+          <input
+            id="api-base"
+            value="http://localhost:3001"
+            spellcheck="false"
+            aria-describedby="connection-note"
+          /><button type="button" id="check-all">모두 확인</button>
+        </div>
+        <p id="connection-note">
+          회원과 평점은 자체 API에서, 영화 원본 정보는 TMDB에서 관리합니다.
+        </p>
+      </aside>
+      <div class="checks">
+        <section class="card">
+          <span class="step">01 / NICKNAME</span>
+          <h2>닉네임 중복 확인</h2>
+          <p>2~12자의 닉네임을 입력해 주세요.</p>
+          <form id="nickname-form" novalidate>
+            <label for="nickname">닉네임</label>
+            <div class="input-row">
+              <input id="nickname" value="수현" autocomplete="off" /><button
+                id="nickname-check"
+              >
+                닉네임 확인
+              </button>
+            </div>
+          </form>
+          <output id="nickname-status" class="status" aria-live="polite"
+            >확인할 준비가 되었어요.</output
+          >
+          <details open>
+            <summary>요청과 응답</summary>
+            <code id="nickname-url"></code>
+            <pre id="nickname-json">아직 요청하지 않았어요.</pre>
+          </details>
+        </section>
+        <section class="card">
+          <span class="step">02 / EMAIL</span>
+          <h2>이메일 중복 확인</h2>
+          <p>사용할 이메일 주소를 입력해 주세요.</p>
+          <form id="email-form" novalidate>
+            <label for="email">이메일</label>
+            <div class="input-row">
+              <input
+                id="email"
+                type="email"
+                value="noco@umc.com"
+                autocomplete="off"
+              /><button id="email-check">이메일 확인</button>
+            </div>
+          </form>
+          <output id="email-status" class="status" aria-live="polite"
+            >확인할 준비가 되었어요.</output
+          >
+          <details open>
+            <summary>요청과 응답</summary>
+            <code id="email-url"></code>
+            <pre id="email-json">아직 요청하지 않았어요.</pre>
+          </details>
+        </section>
+      </div>
+      <section class="card ratings">
+        <div class="section-head">
+          <div>
+            <span class="step">03 / RATINGS</span>
+            <h2>회원의 영화 기록</h2>
+          </div>
+          <span id="rating-count" class="count">0개의 기록</span>
+        </div>
+        <p>
+          수현(1) · 민서(2) · 평점이 없는 회원(3)의 시드 데이터를 조회할 수
+          있어요.
+        </p>
+        <form id="ratings-form" novalidate>
+          <div class="rating-inputs">
+            <label
+              >회원 ID<input
+                id="member-id"
+                value="1"
+                inputmode="numeric" /></label
+            ><label
+              >페이지 (0부터)<input
+                id="page"
+                value="0"
+                inputmode="numeric" /></label
+            ><label
+              >페이지 크기<input
+                id="size"
+                value="10"
+                inputmode="numeric" /></label
+            ><button id="ratings-check">평점 조회</button>
+          </div>
+        </form>
+        <output id="ratings-status" class="status" aria-live="polite"
+          >확인할 준비가 되었어요.</output
+        >
+        <div id="rating-list" class="rating-list">
+          <p class="empty">회원 ID를 입력하고 평점을 조회해 주세요.</p>
+        </div>
+        <details open>
+          <summary>요청과 응답</summary>
+          <code id="ratings-url"></code>
+          <pre id="ratings-json">아직 요청하지 않았어요.</pre>
+        </details>
+      </section>
+      <footer>
+        MovieLog · 회원 조회와 평점 기록 API · 데이터는 로컬 실습용 시드입니다.
+      </footer>
+    </main>
+  </body>
+</html>

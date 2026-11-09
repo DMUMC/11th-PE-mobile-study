@@ -1,0 +1,160 @@
+{
+  "testedAt": "2026-10-29T10:52:16.180Z",
+  "database": "MySQL",
+  "cases": [
+    {
+      "name": "닉네임 중복",
+      "status": 200,
+      "response": {
+        "available": false
+      }
+    },
+    {
+      "name": "닉네임 사용 가능",
+      "status": 200,
+      "response": {
+        "available": true
+      }
+    },
+    {
+      "name": "이메일 중복",
+      "status": 200,
+      "response": {
+        "available": false
+      }
+    },
+    {
+      "name": "이메일 사용 가능",
+      "status": 200,
+      "response": {
+        "available": true
+      }
+    },
+    {
+      "name": "회원 평점 최신순",
+      "status": 200,
+      "response": [
+        {
+          "ratingId": 2,
+          "movieId": 155,
+          "score": 4,
+          "comment": "다시 봐도 명작",
+          "createdAt": "2026-10-29T10:22:32.000Z",
+          "updatedAt": "2026-10-29T10:22:32.000Z"
+        },
+        {
+          "ratingId": 1,
+          "movieId": 550,
+          "score": 5,
+          "comment": "최고의 영화!",
+          "createdAt": "2026-10-29T10:22:32.000Z",
+          "updatedAt": "2026-10-29T10:22:32.000Z"
+        }
+      ]
+    },
+    {
+      "name": "평점 없는 회원",
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "없는 회원",
+      "status": 404,
+      "response": {
+        "message": "존재하지 않는 유저입니다.",
+        "error": "Not Found",
+        "statusCode": 404
+      }
+    },
+    {
+      "name": "닉네임 길이 오류",
+      "status": 400,
+      "response": {
+        "message": [
+          "닉네임은 2~12자여야 합니다."
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "이메일 형식 오류",
+      "status": 400,
+      "response": {
+        "message": [
+          "올바른 이메일 형식이 아닙니다."
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "회원 ID 오류",
+      "status": 400,
+      "response": {
+        "message": "memberId는 양의 안전 정수여야 합니다.",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "페이지 0",
+      "status": 200,
+      "response": [
+        {
+          "ratingId": 2,
+          "movieId": 155,
+          "score": 4,
+          "comment": "다시 봐도 명작",
+          "createdAt": "2026-10-29T10:22:32.000Z",
+          "updatedAt": "2026-10-29T10:22:32.000Z"
+        }
+      ]
+    },
+    {
+      "name": "페이지 1",
+      "status": 200,
+      "response": [
+        {
+          "ratingId": 1,
+          "movieId": 550,
+          "score": 5,
+          "comment": "최고의 영화!",
+          "createdAt": "2026-10-29T10:22:32.000Z",
+          "updatedAt": "2026-10-29T10:22:32.000Z"
+        }
+      ]
+    },
+    {
+      "name": "페이지 끝",
+      "status": 200,
+      "response": []
+    },
+    {
+      "name": "잘못된 페이지 크기",
+      "status": 400,
+      "response": {
+        "message": [
+          "size must not be less than 1"
+        ],
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    },
+    {
+      "name": "CORS 허용·불허 헤더",
+      "allowedOrigin": "http://localhost:5173",
+      "deniedOriginHeaderPresent": false
+    },
+    {
+      "name": "DB UNIQUE 및 평점 범위 제약",
+      "verified": [
+        "member.email",
+        "rating(member_id,movie_id)",
+        "favorite(member_id,movie_id)",
+        "score 1~5"
+      ]
+    }
+  ],
+  "result": "PASS"
+}
