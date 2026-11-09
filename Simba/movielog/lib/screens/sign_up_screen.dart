@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../view_models/sign_up_view_model.dart';
 import '../widgets/movie_log_text_form_field.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -32,9 +35,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
 
+  // 닉네임/이메일 중복 여부는 서버에 묻는다 (형식 검사는 이 화면에서).
+  late final SignUpViewModel _viewModel;
+
+  static const _nicknameMinLength = 2;
+  static const _nicknameMaxLength = 12; // 서버 검증(2~12자)과 같은 범위
+
   @override
   void initState() {
     super.initState();
+    _viewModel = context.read<SignUpViewModel>();
     _nicknameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
@@ -69,8 +79,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (nick.isEmpty) {
         _nicknameError = null;
         _isNicknameValid = false;
-      } else if (nick.length < 2) {
+      } else if (nick.length < _nicknameMinLength) {
         _nicknameError = '닉네임은 2자 이상이어야 합니다.';
+        _isNicknameValid = false;
+      } else if (nick.length > _nicknameMaxLength) {
+        _nicknameError = '닉네임은 12자 이하여야 합니다.';
         _isNicknameValid = false;
       } else {
         _nicknameError = null;
@@ -101,28 +114,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _isPasswordValid = true;
       }
     });
+
+    // 형식이 맞을 때만 서버에 중복 여부를 확인한다.
+    _viewModel.onNicknameChanged(nick, isFormatValid: _isNicknameValid);
+    _viewModel.onEmailChanged(email, isFormatValid: _isEmailValid);
   }
 
   bool get _canSubmit =>
-      _isNicknameValid && _isEmailValid && _isPasswordValid && _agreedToTerms;
+      _isNicknameValid &&
+      _isEmailValid &&
+      _isPasswordValid &&
+      _agreedToTerms &&
+      _viewModel.nicknameCheck.isAvailable &&
+      _viewModel.emailCheck.isAvailable;
 
   void _handleSubmit() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
+    if (!isValid || !_canSubmit) return;
     FocusScope.of(context).unfocus();
 
+    // 회원가입 API는 6주차에 연결한다. 지금은 중복 확인까지만 서버와 통신한다.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('회원가입이 완료되었습니다!')),
+    );
+    context.go('/home');
+  }
+
+  /// 확인 중일 때 입력창 오른쪽에 보여줄 작은 로딩 표시
+  Widget? _checkingIndicator(DuplicateCheckState check) {
+    if (!check.isChecking) return null;
+    return const Padding(
+      padding: EdgeInsets.all(14),
+      child: SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.violet),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // 중복 확인 결과가 바뀌면 화면을 다시 그린다.
+    final nicknameCheck = context.watch<SignUpViewModel>().nicknameCheck;
+    final emailCheck = context.watch<SignUpViewModel>().emailCheck;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
+          onPressed: () => context.go('/start'),
         ),
         title: const Text('회원가입', style: AppTextStyles.appBarTitle),
         centerTitle: true,
@@ -154,13 +195,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hintText: '닉네임을 입력해주세요',
                           controller: _nicknameController,
                           textInputAction: TextInputAction.next,
-                          hasError: _nicknameError != null,
-                          isValid: _isNicknameValid,
-                          errorMessage: _nicknameError,
+                          hasError: _nicknameError != null || nicknameCheck.hasError,
+                          isValid: _isNicknameValid && nicknameCheck.isAvailable,
+                          errorMessage: _nicknameError ?? nicknameCheck.message,
+                          helperMessage: nicknameCheck.isAvailable
+                              ? nicknameCheck.message
+                              : null,
+                          suffixIcon: _checkingIndicator(nicknameCheck),
                           validator: (value) {
                             final val = value?.trim() ?? '';
                             if (val.isEmpty) return '닉네임을 입력해주세요.';
-                            if (val.length < 2) return '닉네임은 2자 이상이어야 합니다.';
+                            if (val.length < _nicknameMinLength) {
+                              return '닉네임은 2자 이상이어야 합니다.';
+                            }
+                            if (val.length > _nicknameMaxLength) {
+                              return '닉네임은 12자 이하여야 합니다.';
+                            }
                             return null;
                           },
                           onChanged: (_) => _updateValidationStatus(),
@@ -176,9 +226,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           focusNode: _emailFocusNode,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
-                          hasError: _emailError != null,
-                          isValid: _isEmailValid,
-                          errorMessage: _emailError,
+                          hasError: _emailError != null || emailCheck.hasError,
+                          isValid: _isEmailValid && emailCheck.isAvailable,
+                          errorMessage: _emailError ?? emailCheck.message,
+                          helperMessage: emailCheck.isAvailable
+                              ? emailCheck.message
+                              : null,
+                          suffixIcon: _checkingIndicator(emailCheck),
                           validator: (value) {
                             final val = value?.trim() ?? '';
                             if (val.isEmpty) return '이메일을 입력해주세요.';
@@ -385,7 +439,8 @@ class LoginFooter extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () {},
+          // 로그인 화면은 7주차에 만든다. 지금은 가입 없이 홈으로 이동한다.
+          onTap: () => context.go('/home'),
           child: const Text(
             '로그인',
             style: TextStyle(
