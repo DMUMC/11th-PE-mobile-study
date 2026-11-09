@@ -1,0 +1,76 @@
+No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+Week05 Movie API
+
+Root 닉네임 중복
+
+  GET http://localhost:8080/members/nickname/%EC%88%98%ED%98%84 [200 OK, 308 B, 43 ms]
+  Pass  HTTP 200
+  Pass  CORS permits the frontend
+  Pass  Already registered
+
+Root 닉네임 사용 가능
+
+  GET http://localhost:8080/members/nickname/%EB%AF%B8%EB%93%B1%EB%A1%9D%EC%95%84%EA%B7%80 [200 OK, 307 B, 15 ms]
+  Pass  HTTP 200
+  Pass  CORS permits the frontend
+  Pass  Available nickname
+
+Root 이메일 중복
+
+  GET http://localhost:8080/members/email/noco@umc.com [200 OK, 352 B, 19 ms]
+  Pass  HTTP 200
+  Pass  CORS permits the frontend
+  Pass  Already registered
+
+Root 이메일 사용 가능
+
+  GET http://localhost:8080/members/email/week05-unused@example.test [200 OK, 351 B, 21 ms]
+  Pass  HTTP 200
+  Pass  CORS permits the frontend
+  Pass  Available email
+
+Root 회원별 평점 조회
+
+  GET http://localhost:8080/members/1/ratings [200 OK, 567 B, 172 ms]
+  Pass  HTTP 200
+  Pass  CORS permits the frontend
+  Pass  Two workbook seed ratings
+  Pass  Only response DTO fields
+  Pass  Rating IDs descending
+  Pass  Expected movies and valid scores
+
+Root 존재하지 않는 회원
+
+  GET http://localhost:8080/members/999/ratings [404 Not Found, 397 B, 15 ms]
+  Pass  HTTP 404
+  Pass  CORS also permits the error response
+
+-----------------------------------------------------------------------
+|                         |            executed |              failed |
+--------------------------+---------------------+----------------------
+|              iterations |                   1 |                   0 |
+--------------------------+---------------------+----------------------
+|                requests |                   6 |                   0 |
+--------------------------+---------------------+----------------------
+|            test-scripts |                   6 |                   0 |
+--------------------------+---------------------+----------------------
+|      prerequest-scripts |                   0 |                   0 |
+--------------------------+---------------------+----------------------
+|              assertions |                  20 |                   0 |
+-----------------------------------------------------------------------
+| total run duration: 453 ms                                          |
+-----------------------------------------------------------------------
+| total data received: 460 B (approx)                                 |
+-----------------------------------------------------------------------
+| average response time: 48 ms [min: 15 ms, max: 172 ms, s.d.: 56 ms] |
+-----------------------------------------------------------------------
+
+A new version of Postman CLI is available (v1.83.1). Refer https://go.pstmn.io/cli-release-notes for changelogs.
+To update your Postman CLI, run:
+
+postman update
