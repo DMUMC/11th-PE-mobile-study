@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../core/validation/sign_up_validators.dart';
 import '../theme/app_theme.dart';
+import '../view_models/sign_up_view_model.dart';
 import 'widget/sign_up_app_bar.dart';
 import 'widget/sign_up_footer.dart';
 import 'widget/sign_up_form.dart';
@@ -12,15 +15,21 @@ import 'widget/terms_checkbox.dart';
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
+  static const initialNickname = '영화광';
+  static const initialEmail = 'movie@umc.com';
+
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final formKey = GlobalKey<FormState>();
-  // W6-01 디자인의 예시 상태입니다. 중복 확인 API는 다음 미션에서 연결합니다.
-  final nicknameController = TextEditingController(text: '영화광');
-  final emailController = TextEditingController(text: 'movie@umc.com');
+  final nicknameController = TextEditingController(
+    text: SignUpScreen.initialNickname,
+  );
+  final emailController = TextEditingController(
+    text: SignUpScreen.initialEmail,
+  );
   final passwordController = TextEditingController(text: '12345678');
 
   final nicknameFocusNode = FocusNode();
@@ -34,21 +43,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool isNicknameValid = true;
   bool isEmailValid = true;
   bool isPasswordValid = true;
-  bool isNicknameChecked = true;
-  bool isEmailCheckLoading = true;
 
-  bool get canSubmit =>
+  bool canSubmit(SignUpViewModel viewModel) =>
       isNicknameValid &&
       isEmailValid &&
       isPasswordValid &&
       agreedToTerms &&
-      !isEmailCheckLoading;
-
-  void showPreviewNotice() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('화면 미리보기입니다.')));
-  }
+      viewModel.checksPassed;
 
   @override
   void dispose() {
@@ -63,6 +64,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<SignUpViewModel>();
     final isTablet = MediaQuery.sizeOf(context).width >= 700;
 
     return PopScope(
@@ -119,24 +121,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 nicknameFocusNode: nicknameFocusNode,
                                 emailFocusNode: emailFocusNode,
                                 passwordFocusNode: passwordFocusNode,
-                                nicknameErrorText: nicknameErrorText,
-                                emailErrorText: emailErrorText,
+                                nicknameErrorText:
+                                    nicknameErrorText ??
+                                    viewModel.nicknameErrorText,
+                                emailErrorText:
+                                    emailErrorText ?? viewModel.emailErrorText,
                                 passwordErrorText: passwordErrorText,
-                                isNicknameChecked: isNicknameChecked,
-                                isEmailCheckLoading: isEmailCheckLoading,
-                                onCheckNickname: showPreviewNotice,
-                                onCheckEmail: showPreviewNotice,
+                                nicknameCheckStatus:
+                                    viewModel.nicknameCheckStatus,
+                                emailCheckStatus: viewModel.emailCheckStatus,
+                                onCheckNickname: viewModel.canCheckNickname
+                                    ? () => viewModel.checkNickname(
+                                        nicknameController.text,
+                                      )
+                                    : null,
+                                onCheckEmail: viewModel.canCheckEmail
+                                    ? () => viewModel.checkEmail(
+                                        emailController.text,
+                                      )
+                                    : null,
                                 onNicknameChanged: (value) {
                                   setState(() {
                                     final errorText = value.trim().isEmpty
                                         ? null
                                         : validateNickname(value);
                                     nicknameErrorText = errorText;
-                                    isNicknameChecked = false;
                                     isNicknameValid =
                                         value.trim().isNotEmpty &&
                                         errorText == null;
                                   });
+                                  viewModel.onNicknameChanged(value);
                                 },
                                 onEmailChanged: (value) {
                                   setState(() {
@@ -144,11 +158,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         ? null
                                         : validateEmail(value);
                                     emailErrorText = errorText;
-                                    isEmailCheckLoading = false;
                                     isEmailValid =
                                         value.trim().isNotEmpty &&
                                         errorText == null;
                                   });
+                                  viewModel.onEmailChanged(value);
                                 },
                                 onPasswordChanged: (value) {
                                   setState(() {
@@ -177,7 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               const SizedBox(height: AppSpacing.x3),
                               SignUpSubmitButton(
-                                onPressed: canSubmit
+                                onPressed: canSubmit(viewModel)
                                     ? () {
                                         final isValid =
                                             formKey.currentState?.validate() ??

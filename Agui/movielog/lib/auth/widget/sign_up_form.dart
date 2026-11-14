@@ -1,51 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/validation/sign_up_validators.dart';
 import '../../theme/app_theme.dart';
+import '../../view_models/sign_up_view_model.dart';
 import '../../widgets/movielog_button.dart';
 import 'sign_up_text_field.dart';
-
-String? validateNickname(String? value) {
-  final nickname = value?.trim() ?? '';
-
-  if (nickname.isEmpty) {
-    return '닉네임을 입력해주세요.';
-  }
-
-  if (nickname.length < 2) {
-    return '닉네임은 2자 이상이어야 합니다.';
-  }
-
-  return null;
-}
-
-String? validateEmail(String? value) {
-  final email = value?.trim() ?? '';
-  final emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-
-  if (email.isEmpty) {
-    return '이메일을 입력해주세요.';
-  }
-
-  if (!emailPattern.hasMatch(email)) {
-    return '올바른 이메일 형식이 아닙니다.';
-  }
-
-  return null;
-}
-
-String? validatePassword(String? value) {
-  final password = value ?? '';
-
-  if (password.isEmpty) {
-    return '비밀번호를 입력해주세요.';
-  }
-
-  if (password.length < 8) {
-    return '비밀번호는 8자 이상이어야 합니다.';
-  }
-
-  return null;
-}
 
 class SignUpForm extends StatelessWidget {
   const SignUpForm({
@@ -59,8 +18,8 @@ class SignUpForm extends StatelessWidget {
     required this.onNicknameChanged,
     required this.onEmailChanged,
     required this.onPasswordChanged,
-    required this.isNicknameChecked,
-    required this.isEmailCheckLoading,
+    required this.nicknameCheckStatus,
+    required this.emailCheckStatus,
     required this.onCheckNickname,
     required this.onCheckEmail,
     this.nicknameErrorText,
@@ -77,16 +36,30 @@ class SignUpForm extends StatelessWidget {
   final ValueChanged<String> onNicknameChanged;
   final ValueChanged<String> onEmailChanged;
   final ValueChanged<String> onPasswordChanged;
-  final bool isNicknameChecked;
-  final bool isEmailCheckLoading;
-  final VoidCallback onCheckNickname;
-  final VoidCallback onCheckEmail;
+  final CheckStatus nicknameCheckStatus;
+  final CheckStatus emailCheckStatus;
+  final VoidCallback? onCheckNickname;
+  final VoidCallback? onCheckEmail;
   final String? nicknameErrorText;
   final String? emailErrorText;
   final String? passwordErrorText;
 
+  String? _helperText(CheckStatus status, String label) => switch (status) {
+    CheckStatus.idle => '$label 중복 확인을 해주세요.',
+    CheckStatus.checking => '$label 사용 가능 여부를 확인 중입니다.',
+    CheckStatus.available => '사용 가능한 $label입니다.',
+    CheckStatus.duplicated || CheckStatus.error => null,
+  };
+
+  Color _helperColor(CheckStatus status, Color outline) => switch (status) {
+    CheckStatus.available => const Color(0xFF2E7D32),
+    CheckStatus.checking => const Color(0xFF1565C0),
+    _ => outline,
+  };
+
   @override
   Widget build(BuildContext context) {
+    final outline = Theme.of(context).colorScheme.outline;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -100,10 +73,15 @@ class SignUpForm extends StatelessWidget {
           errorText: nicknameErrorText,
           onChanged: onNicknameChanged,
           onSubmitted: (_) => emailFocusNode.requestFocus(),
-          showSuccessIcon: isNicknameChecked,
-          helperText: isNicknameChecked ? '사용 가능한 닉네임입니다.' : null,
-          helperColor: const Color(0xFF2E7D32),
-          trailing: MovieLogButton(label: '중복 확인', onPressed: onCheckNickname),
+          showSuccessIcon: nicknameCheckStatus == CheckStatus.available,
+          helperText: _helperText(nicknameCheckStatus, '닉네임'),
+          helperColor: _helperColor(nicknameCheckStatus, outline),
+          trailing: MovieLogButton(
+            key: const Key('nickname-check'),
+            label: '중복 확인',
+            isLoading: nicknameCheckStatus == CheckStatus.checking,
+            onPressed: onCheckNickname,
+          ),
         ),
         const SizedBox(height: AppSpacing.x1),
         SignUpTextField(
@@ -117,11 +95,13 @@ class SignUpForm extends StatelessWidget {
           errorText: emailErrorText,
           onChanged: onEmailChanged,
           onSubmitted: (_) => passwordFocusNode.requestFocus(),
-          helperText: isEmailCheckLoading ? '이메일 사용 가능 여부를 확인 중입니다.' : null,
-          helperColor: const Color(0xFF1565C0),
+          showSuccessIcon: emailCheckStatus == CheckStatus.available,
+          helperText: _helperText(emailCheckStatus, '이메일'),
+          helperColor: _helperColor(emailCheckStatus, outline),
           trailing: MovieLogButton(
+            key: const Key('email-check'),
             label: '중복 확인',
-            isLoading: isEmailCheckLoading,
+            isLoading: emailCheckStatus == CheckStatus.checking,
             onPressed: onCheckEmail,
           ),
         ),

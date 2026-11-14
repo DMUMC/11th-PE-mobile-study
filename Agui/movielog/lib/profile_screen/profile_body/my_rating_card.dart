@@ -8,16 +8,24 @@ class MyRatingCard extends StatelessWidget {
     required this.title,
     required this.score,
     required this.comment,
+    this.createdAt,
+    this.posterUrl,
   });
 
   final String title;
   final int score;
-  final String comment;
+  final String? comment;
+  final DateTime? createdAt;
+  final String? posterUrl;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final localDate = createdAt?.toLocal();
+    final placeholder = Container(
+      color: colors.secondary.withValues(alpha: 0.3),
+    );
 
     return Container(
       constraints: const BoxConstraints(minHeight: 160),
@@ -33,12 +41,20 @@ class MyRatingCard extends StatelessWidget {
       child: Row(
         children: [
           ExcludeSemantics(
-            child: Container(
-              width: 80,
-              height: 124,
-              decoration: BoxDecoration(
-                color: colors.secondary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 80,
+                height: 124,
+                child: posterUrl == null
+                    ? placeholder
+                    : Image.network(
+                        posterUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, error, stackTrace) => placeholder,
+                        loadingBuilder: (_, child, progress) =>
+                            progress == null ? child : placeholder,
+                      ),
               ),
             ),
           ),
@@ -62,15 +78,24 @@ class MyRatingCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.x1),
-                Text(
-                  comment,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 12,
-                    height: 1.5,
-                    color: colors.onSurfaceVariant,
+                if (comment?.trim().isNotEmpty ?? false) ...[
+                  const SizedBox(height: AppSpacing.x1),
+                  Text(
+                    comment!,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontSize: 12,
+                      height: 1.5,
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
-                ),
+                ],
+                if (localDate != null) ...[
+                  const SizedBox(height: AppSpacing.x1),
+                  Text(
+                    '등록일 ${localDate.year}.${localDate.month.toString().padLeft(2, '0')}.${localDate.day.toString().padLeft(2, '0')}',
+                    style: textTheme.labelSmall,
+                  ),
+                ],
               ],
             ),
           ),

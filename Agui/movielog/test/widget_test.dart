@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/models/rating_dto.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
+import 'package:movielog/data/services/rating_api_service.dart';
+import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/main.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
@@ -93,7 +99,12 @@ void main() {
     tester,
   ) async {
     AppRouter.router.go('/home');
-    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpWidget(
+      MovieLogApp(
+        ratingApiService: _PreviewRatingApiService(),
+        tmdbMovieService: _PreviewTmdbMovieService(),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.home_rounded), findsOneWidget);
 
@@ -228,19 +239,20 @@ void main() {
     tester,
   ) async {
     AppRouter.router.go('/start');
-    await tester.pumpWidget(const MovieLogApp());
+    await tester.pumpWidget(
+      MovieLogApp(memberCheckService: _AvailableMemberCheckService()),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('시작하기'));
-    // The design preview intentionally keeps the email spinner running.
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
     final signUpButton = find.widgetWithText(ElevatedButton, '가입하기');
     expect(signUpButton, findsOneWidget);
     expect(tester.widget<ElevatedButton>(signUpButton).onPressed, isNull);
     expect(AppRouter.router.canPop(), isFalse);
 
     await tester.binding.handlePopRoute();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
     expect(signUpButton, findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), '가');
@@ -261,6 +273,12 @@ void main() {
     );
     await tester.ensureVisible(find.byType(Checkbox));
     expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ElevatedButton>(signUpButton).onPressed, isNull);
+    await tester.ensureVisible(find.byKey(const Key('nickname-check')));
+    await tester.tap(find.byKey(const Key('nickname-check')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('email-check')));
     await tester.pumpAndSettle();
     expect(tester.widget<ElevatedButton>(signUpButton).onPressed, isNotNull);
 
@@ -288,4 +306,45 @@ void main() {
     expect(find.text('회원가입'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
   });
+}
+
+class _AvailableMemberCheckService extends MemberCheckService {
+  _AvailableMemberCheckService() : super(Dio());
+
+  @override
+  Future<bool> checkNickname(String nickname) async => true;
+
+  @override
+  Future<bool> checkEmail(String email) async => true;
+}
+
+class _PreviewRatingApiService extends RatingApiService {
+  _PreviewRatingApiService() : super(Dio());
+
+  @override
+  Future<List<RatingDto>> fetchMyRatings(int memberId) async => [
+    RatingDto(
+      ratingId: 1,
+      movieId: 550,
+      score: 4,
+      comment: '다시 봐도 좋아요',
+      createdAt: DateTime.utc(2026, 11, 13),
+    ),
+    RatingDto(
+      ratingId: 2,
+      movieId: 13,
+      score: 3,
+      comment: null,
+      createdAt: DateTime.utc(2026, 11, 13),
+    ),
+  ];
+}
+
+class _PreviewTmdbMovieService extends TmdbMovieService {
+  _PreviewTmdbMovieService() : super(Dio());
+
+  @override
+  Future<TmdbMovieDto?> findMovieById(int movieId) async => movieId == 550
+      ? const TmdbMovieDto(id: 550, title: '영화 제목', posterPath: null)
+      : null;
 }

@@ -28,7 +28,7 @@ class MovieLogButton extends StatelessWidget {
           foregroundColor: colors.onPrimary,
           disabledBackgroundColor: colors.outline,
           disabledForegroundColor: colors.onPrimary,
-          minimumSize: const Size(102, 44),
+          minimumSize: const Size(0, 44),
           visualDensity: VisualDensity.standard,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -38,8 +38,18 @@ class MovieLogButton extends StatelessWidget {
           textStyle: Theme.of(context).textTheme.labelLarge
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
-        child: isLoading
-            ? Semantics(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Visibility(
+              visible: !isLoading,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              child: Text(label),
+            ),
+            if (isLoading)
+              Semantics(
                 label: '$label 중',
                 child: SizedBox(
                   width: 20,
@@ -49,8 +59,9 @@ class MovieLogButton extends StatelessWidget {
                     color: colors.onPrimary,
                   ),
                 ),
-              )
-            : Text(label),
+              ),
+          ],
+        ),
       ),
     );
   }
