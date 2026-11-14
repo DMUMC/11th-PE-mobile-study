@@ -39,6 +39,47 @@ Device Hub의 iPhone 18 Pro / iOS 27.0에서 2026-11-14 확인했습니다.
 이전에 중복으로 확인한 `영화광` / `movie@umc.com`으로 돌아오면 즉시 에러가 복원됩니다.
 확인 버튼을 다시 누르지 않았고, 개발용 요청 횟수도 각 필드 2회에서 증가하지 않았습니다.
 
+**Challenge Mission 추가 확인 — 실제 API (2026-11-14):**
+
+아래는 기존 개발용 응답 캡처와 별개로, 일반 `lib/main.dart` 앱에서 실제 v5 API를 사용해 다시 확인한 화면입니다.
+닉네임과 이메일의 확인 버튼은 처음 중복을 확인할 때 각각 한 번만 눌렀습니다.
+그 뒤에는 확인 버튼을 누르지 않고 입력 문자열에 `a`를 붙였다가 지우는 동작만 수행했습니다.
+
+| 챌린지 조건 | 닉네임 | 이메일 |
+| --- | --- | --- |
+| 중복 응답 직후 Form 오류·확인 버튼 비활성 | 확인 | 확인 |
+| 유효한 다른 값으로 변경 시 중복 오류 해제·버튼 활성 | 확인 | 확인 |
+| 원래 중복값 재입력 시 추가 확인 없이 즉시 오류·비활성 복원 | 확인 | 확인 |
+
+**1. 실제 중복 확인 직후**
+
+![실제 API 중복 판정](mission-captures/2026-11-14-challenge/01-duplicated-live.png)
+
+`영화광`과 `movie@umc.com`이 중복으로 판정되고, 두 입력란이 빨간 오류 상태가 되며 확인 버튼이 비활성화됩니다.
+
+**2. 닉네임 변경과 원래 값 복원**
+
+| `영화광a`로 변경 | `a` 삭제 → `영화광` 복원 |
+| --- | --- |
+| ![닉네임 중복 오류 해제](mission-captures/2026-11-14-challenge/02-nickname-changed-live.png) | ![닉네임 즉시 오류 복원](mission-captures/2026-11-14-challenge/03-nickname-restored-live.png) |
+
+변경 시 닉네임 오류만 사라지고 확인 버튼이 활성화됩니다. 이메일의 중복 상태는 유지됩니다.
+원래 닉네임으로 돌아오면 확인 버튼을 누르기 전에 즉시 중복 오류가 복원됩니다.
+
+**3. 이메일 변경과 원래 값 복원**
+
+| `movie@umc.coma`로 변경 | `a` 삭제 → `movie@umc.com` 복원 |
+| --- | --- |
+| ![이메일 중복 오류 해제](mission-captures/2026-11-14-challenge/04-email-changed-live.png) | ![이메일 즉시 오류 복원](mission-captures/2026-11-14-challenge/05-email-restored-live.png) |
+
+이메일도 같은 방식으로 오류 해제·버튼 활성과 즉시 복원이 동작합니다. 닉네임 상태에는 영향을 주지 않습니다.
+
+구현은 [SignUpViewModel](lib/view_models/sign_up_view_model.dart)의 `_duplicatedNickname`·`_duplicatedEmail`에
+마지막 중복값을 따로 보관하고, `onNicknameChanged`·`onEmailChanged`에서 현재 값과 비교하는 방식입니다.
+이 입력 변경 메서드는 API를 호출하지 않고 상태와 오류 문구만 바꿉니다.
+이번에는 네트워크 요청 횟수를 별도로 계측하지 않았으며, 버튼을 다시 누르지 않은 화면 동작과 구현 코드를 함께 확인했습니다.
+기존 로직이 세 조건을 모두 충족해 기능 코드는 수정하지 않았습니다.
+
 **MovieLogButton 너비 비교 화면(null / double.infinity / 고정값):**
 
 ![버튼 너비와 상태 비교](mission-captures/2026-11-14-required/button-widths-and-states.png)

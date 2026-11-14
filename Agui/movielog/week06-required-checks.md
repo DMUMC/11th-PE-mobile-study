@@ -61,6 +61,19 @@ nickname request=3 status=500
 email request=3 status=500
 ```
 
+### Challenge Mission 후속 확인 — 실제 API
+
+- 확인일: 2026-11-14, Device Hub의 같은 iPhone 18 Pro.
+- 위 Required 확인은 개발용 응답이며, 이번 후속 확인은 일반 `lib/main.dart`와 실제 워크북 v5 API를 사용했습니다.
+- 최초에 `영화광`·`movie@umc.com`의 확인 버튼을 각각 한 번 눌러 중복 오류와 버튼 비활성을 확인했습니다.
+- 닉네임에 `a`를 붙이자 닉네임 오류가 사라지고 확인 버튼이 활성화됐습니다. 이메일의 중복 상태는 유지됐습니다.
+- 닉네임의 마지막 `a`를 지우자 확인 버튼을 누르지 않아도 즉시 중복 오류와 비활성이 복원됐습니다.
+- 이메일도 `a` 추가·삭제를 통해 동일한 두 상태 전환을 확인했습니다. 닉네임 상태에는 영향을 주지 않았습니다.
+- 이후의 입력 변경·재입력 과정에서는 확인 버튼을 누르지 않았습니다. API 호출을 수행하지 않는 `onNicknameChanged`·`onEmailChanged` 구현도 확인했습니다. 이번 실제 API 실행의 요청 횟수는 별도로 계측하지 않았습니다.
+- 기존 기능 코드는 유지했고, 실제 API 화면 5장을 [제출 자료의 챌린지 부분](week06-mission-submission.md)에 추가했습니다.
+- [실제 API 챌린지 캡처](mission-captures/2026-11-14-challenge/)
+- 키보드 캡처 설정은 확인 후 원래 상태로 복원했습니다.
+
 ## 4. 제출 준비와 남은 항목
 
 - [워크북 양식의 제출 초안](week06-mission-submission.md)
