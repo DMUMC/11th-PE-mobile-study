@@ -19,6 +19,8 @@ class MovieLogTextFormField extends StatelessWidget {
     this.isValid = false,
     this.errorMessage,
     this.helperMessage,
+    this.errorText,
+    this.trailing,
   });
 
   final String label;
@@ -38,6 +40,13 @@ class MovieLogTextFormField extends StatelessWidget {
 
   /// 오류가 없을 때 입력창 아래에 보여줄 안내 문구 (예: 사용 가능한 닉네임이에요.)
   final String? helperMessage;
+
+  /// ViewModel이 내려준 서버 검증 결과(예: 중복). 값이 있으면 로컬 validator가 통과해도
+  /// 입력창이 에러 상태(붉은 테두리)로 보인다.
+  final String? errorText;
+
+  /// 입력창 바깥 오른쪽에 나란히 둘 Widget (예: 중복 확인 버튼). 8px 간격을 둔다.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +78,7 @@ class MovieLogTextFormField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
+        _withTrailing(TextFormField(
           controller: controller,
           focusNode: focusNode,
           obscureText: obscureText,
@@ -78,6 +87,8 @@ class MovieLogTextFormField extends StatelessWidget {
           onChanged: onChanged,
           onFieldSubmitted: onFieldSubmitted,
           validator: validator,
+          // Form 전체가 아닌 필드별로 검사해서, 아직 건드리지 않은 칸이 붉게 보이지 않게 한다.
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           style: const TextStyle(
             fontSize: 15,
             color: AppColors.black,
@@ -121,8 +132,9 @@ class MovieLogTextFormField extends StatelessWidget {
             ),
             // TextFormField 기본 에러 메시지 공간 숨김 (아래 커스텀 Text로 통일)
             errorStyle: const TextStyle(height: 0, fontSize: 0),
+            errorText: errorText,
           ),
-        ),
+        )),
         // 에러가 있을 때 바로 밑에 노출되는 텍스트 메시지
         if (hasError && errorMessage != null) ...[
           const SizedBox(height: 6),
@@ -145,6 +157,19 @@ class MovieLogTextFormField extends StatelessWidget {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _withTrailing(Widget field) {
+    final trailingWidget = trailing;
+    if (trailingWidget == null) return field;
+    // TextFormField와 버튼을 Row의 형제로 두어 체크 아이콘(입력창 내부)과 겹치지 않게 한다.
+    return Row(
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: 8),
+        trailingWidget,
       ],
     );
   }

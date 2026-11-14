@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/movie_log_text_form_field.dart';
+import '../widgets/movielog_button.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -114,10 +115,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _isPasswordValid = true;
       }
     });
-
-    // 형식이 맞을 때만 서버에 중복 여부를 확인한다.
-    _viewModel.onNicknameChanged(nick, isFormatValid: _isNicknameValid);
-    _viewModel.onEmailChanged(email, isFormatValid: _isEmailValid);
   }
 
   bool get _canSubmit =>
@@ -125,39 +122,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _isEmailValid &&
       _isPasswordValid &&
       _agreedToTerms &&
-      _viewModel.nicknameCheck.isAvailable &&
-      _viewModel.emailCheck.isAvailable;
+      _viewModel.nicknameCheckStatus == CheckStatus.available &&
+      _viewModel.emailCheckStatus == CheckStatus.available;
 
   void _handleSubmit() {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid || !_canSubmit) return;
     FocusScope.of(context).unfocus();
 
-    // 회원가입 API는 6주차에 연결한다. 지금은 중복 확인까지만 서버와 통신한다.
+    // v5에는 회원가입 API가 없다. 실제 가입 요청은 보내지 않고 홈으로 이동만 한다.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('회원가입이 완료되었습니다!')),
     );
     context.go('/home');
   }
 
-  /// 확인 중일 때 입력창 오른쪽에 보여줄 작은 로딩 표시
-  Widget? _checkingIndicator(DuplicateCheckState check) {
-    if (!check.isChecking) return null;
-    return const Padding(
-      padding: EdgeInsets.all(14),
-      child: SizedBox(
-        width: 18,
-        height: 18,
-        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.violet),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 중복 확인 결과가 바뀌면 화면을 다시 그린다.
-    final nicknameCheck = context.watch<SignUpViewModel>().nicknameCheck;
-    final emailCheck = context.watch<SignUpViewModel>().emailCheck;
+    // 중복 확인 상태가 바뀌면 화면을 다시 그린다.
+    final viewModel = context.watch<SignUpViewModel>();
+    final nicknameStatus = viewModel.nicknameCheckStatus;
+    final emailStatus = viewModel.emailCheckStatus;
 
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +167,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                   child: Form(
                     key: _formKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -195,13 +179,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hintText: '닉네임을 입력해주세요',
                           controller: _nicknameController,
                           textInputAction: TextInputAction.next,
-                          hasError: _nicknameError != null || nicknameCheck.hasError,
-                          isValid: _isNicknameValid && nicknameCheck.isAvailable,
-                          errorMessage: _nicknameError ?? nicknameCheck.message,
-                          helperMessage: nicknameCheck.isAvailable
-                              ? nicknameCheck.message
+                          hasError: _nicknameError != null ||
+                              viewModel.nicknameErrorText != null,
+                          isValid: _isNicknameValid &&
+                              nicknameStatus == CheckStatus.available,
+                          errorMessage:
+                              _nicknameError ?? viewModel.nicknameErrorText,
+                          // 로컬 validator가 통과해도 서버 결과(중복/실패)가 있으면 에러 상태
+                          errorText: viewModel.nicknameErrorText,
+                          helperMessage: nicknameStatus == CheckStatus.available
+                              ? '사용할 수 있는 닉네임입니다.'
                               : null,
-                          suffixIcon: _checkingIndicator(nicknameCheck),
+                          // 입력창 옆 보조 버튼: width를 주지 않아 내용 기반 크기(null)
+                          trailing: MovieLogButton(
+                            label: '중복 확인',
+                            isLoading: nicknameStatus == CheckStatus.checking,
+                            onPressed:
+                                viewModel.canCheckNickname && _isNicknameValid
+                                ? () => viewModel.checkNickname(
+                                    _nicknameController.text,
+                                  )
+                                : null,
+                          ),
                           validator: (value) {
                             final val = value?.trim() ?? '';
                             if (val.isEmpty) return '닉네임을 입력해주세요.';
@@ -213,7 +212,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             }
                             return null;
                           },
-                          onChanged: (_) => _updateValidationStatus(),
+                          onChanged: (value) {
+                            _updateValidationStatus();
+                            // 입력이 바뀌면 이전 확인 결과를 무효화한다.
+                            viewModel.onNicknameChanged(value);
+                          },
                           onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
                         ),
                         const SizedBox(height: 18),
@@ -226,20 +229,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           focusNode: _emailFocusNode,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
-                          hasError: _emailError != null || emailCheck.hasError,
-                          isValid: _isEmailValid && emailCheck.isAvailable,
-                          errorMessage: _emailError ?? emailCheck.message,
-                          helperMessage: emailCheck.isAvailable
-                              ? emailCheck.message
+                          hasError: _emailError != null ||
+                              viewModel.emailErrorText != null,
+                          isValid: _isEmailValid &&
+                              emailStatus == CheckStatus.available,
+                          errorMessage: _emailError ?? viewModel.emailErrorText,
+                          errorText: viewModel.emailErrorText,
+                          helperMessage: emailStatus == CheckStatus.available
+                              ? '사용할 수 있는 이메일입니다.'
                               : null,
-                          suffixIcon: _checkingIndicator(emailCheck),
+                          trailing: MovieLogButton(
+                            label: '중복 확인',
+                            isLoading: emailStatus == CheckStatus.checking,
+                            onPressed: viewModel.canCheckEmail && _isEmailValid
+                                ? () => viewModel.checkEmail(
+                                    _emailController.text,
+                                  )
+                                : null,
+                          ),
                           validator: (value) {
                             final val = value?.trim() ?? '';
                             if (val.isEmpty) return '이메일을 입력해주세요.';
                             if (!_isValidEmailFormat(val)) return '올바른 이메일 형식이 아닙니다.';
                             return null;
                           },
-                          onChanged: (_) => _updateValidationStatus(),
+                          onChanged: (value) {
+                            _updateValidationStatus();
+                            viewModel.onEmailChanged(value);
+                          },
                           onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
                         ),
                         const SizedBox(height: 18),
@@ -297,10 +314,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // 가입하기 버튼
-                        SubmitButton(
-                          isEnabled: _canSubmit,
-                          onPressed: _handleSubmit,
+                        // 가입하기 버튼: Form 하단 전체 너비(double.infinity)
+                        MovieLogButton(
+                          label: '가입하기',
+                          width: double.infinity,
+                          onPressed: _canSubmit ? _handleSubmit : null,
                         ),
                         const SizedBox(height: 28),
 
@@ -380,44 +398,6 @@ class TermsAgreementRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SubmitButton extends StatelessWidget {
-  const SubmitButton({
-    super.key,
-    required this.isEnabled,
-    required this.onPressed,
-  });
-
-  final bool isEnabled;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: isEnabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.violet,
-          disabledBackgroundColor: const Color(0xFFC7BFE0),
-          foregroundColor: AppColors.white,
-          disabledForegroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          '가입하기',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
       ),
     );
   }
