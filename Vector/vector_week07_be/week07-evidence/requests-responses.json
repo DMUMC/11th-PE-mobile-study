@@ -1,0 +1,243 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "authenticated": false,
+      "body": {
+        "email": "owner@example.com",
+        "password": "DemoPassword123!",
+        "nickname": "Owner"
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "email": "owner@example.com",
+        "nickname": "Owner"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "authenticated": false,
+      "body": {
+        "email": "other@example.com",
+        "password": "DemoPassword456!",
+        "nickname": "Other"
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 2,
+        "email": "other@example.com",
+        "nickname": "Other"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "authenticated": false,
+      "body": {
+        "email": "owner@example.com",
+        "password": "DemoPassword123!"
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzk0NjYyODAzLCJleHAiOjE3OTQ2NjY0MDN9.sALU1Gr2HEQDvh8WqnW6xuyGNR7MeKww3k0vSIduIOY"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "authenticated": false,
+      "body": {
+        "email": "other@example.com",
+        "password": "DemoPassword456!"
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiaWF0IjoxNzk0NjYyODAzLCJleHAiOjE3OTQ2NjY0MDN9.fWrLS5mpAKFhobYgWxyVBo9FP4W1U36Wqca-08JnhAY"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/me",
+      "authenticated": false
+    },
+    "response": {
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "code": "UNAUTHORIZED",
+        "message": "인증이 필요합니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/me",
+      "authenticated": true
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "id": 1,
+        "email": "owner@example.com",
+        "nickname": "Owner"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/ratings",
+      "authenticated": true,
+      "body": {
+        "movieId": 550,
+        "score": 4
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "memberId": 1,
+        "movieId": 550,
+        "score": 4
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "PATCH",
+      "path": "/ratings/1",
+      "authenticated": true,
+      "body": {
+        "score": 2
+      }
+    },
+    "response": {
+      "status": 403,
+      "body": {
+        "statusCode": 403,
+        "code": "RATING_FORBIDDEN",
+        "message": "본인이 등록한 평점만 변경할 수 있습니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "PATCH",
+      "path": "/ratings/1",
+      "authenticated": true,
+      "body": {
+        "score": 5
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "id": 1,
+        "memberId": 1,
+        "movieId": 550,
+        "score": 5
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "authenticated": false,
+      "body": {
+        "email": "owner@example.com",
+        "password": "WrongPassword123!"
+      }
+    },
+    "response": {
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "code": "UNAUTHORIZED",
+        "message": "인증이 필요합니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/me",
+      "authenticated": true
+    },
+    "response": {
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "code": "UNAUTHORIZED",
+        "message": "인증이 필요합니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/ratings",
+      "authenticated": true,
+      "body": {
+        "movieId": 551,
+        "score": 4,
+        "memberId": 2
+      }
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "code": "VALIDATION_ERROR",
+        "message": "property memberId should not exist"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "DELETE",
+      "path": "/ratings/1",
+      "authenticated": true
+    },
+    "response": {
+      "status": 403,
+      "body": {
+        "statusCode": 403,
+        "code": "RATING_FORBIDDEN",
+        "message": "본인이 등록한 평점만 변경할 수 있습니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "DELETE",
+      "path": "/ratings/1",
+      "authenticated": true
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    }
+  }
+]
