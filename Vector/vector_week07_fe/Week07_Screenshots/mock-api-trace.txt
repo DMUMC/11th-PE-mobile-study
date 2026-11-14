@@ -1,0 +1,29 @@
+GET /members/check-nickname → 200
+GET /members/check-email → 200
+GET /members/check-nickname → 200
+GET /members/check-email → 200
+POST /members → 409 DUPLICATE_MEMBER
+GET /members/check-nickname → 200
+GET /members/check-email → 200
+POST /members → 201
+요청 JSON movieId=27205, score=4
+POST /ratings → 201
+GET /members/7/ratings → 200
+GET /members/7/ratings → 200
+PATCH /ratings/1 → 200
+GET /members/7/ratings → 200
+DELETE /ratings/1 → 204
+GET /members/7/ratings → 200
+요청 JSON movieId=27205, score=3
+POST /ratings → 201
+GET /members/7/ratings → 503 SERVICE_UNAVAILABLE
+POST /ratings → 409 DUPLICATE_RATING
+요청 JSON movieId=157336, score=4
+POST /ratings → 201
+GET /members/7/ratings → 200
+요청 JSON movieId=496243, score=4
+POST /ratings → 201
+GET /members/7/ratings → 200
+GET /members/7/ratings → 200
+DELETE /ratings/2 → 204
+DELETE /ratings/3 → 403 RATING_FORBIDDEN
