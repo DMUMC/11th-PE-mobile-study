@@ -5,6 +5,7 @@ import com.umc.study.dto.MemberResponse;
 import com.umc.study.dto.NicknameCheckResponse;
 import com.umc.study.dto.SignUpRequest;
 import com.umc.study.entity.Member;
+import com.umc.study.exception.DuplicateMemberException;
 import com.umc.study.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,10 +32,10 @@ public class MemberService {
     @Transactional
     public MemberResponse signUp(SignUpRequest request) {
         if (memberRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw DuplicateMemberException.email();
         }
         if (memberRepository.existsByNickname(request.nickname())) {
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            throw DuplicateMemberException.nickname();
         }
 
         Member member = Member.builder()

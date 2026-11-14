@@ -1062,7 +1062,7 @@ export class RatingController {
 ## Standard Mission 진행 기록
 
 Spring Boot 3.5.0 / Java 21 / MySQL로 회원가입과 평점 등록·수정·삭제 API를 구현했다.
-실습에서 작성한 기능을 필수 미션에 사용했으며, 선택 Challenge Mission은 진행하지 않았다.
+실습에서 작성한 기능을 필수 미션에 사용했다. 이후 진행한 Challenge Mission 결과는 아래에 별도로 기록했다.
 
 ### 1. 구현 과정
 
@@ -1203,13 +1203,16 @@ DELETE /members/3/ratings/4
 | 실패 상황 | HTTP 상태 | code | message |
 | --- | --- | --- | --- |
 | 이메일·닉네임·비밀번호·평점 입력 규칙 위반 | 400 | COMMON4001 | 해당 필드의 검증 실패 이유 |
-| 이메일 중복 | 409 | COMMON4092 | 이미 사용 중인 이메일입니다. |
-| 닉네임 중복 | 409 | COMMON4092 | 이미 사용 중인 닉네임입니다. |
+| 이메일 중복 | 409 | MEMBER4091 | 이미 사용 중인 이메일입니다. |
+| 닉네임 중복 | 409 | MEMBER4092 | 이미 사용 중인 닉네임입니다. |
 | 같은 회원·영화의 평점 중복 | 409 | COMMON4092 | 이미 이 영화에 평점을 남기셨습니다. |
 | DB 제약 위반 | 409 | COMMON4091 | 이미 존재하는 데이터입니다. |
 | 다른 회원의 평점 수정·삭제 | 403 | COMMON403 | 본인이 작성한 평점만 수정하거나 삭제할 수 있습니다. |
 | 존재하지 않는 평점 수정·삭제 | 404 | COMMON404 | 존재하지 않는 평점입니다. |
 | 평점 등록 시 회원이 없음 | 404 | COMMON404 | 존재하지 않는 유저입니다. |
+
+위 명세는 Challenge Mission 반영 후 기준이다. 아래 Standard Mission 캡처는 반영 전 기록이므로, 당시 이메일 중복 응답에는 `COMMON4092`가 표시된다.
+이메일·닉네임의 DB UNIQUE 제약 위반에도 각각 `MEMBER4091`·`MEMBER4092`를 반환하며, 다른 DB 제약 위반은 `COMMON4091`을 반환한다.
 
 ### 3. Postman 요청·응답 인증
 
@@ -1253,6 +1256,107 @@ DELETE /members/3/ratings/4
 ### 5. 트러블슈팅
 
 아래 `⚡이슈 No.1`에 서버 실행 시 발생한 `Schema-validation: missing table [member]`의 원인과 해결 과정을 기록했다.
+
+## Challenge Mission 진행 기록
+
+### 1. 이메일·닉네임 중복 오류 구분
+
+`DuplicateMemberException`에 오류 코드와 메시지를 정의하고, 회원가입 Service의 사전 중복 검사에서 사용했다.
+전역 예외 처리에서 HTTP 409와 기존 `ApiResponse` 구조로 변환한다.
+
+| 상황 | HTTP 상태 | code | message |
+| --- | --- | --- | --- |
+| 이메일 중복 | 409 Conflict | MEMBER4091 | 이미 사용 중인 이메일입니다. |
+| 닉네임 중복 | 409 Conflict | MEMBER4092 | 이미 사용 중인 닉네임입니다. |
+
+```json
+{
+  "isSuccess": false,
+  "code": "MEMBER4091",
+  "message": "이미 사용 중인 이메일입니다.",
+  "result": null
+}
+```
+
+```json
+{
+  "isSuccess": false,
+  "code": "MEMBER4092",
+  "message": "이미 사용 중인 닉네임입니다.",
+  "result": null
+}
+```
+
+- [이메일 중복 Postman 응답](mission-captures/week06-challenge/01-email-conflict-409.jpg)
+- [닉네임 중복 Postman 응답](mission-captures/week06-challenge/02-nickname-conflict-409.jpg)
+
+### 2. DB UNIQUE 제약 위반의 전역 예외 처리
+
+`DataIntegrityViolationException`의 원인 예외에서 Hibernate의 `ConstraintViolationException`을 찾고, 위반한 제약 이름을 확인한다.
+실제 MySQL에서 반환한 `member.email`과 `member.nickname`에서 키 이름을 구분해, 사전 검사와 같은 회원 오류 코드·메시지로 응답한다.
+명시적 UNIQUE 이름인 `uk_member_email`·`uk_member_nickname`도 처리하며, 나머지 DB 제약 위반은 기존 `COMMON4091` 응답을 유지한다.
+
+- [회원 중복 예외 정의](src/main/java/com/umc/study/exception/DuplicateMemberException.java)
+- [회원가입 사전 중복 검사](src/main/java/com/umc/study/service/MemberService.java)
+- [DB 제약 위반 및 회원 중복 전역 예외 처리](src/main/java/com/umc/study/controller/GlobalExceptionHandler.java)
+
+### 3. 사전 검사를 통과해도 DB 제약 위반이 발생하는 이유
+
+이메일 존재 여부를 조회하는 시점과 INSERT 시점은 서로 다르다.
+두 요청이 거의 동시에 들어오면, 아직 어느 요청도 저장하지 않은 상태에서 두 요청 모두 `existsByEmail()`의 false 결과를 받을 수 있다.
+닉네임 중복 검사도 같은 상황이 발생한다.
+
+1. 요청 A와 B가 동일 이메일 또는 닉네임으로 회원가입을 요청한다.
+2. 두 요청 모두 DB에 중복 값이 없다고 확인하고 사전 검사를 통과한다.
+3. 먼저 저장·커밋한 요청은 회원가입에 성공한다.
+4. 다른 요청의 INSERT는 DB UNIQUE 제약으로 거절되며, 전역 예외 처리가 이를 409 응답으로 변환한다.
+
+따라서 사전 중복 검사와 DB UNIQUE 제약을 함께 사용한다. `@Transactional`만으로 서로 다른 회원가입 요청의 조회와 저장을 하나의 배타적 작업으로 만들 수는 없다.
+
+### 4. Postman 동시 요청 재현
+
+로컬 Spring Boot 서버와 MySQL 8.0.44에 연결한 Postman에서 실제 요청을 전송했다.
+확인용 `GET /members/email/challenge-probe@example.com` 요청의 Scripts → After response에 아래 재현 스크립트를 입력했다.
+부모 GET은 스크립트 실행을 시작하는 용도이며, 실제 경쟁 요청은 스크립트의 `POST /members` 16건이다.
+
+재현 스크립트: [concurrent-signup-postman.js](mission-captures/week06-challenge/concurrent-signup-postman.js)
+
+스크립트는 실행마다 다른 tag를 사용하고 다음 두 묶음을 순서대로 실행한다.
+
+1. 같은 이메일·서로 다른 닉네임의 가입 요청 8건을 동시에 전송한다.
+2. 서로 다른 이메일·같은 닉네임의 가입 요청 8건을 동시에 전송한다.
+3. 각 묶음에서 생성 1건·중복 7건인지 확인하고, 409 응답의 코드·메시지·result 및 성공 응답의 비밀번호 제외 여부를 검사한다.
+
+인증 실행의 tag는 `5330524`였다.
+
+| 재현 조건 | 공유한 값 | 실제 결과 | 중복 응답 code |
+| --- | --- | --- | --- |
+| 같은 이메일로 동시 가입 8건 | race-email-5330524@example.com | 201 1건 / 409 7건 | MEMBER4091 |
+| 같은 닉네임으로 동시 가입 8건 | N5330524 | 201 1건 / 409 7건 | MEMBER4092 |
+
+Postman Test Results는 **19/19 PASSED**였다. 확인용 GET 1개, 각 가입 응답 16개, 묶음별 생성·중복 개수 검증 2개가 통과했다.
+
+![이메일 동시 가입 검증 결과](mission-captures/week06-challenge/03-concurrent-email-postman.jpg)
+
+![닉네임 동시 가입 검증 결과](mission-captures/week06-challenge/04-concurrent-nickname-postman.jpg)
+
+### 5. 실제 DB 제약 위반 증빙
+
+동일 실행의 IntelliJ 서버 로그에서 다음 오류를 확인했다.
+
+```text
+SQL Error: 1062, SQLState: 23000
+Duplicate entry 'race-email-5330524@example.com' for key 'member.email'
+Duplicate entry 'N5330524' for key 'member.nickname'
+```
+
+이 로그는 사전 중복 검사에서만 거절된 것이 아니라, 실제 INSERT가 MySQL UNIQUE 제약에 의해 거절됐음을 보여준다.
+해당 요청들도 Postman에서 500 대신 409와 각각의 회원 중복 오류 코드로 응답했다.
+
+![MySQL UNIQUE 제약 위반 서버 로그](mission-captures/week06-challenge/05-mysql-unique-1062.jpg)
+
+추가로 Java 21 직접 컴파일과 임시 메모리 DB·예외 매핑 검증 20개도 통과했다.
+프로젝트에 별도의 테스트 DB 설정이나 테스트 의존성은 추가하지 않았다.
 
 # 📢 미션 제출 안내 & CodeRabbit 사용법 안내
 
