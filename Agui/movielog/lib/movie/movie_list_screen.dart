@@ -1,3 +1,7 @@
+import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
+import 'package:movielog/data/services/tmdb_movie_service.dart';
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -6,7 +10,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:movielog/movie/data/fake_movie_service.dart';
 import 'package:movielog/movie/data/genre_preference.dart';
-import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/data/movie_sort_preference.dart';
 import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
@@ -27,8 +30,7 @@ class MovieListScreen extends StatefulWidget {
 }
 
 class _MovieListScreenState extends State<MovieListScreen> {
-  static const _movieService = FakeMovieService();
-  static const _loadTimeout = Duration(seconds: 2);
+  static const _loadTimeout = Duration(seconds: 10);
   late final _genrePreference = GenrePreference();
   late final _sortPreference = MovieSortPreference();
 
@@ -84,7 +86,46 @@ class _MovieListScreenState extends State<MovieListScreen> {
   Future<List<Movie>> _fetchMovies({
     MovieLoadMode mode = MovieLoadMode.success,
   }) {
-    return _movieService.fetchMovies(mode: mode).timeout(_loadTimeout);
+    if (mode != MovieLoadMode.success) {
+      return const FakeMovieService()
+          .fetchMovies(mode: mode)
+          .then((movies) => mode == MovieLoadMode.slow ? <Movie>[] : movies)
+          .timeout(const Duration(seconds: 2));
+    }
+    const genreNames = {
+      18: '드라마',
+      878: 'SF',
+      16: '애니메이션',
+      53: '스릴러',
+      10749: '로맨스',
+      35: '코미디',
+      14: '판타지',
+      99: '다큐멘터리',
+    };
+    return context
+        .read<TmdbMovieService>()
+        .fetchPopularMovies()
+        .then(
+          (movies) => movies
+              .map(
+                (movie) => Movie(
+                  id: movie.id,
+                  title: movie.title,
+                  genre:
+                      movie.genreIds
+                          .map((id) => genreNames[id])
+                          .whereType<String>()
+                          .firstOrNull ??
+                      '기타',
+                  year: int.tryParse(movie.releaseDate.split('-').first) ?? 0,
+                  posterAsset: movie.posterUrl ?? '',
+                  rating: movie.voteAverage,
+                  tmdbMovie: movie,
+                ),
+              )
+              .toList(),
+        )
+        .timeout(_loadTimeout);
   }
 
   Future<void> _restoreSelectedGenres() async {
@@ -140,8 +181,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
   }
 
   void _sortMovies(List<Movie> movies) {
-    int catalogOrder(Movie a, Movie b) =>
-        catalogMovieIds.indexOf(a.id).compareTo(catalogMovieIds.indexOf(b.id));
+    int catalogOrder(Movie a, Movie b) => a.id.compareTo(b.id);
 
     switch (_sortOrder) {
       case MovieSortOrder.catalog:
@@ -157,6 +197,20 @@ class _MovieListScreenState extends State<MovieListScreen> {
           return byRating != 0 ? byRating : catalogOrder(a, b);
         });
     }
+  }
+
+  String _movieErrorMessage(Object? error) {
+    const token = String.fromEnvironment('TMDB_ACCESS_TOKEN');
+    if (token.isEmpty)
+      return 'TMDB 토큰이 실행 설정에 전달되지 않았습니다.\n앱을 완전히 종료하고 MovieLog 실행 설정으로 다시 실행해 주세요.';
+    if (error is DioException) {
+      final status = error.response?.statusCode;
+      if (status == 401 || status == 403)
+        return 'TMDB 인증에 실패했습니다. 토큰의 유효성을 확인해 주세요. (HTTP $status)';
+      if (status != null) return 'TMDB에서 영화를 불러오지 못했습니다. (HTTP $status)';
+      return 'TMDB에 연결하지 못했습니다. 네트워크 연결을 확인해 주세요.';
+    }
+    return '영화 데이터를 읽지 못했습니다. 다시 시도해 주세요.';
   }
 
   void _simulateEmpty() {
@@ -359,12 +413,14 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     if (snapshot.hasError) {
                       return snapshot.error is TimeoutException
                           ? MovieListTimeout(onRetry: _retry)
-                          : MovieListError(onRetry: _retry);
+                          : MovieListError(
+                              onRetry: _retry,
+                              message: _movieErrorMessage(snapshot.error),
+                            );
                     }
 
                     final visibleMovies = (snapshot.data ?? const <Movie>[])
                         .where((movie) {
-                          if (!catalogMovieIds.contains(movie.id)) return false;
                           final matchesGenre =
                               _selectedGenres.isEmpty ||
                               _selectedGenres.contains(movie.genre);

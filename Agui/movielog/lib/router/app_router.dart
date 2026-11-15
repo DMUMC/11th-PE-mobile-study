@@ -1,7 +1,8 @@
+import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
@@ -9,7 +10,8 @@ import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/auth/sign_up_screen.dart';
 import 'package:movielog/home/app_shell.dart';
 import 'package:movielog/home/home_screen.dart';
-import 'package:movielog/movie/movie_detail_screen.dart';
+import 'package:movielog/movie/movie_detail_loader.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
 import 'package:movielog/profile_screen/my_ratings_screen.dart';
@@ -41,7 +43,7 @@ class AppRouter {
         path: '/register',
         builder: (context, state) => ChangeNotifierProvider(
           create: (context) => SignUpViewModel(
-            context.read<MemberCheckService>(),
+            context.read<SignUpService>(),
             initialNickname: SignUpScreen.initialNickname,
             initialEmail: SignUpScreen.initialEmail,
           ),
@@ -72,9 +74,23 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: ':movieId',
-                    builder: (context, state) => MovieDetailScreen(
-                      movieId: state.pathParameters['movieId']!,
-                    ),
+                    builder: (context, state) {
+                      final id = int.tryParse(
+                        state.pathParameters['movieId'] ?? '',
+                      );
+                      if (id == null || id < 1) {
+                        return const Scaffold(
+                          body: Center(child: Text('영화 ID가 올바르지 않습니다.')),
+                        );
+                      }
+                      final extra = state.extra;
+                      return MovieDetailLoader(
+                        movieId: id,
+                        initialMovie: extra is TmdbMovieDto && extra.id == id
+                            ? extra
+                            : null,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -90,14 +106,23 @@ class AppRouter {
                   GoRoute(
                     path: 'ratings',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => ChangeNotifierProvider(
-                      create: (context) => MyRatingsViewModel(
-                        context.read<RatingApiService>(),
-                        context.read<TmdbMovieService>(),
-                        sampleMemberId,
-                      )..load(),
-                      child: const MyRatingsScreen(),
-                    ),
+                    builder: (context, state) {
+                      final id = context.read<LearningMemberSession>().memberId;
+                      if (id == null) {
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('내가 등록한 평점')),
+                          body: const Center(child: Text('학습용 회원가입이 필요합니다.')),
+                        );
+                      }
+                      return ChangeNotifierProvider(
+                        create: (context) => MyRatingsViewModel(
+                          context.read<RatingApiService>(),
+                          context.read<TmdbMovieService>(),
+                          id,
+                        )..load(),
+                        child: const MyRatingsScreen(),
+                      );
+                    },
                   ),
                 ],
               ),

@@ -1,3 +1,5 @@
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
+
 class Movie {
   const Movie({
     required this.id,
@@ -6,6 +8,7 @@ class Movie {
     required this.year,
     required this.posterAsset,
     this.rating,
+    this.tmdbMovie,
   });
 
   final int id;
@@ -14,4 +17,5 @@ class Movie {
   final int year;
   final String posterAsset;
   final double? rating;
+  final TmdbMovieDto? tmdbMovie;
 }

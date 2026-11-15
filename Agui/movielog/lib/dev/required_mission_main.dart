@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../auth/sign_up_screen.dart';
 import '../core/network/tmdb_client.dart';
-import '../data/services/member_check_service.dart';
+import '../data/services/sign_up_service.dart';
 import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../profile_screen/my_ratings_screen.dart';
@@ -58,7 +58,7 @@ final _router = GoRouter(
               ),
               ChangeNotifierProvider(
                 create: (context) => SignUpViewModel(
-                  MemberCheckService(context.read<Dio>()),
+                  SignUpService(context.read<Dio>()),
                   initialNickname: SignUpScreen.initialNickname,
                   initialEmail: SignUpScreen.initialEmail,
                 ),

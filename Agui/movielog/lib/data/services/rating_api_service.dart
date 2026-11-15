@@ -1,14 +1,28 @@
 import 'package:dio/dio.dart';
 
 import '../models/rating_dto.dart';
+import '../models/rating_request.dart';
 
 class RatingApiService {
   RatingApiService(this._dio);
 
   final Dio _dio;
 
+  Future<void> createRating({
+    required int memberId,
+    required CreateRatingRequest request,
+  }) async {
+    final response = await _dio.post<dynamic>(
+      '/v6/members/$memberId/ratings',
+      data: request.toJson(),
+    );
+    if (response.statusCode != 201) {
+      throw StateError('예상하지 못한 등록 응답: ${response.statusCode}');
+    }
+  }
+
   Future<List<RatingDto>> fetchMyRatings(int memberId) async {
-    final response = await _dio.get<dynamic>('/v5/members/$memberId/ratings');
+    final response = await _dio.get<dynamic>('/v6/members/$memberId/ratings');
     final data = response.data;
     if (data is! List) throw const FormatException('Expected a rating array');
     return data.map((item) {

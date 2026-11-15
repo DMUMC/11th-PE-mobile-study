@@ -14,7 +14,7 @@ class MovieCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => context.push('/movies/${movie.id}'),
+      onTap: () => context.push('/movies/${movie.id}', extra: movie.tmdbMovie),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -96,6 +96,22 @@ class _PosterImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (movie.tmdbMovie != null) {
+      final url = movie.tmdbMovie!.posterUrl;
+      return url == null
+          ? const ColoredBox(
+              color: AppColors.surfaceContainer,
+              child: Icon(Icons.movie_outlined),
+            )
+          : Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, error, stack) => const ColoredBox(
+                color: AppColors.surfaceContainer,
+                child: Icon(Icons.movie_outlined),
+              ),
+            );
+    }
     if (movie.id == 10) {
       return ColoredBox(
         color: Colors.white,

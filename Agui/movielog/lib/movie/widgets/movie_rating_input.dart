@@ -19,16 +19,18 @@ class MovieRatingInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return RatingBar.builder(
       initialRating: rating,
-      minRating: 0.5,
-      allowHalfRating: true,
+      minRating: 1,
+      allowHalfRating: false,
       itemCount: 5,
-      itemSize: 38,
+      itemSize: 32,
       itemPadding: const EdgeInsets.symmetric(horizontal: 3),
-      unratedColor: AppColors.neutral400,
+      unratedColor: AppColors.primary600,
       glow: false,
       ignoreGestures: !enabled,
-      itemBuilder: (context, index) =>
-          const Icon(Icons.star_rounded, color: AppColors.primary600),
+      itemBuilder: (context, index) => Icon(
+        index < rating ? Icons.star : Icons.star_border,
+        color: AppColors.primary600,
+      ),
       onRatingUpdate: onChanged,
     );
   }

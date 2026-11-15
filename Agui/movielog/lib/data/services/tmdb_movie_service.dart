@@ -7,6 +7,20 @@ class TmdbMovieService {
 
   final Dio _dio;
 
+  Future<List<TmdbMovieDto>> fetchPopularMovies() async {
+    final response = await _dio.get<dynamic>(
+      '/movie/popular',
+      queryParameters: {'language': 'ko-KR', 'page': 1},
+    );
+    final data = response.data;
+    if (data is! Map<String, dynamic> || data['results'] is! List) {
+      throw const FormatException('Expected a movie list');
+    }
+    return (data['results'] as List)
+        .map((item) => TmdbMovieDto.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<TmdbMovieDto> fetchMovieDetail(int movieId) async {
     final response = await _dio.get<dynamic>(
       '/movie/$movieId',

@@ -1,3 +1,6 @@
+import '../data/models/create_member_request.dart';
+import '../view_models/learning_member_session.dart';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +33,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final emailController = TextEditingController(
     text: SignUpScreen.initialEmail,
   );
-  final passwordController = TextEditingController(text: '12345678');
+  final passwordController = TextEditingController();
 
   final nicknameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
@@ -42,14 +45,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? passwordErrorText;
   bool isNicknameValid = true;
   bool isEmailValid = true;
-  bool isPasswordValid = true;
+  bool isPasswordValid = false;
 
   bool canSubmit(SignUpViewModel viewModel) =>
       isNicknameValid &&
       isEmailValid &&
       isPasswordValid &&
       agreedToTerms &&
-      viewModel.checksPassed;
+      viewModel.checksPassed &&
+      viewModel.submitStatus != SubmitStatus.submitting;
 
   @override
   void dispose() {
@@ -126,7 +130,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     viewModel.nicknameErrorText,
                                 emailErrorText:
                                     emailErrorText ?? viewModel.emailErrorText,
-                                passwordErrorText: passwordErrorText,
+                                passwordErrorText:
+                                    passwordErrorText ??
+                                    viewModel.passwordErrorText,
                                 nicknameCheckStatus:
                                     viewModel.nicknameCheckStatus,
                                 emailCheckStatus: viewModel.emailCheckStatus,
@@ -165,6 +171,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   viewModel.onEmailChanged(value);
                                 },
                                 onPasswordChanged: (value) {
+                                  viewModel.onPasswordChanged();
                                   setState(() {
                                     final errorText = value.isEmpty
                                         ? null
@@ -191,14 +198,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               const SizedBox(height: AppSpacing.x3),
                               SignUpSubmitButton(
+                                isLoading:
+                                    viewModel.submitStatus ==
+                                    SubmitStatus.submitting,
                                 onPressed: canSubmit(viewModel)
-                                    ? () {
-                                        final isValid =
-                                            formKey.currentState?.validate() ??
-                                            false;
-                                        if (!isValid) return;
+                                    ? () async {
+                                        if (!(formKey.currentState
+                                                ?.validate() ??
+                                            false)) {
+                                          return;
+                                        }
                                         FocusScope.of(context).unfocus();
-                                        context.go('/home');
+                                        await viewModel.submit(
+                                          CreateMemberRequest(
+                                            email: emailController.text,
+                                            password: passwordController.text,
+                                            nickname: nicknameController.text,
+                                          ),
+                                        );
+                                        if (!context.mounted) return;
+                                        if (viewModel.submitStatus ==
+                                                SubmitStatus.success &&
+                                            viewModel.createdMemberId != null) {
+                                          context
+                                              .read<LearningMemberSession>()
+                                              .setMemberId(
+                                                viewModel.createdMemberId!,
+                                              );
+                                          context.go('/movies');
+                                        } else if (viewModel.snackbarMessage !=
+                                            null) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    viewModel.snackbarMessage!,
+                                                  ),
+                                                ),
+                                              );
+                                        }
                                       }
                                     : null,
                               ),

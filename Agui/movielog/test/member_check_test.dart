@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/data/models/check_result.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 
 void main() {
@@ -27,7 +27,7 @@ void main() {
       final dio = Dio(BaseOptions(baseUrl: 'https://workbook.devnoco.com'))
         ..httpClientAdapter = adapter;
       addTearDown(() => dio.close());
-      final service = MemberCheckService(dio);
+      final service = SignUpService(dio);
       expect(await service.checkNickname(' 영화/광? '), isFalse);
       expect(adapter.uri!.pathSegments.last, '영화/광?');
       expect(adapter.uri.toString(), contains('%2F'));
@@ -173,7 +173,7 @@ class _ResponseAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-class _PendingService extends MemberCheckService {
+class _PendingService extends SignUpService {
   _PendingService() : super(Dio());
   final nicknames = <String>[];
   final nicknameResults = <Completer<bool>>[];

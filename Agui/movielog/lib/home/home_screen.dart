@@ -192,7 +192,7 @@ class _FeaturedMovieBanner extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: FilledButton.icon(
-                      onPressed: () => context.push('/movies/${movie.id}'),
+                      onPressed: () => context.go('/movies'),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.primary500,
                         shape: RoundedRectangleBorder(
@@ -231,7 +231,7 @@ class _PopularMovieCard extends StatelessWidget {
       width: 140,
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => context.push('/movies/${movie.id}'),
+        onTap: () => context.go('/movies'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
