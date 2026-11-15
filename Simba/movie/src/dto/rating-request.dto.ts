@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 
-// POST /members/{memberId}/ratings 요청 본문
+// POST /ratings 요청 본문 (memberId는 토큰에서 꺼내므로 받지 않는다)
 export class CreateRatingDto {
   // TMDB 영화 id. movie 테이블이 없으므로 FK가 아니라 양의 정수인지만 확인한다.
   @IsDefined({ message: 'movieId는 필수입니다.' })
@@ -28,7 +28,7 @@ export class CreateRatingDto {
   comment?: string | null;
 }
 
-// PATCH /members/{memberId}/ratings/{ratingId} 요청 본문
+// PATCH /ratings/{ratingId} 요청 본문
 // 보낸 필드만 수정한다. movieId는 바꿀 수 없으므로 DTO에 없다(보내면 forbidNonWhitelisted로 400).
 export class UpdateRatingDto {
   @IsOptional()

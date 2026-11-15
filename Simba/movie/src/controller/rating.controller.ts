@@ -8,52 +8,62 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { LoginMember } from '../decorator/login-member.decorator';
 import { CreateRatingDto, UpdateRatingDto } from '../dto/rating-request.dto';
 import { RatingResponseDto } from '../dto/rating-response.dto';
+import { AuthGuard } from '../guard/auth.guard';
 import { RatingService } from '../service/rating.service';
 
-// 파일은 자원(Rating) 기준으로 나누고, URL은 프론트가 이해하기 쉬운 /members/... 모양을 쓴다.
+// 7주차: 쓰기 API는 "누가"를 URL이 아니라 토큰에서 꺼낸다.
+// 조회(members/:memberId/ratings)와 쓰기(ratings/...)의 경로 앞부분이 달라서
+// @Controller()에 접두사를 두지 않고 메서드마다 전체 경로를 적는다.
 // 경로 id가 숫자가 아니면 ParseIntPipe가 400으로 응답한다.
-@Controller('members/:memberId/ratings')
+@Controller()
 export class RatingController {
   constructor(private readonly ratingService: RatingService) {}
 
-  // GET /members/{memberId}/ratings
-  @Get()
+  // GET /members/{memberId}/ratings — 공개 조회 (토큰 불필요)
+  @Get('members/:memberId/ratings')
   getMemberRatings(
     @Param('memberId', ParseIntPipe) memberId: number,
   ): Promise<RatingResponseDto[]> {
     return this.ratingService.getRatingsByMember(memberId);
   }
 
-  // POST /members/{memberId}/ratings
-  @Post()
+  // POST /ratings — 내 평점 등록
+  @Post('ratings')
   @HttpCode(201)
+  @UseGuards(AuthGuard)
   createRating(
-    @Param('memberId', ParseIntPipe) memberId: number,
+    @LoginMember() memberId: number,
     @Body() dto: CreateRatingDto,
   ): Promise<RatingResponseDto> {
     return this.ratingService.createRating(memberId, dto);
   }
 
-  // PATCH /members/{memberId}/ratings/{ratingId}
-  @Patch(':ratingId')
+  // PATCH /ratings/{ratingId} — 내 평점 수정
+  @Patch('ratings/:ratingId')
+  @UseGuards(AuthGuard)
   updateRating(
-    @Param('memberId', ParseIntPipe) memberId: number,
+    @LoginMember() memberId: number,
     @Param('ratingId', ParseIntPipe) ratingId: number,
     @Body() dto: UpdateRatingDto,
   ): Promise<RatingResponseDto> {
     return this.ratingService.updateRating(memberId, ratingId, dto);
   }
 
-  // DELETE /members/{memberId}/ratings/{ratingId}
-  @Delete(':ratingId')
-  @HttpCode(204)
-  deleteRating(
-    @Param('memberId', ParseIntPipe) memberId: number,
+  // DELETE /ratings/{ratingId} — 내 평점 삭제.
+  // 공통 응답 { isSuccess, code, message, result: null }을 보내야 하므로 204가 아니라 200.
+  @Delete('ratings/:ratingId')
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  async deleteRating(
+    @LoginMember() memberId: number,
     @Param('ratingId', ParseIntPipe) ratingId: number,
-  ): Promise<void> {
-    return this.ratingService.deleteRating(memberId, ratingId);
+  ): Promise<null> {
+    await this.ratingService.deleteRating(memberId, ratingId);
+    return null;
   }
 }

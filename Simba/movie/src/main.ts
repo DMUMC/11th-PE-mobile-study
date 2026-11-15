@@ -27,6 +27,8 @@ async function bootstrap() {
   app.enableCors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    // 7주차: 브라우저가 Authorization 헤더를 보내려면 preflight에서 이 헤더를 허용해야 한다.
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   await app.listen(process.env.PORT ?? 3000);
