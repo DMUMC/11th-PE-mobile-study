@@ -1,0 +1,329 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "headers": {},
+      "body": {
+        "email": "vector@example.com",
+        "nickname": "Vector",
+        "password": "SamplePassword123!"
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "email": "vector@example.com",
+        "nickname": "Vector"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "headers": {},
+      "body": {
+        "email": "VECTOR@example.com",
+        "nickname": "Vector2",
+        "password": "SamplePassword123!"
+      }
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "statusCode": 409,
+        "code": "DUPLICATE_MEMBER",
+        "message": "이미 사용 중인 이메일 또는 닉네임입니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "headers": {},
+      "body": {
+        "email": "another@example.com",
+        "nickname": "Vector",
+        "password": "SamplePassword123!"
+      }
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "statusCode": 409,
+        "code": "DUPLICATE_MEMBER",
+        "message": "이미 사용 중인 이메일 또는 닉네임입니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "headers": {},
+      "body": {
+        "email": "invalid",
+        "nickname": "Vector",
+        "password": "123"
+      }
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "code": "VALIDATION_ERROR",
+        "message": "password must contain letters and digits and use 8 to 72 printable ASCII characters without spaces, email must be an email"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/members",
+      "headers": {},
+      "body": {
+        "email": "other@example.com",
+        "nickname": "Other",
+        "password": "SamplePassword123!"
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 2,
+        "email": "other@example.com",
+        "nickname": "Other"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/check-email?email=VECTOR%40example.com",
+      "headers": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "available": false
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/check-nickname?nickname=NewVector",
+      "headers": {}
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "available": true
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/ratings",
+      "headers": {
+        "x-member-id": "1"
+      },
+      "body": {
+        "movieId": 157336,
+        "score": 5
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "memberId": 1,
+        "movieId": 157336,
+        "score": 5
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/ratings",
+      "headers": {
+        "x-member-id": "1"
+      },
+      "body": {
+        "movieId": 157336,
+        "score": 6
+      }
+    },
+    "response": {
+      "status": 400,
+      "body": {
+        "statusCode": 400,
+        "code": "VALIDATION_ERROR",
+        "message": "score must not be greater than 5"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "path": "/ratings",
+      "headers": {
+        "x-member-id": "1"
+      },
+      "body": {
+        "movieId": 157336,
+        "score": 5
+      }
+    },
+    "response": {
+      "status": 409,
+      "body": {
+        "statusCode": 409,
+        "code": "DUPLICATE_RATING",
+        "message": "이미 평점을 등록한 영화입니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/1/ratings",
+      "headers": {}
+    },
+    "response": {
+      "status": 200,
+      "body": [
+        {
+          "id": 1,
+          "memberId": 1,
+          "movieId": 157336,
+          "score": 5
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "method": "PATCH",
+      "path": "/ratings/1",
+      "headers": {
+        "x-member-id": "2"
+      },
+      "body": {
+        "score": 4
+      }
+    },
+    "response": {
+      "status": 403,
+      "body": {
+        "statusCode": 403,
+        "code": "RATING_FORBIDDEN",
+        "message": "본인이 등록한 평점만 변경할 수 있습니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "DELETE",
+      "path": "/ratings/1",
+      "headers": {
+        "x-member-id": "2"
+      }
+    },
+    "response": {
+      "status": 403,
+      "body": {
+        "statusCode": 403,
+        "code": "RATING_FORBIDDEN",
+        "message": "본인이 등록한 평점만 변경할 수 있습니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "PATCH",
+      "path": "/ratings/1",
+      "headers": {
+        "x-member-id": "1"
+      },
+      "body": {
+        "score": 4
+      }
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "id": 1,
+        "memberId": 1,
+        "movieId": 157336,
+        "score": 4
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "DELETE",
+      "path": "/ratings/1",
+      "headers": {
+        "x-member-id": "1"
+      }
+    },
+    "response": {
+      "status": 204,
+      "body": null
+    }
+  },
+  {
+    "request": {
+      "method": "DELETE",
+      "path": "/ratings/1",
+      "headers": {
+        "x-member-id": "1"
+      }
+    },
+    "response": {
+      "status": 404,
+      "body": {
+        "statusCode": 404,
+        "code": "RATING_NOT_FOUND",
+        "message": "평점을 찾을 수 없습니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "PATCH",
+      "path": "/ratings/1",
+      "headers": {
+        "x-member-id": "1"
+      },
+      "body": {
+        "score": 4
+      }
+    },
+    "response": {
+      "status": 404,
+      "body": {
+        "statusCode": 404,
+        "code": "RATING_NOT_FOUND",
+        "message": "평점을 찾을 수 없습니다."
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "GET",
+      "path": "/members/1/ratings",
+      "headers": {}
+    },
+    "response": {
+      "status": 200,
+      "body": []
+    }
+  }
+]
