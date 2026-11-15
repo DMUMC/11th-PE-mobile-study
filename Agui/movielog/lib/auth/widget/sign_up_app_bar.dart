@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 
 class SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const SignUpAppBar({super.key});
+  const SignUpAppBar({super.key, this.isSubmitting = false});
+
+  final bool isSubmitting;
 
   @override
   Size get preferredSize => const Size.fromHeight(AppComponentHeight.appBar);
@@ -17,7 +19,7 @@ class SignUpAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       leading: IconButton(
         tooltip: '뒤로 가기',
-        onPressed: () => context.go('/start'),
+        onPressed: isSubmitting ? null : () => context.go('/start'),
         icon: const Icon(Icons.arrow_back, size: 24),
       ),
       centerTitle: true,

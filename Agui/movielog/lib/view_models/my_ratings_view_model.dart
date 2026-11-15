@@ -20,6 +20,7 @@ class MyRatingsViewModel extends ChangeNotifier {
   int _requestVersion = 0;
   bool _disposed = false;
   bool _isUpdating = false;
+  bool isDeletingSelected = false;
   String? refreshWarning;
 
   List<RatingWithMovie> _ratings = const [];
@@ -160,6 +161,44 @@ class MyRatingsViewModel extends ChangeNotifier {
     if (_status == MyRatingsLoadStatus.error) {
       refreshWarning = '삭제는 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.';
       notifyListeners();
+    }
+  }
+
+  Future<Set<int>> deleteSelectedRatings(Set<int> ratingIds) async {
+    if (_disposed || _isUpdating || isDeletingSelected || ratingIds.isEmpty) {
+      return Set.of(ratingIds);
+    }
+    isDeletingSelected = true;
+    _isUpdating = true;
+    refreshWarning = null;
+    notifyListeners();
+    final failed = <int>{};
+    final deleted = <int>{};
+    try {
+      for (final id in ratingIds.toList()) {
+        if (_disposed) break;
+        try {
+          await _service.deleteRating(memberId: memberId, ratingId: id);
+          deleted.add(id);
+        } catch (_) {
+          failed.add(id);
+        }
+      }
+      if (_disposed) return failed;
+      // 재조회가 실패하더라도 삭제 성공 항목은 다시 선택하지 않습니다.
+      _ratings = List.unmodifiable(
+        _ratings.where((entry) => !deleted.contains(entry.rating.ratingId)),
+      );
+      await load();
+      if (_disposed) return failed;
+      if (_status == MyRatingsLoadStatus.error) {
+        refreshWarning = '삭제 요청이 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.';
+      }
+      return failed;
+    } finally {
+      _isUpdating = false;
+      isDeletingSelected = false;
+      if (!_disposed) notifyListeners();
     }
   }
 

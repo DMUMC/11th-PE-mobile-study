@@ -72,9 +72,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final isTablet = MediaQuery.sizeOf(context).width >= 700;
 
     return PopScope(
-      canPop: false,
+      canPop: viewModel.submitStatus != SubmitStatus.submitting,
       child: Scaffold(
-        appBar: isTablet ? null : const SignUpAppBar(),
+        appBar: isTablet
+            ? null
+            : SignUpAppBar(
+                isSubmitting: viewModel.submitStatus == SubmitStatus.submitting,
+              ),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
