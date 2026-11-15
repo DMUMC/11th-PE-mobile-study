@@ -1,0 +1,19 @@
+시뮬레이터 debug 미션 검증 기록
+환경: iPhone 18 Pro / iOS 27.0 시뮬레이터 / Flutter debug
+장르 조건: 액션(28), 모험(12), with_genres=28|12
+
+01-success-before.jpg: 정상 조회한 최근 성공 목록
+02-failure-dialog.jpg: debug 차단 후 새로고침 실패 Dialog, 기존 목록 유지
+03-failure-log.jpg: 실제 오류 로그 발췌 파일을 텍스트 편집기에서 연 화면
+03-failure.log: 실패 URL, 오류 메시지, Authorization 마스킹이 포함된 실제 출력 발췌
+04-cancel-keeps-list.jpg: 취소 후 기존 목록과 장르 선택 유지, 추가 요청 0회
+05-retry-success.jpg: 차단 해제 후 다시 시도 성공 화면
+06-retry-log.jpg: 같은 장르로 page 1, 2 재요청 및 200 응답 로그 화면
+06-retry.log: 재시도 실제 출력 발췌(응답 Body 제외)
+runtime.log: debug 실행 시작 및 TMDB 출력 모음
+
+검증: 오류 URL 및 메시지 출력, Header의 Bearer *** 표시, 실제 토큰 문자열 미포함 확인.
+검증: 취소 시 추가 요청 없음. 재시도 시 같은 장르 조건으로 page 1부터 재조회, page 1·2 모두 200 응답.
+재현 방식: debug 버튼이 Dio 인터셉터에서 connectionError를 발생시킴. 실제 기기 네트워크 OFF 시험은 아님.
+로그 캡처: 터미널 앱 자동 제어 제한으로 실제 출력 파일을 텍스트 편집기에서 열어 캡처함. 터미널 창 캡처는 아님.
+미검증: release 모드 로그 미출력. iOS 시뮬레이터가 release 실행을 지원하지 않아 이번 debug 검증에 포함하지 않음.

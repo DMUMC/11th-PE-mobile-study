@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:movielog/movie/data/movie_rating_store.dart';
 import 'package:movielog/movie/widgets/movie_rating_input.dart';
 import 'package:movielog/theme/app_colors.dart';
 
 class MovieRatingDialog extends StatefulWidget {
-  const MovieRatingDialog({
-    required this.initialRating,
-    this.hasExistingRating = false,
-    super.key,
-  });
+  const MovieRatingDialog({required this.movieId, super.key});
 
-  final double initialRating;
-  final bool hasExistingRating;
+  final int movieId;
 
   @override
   State<MovieRatingDialog> createState() => _MovieRatingDialogState();
 }
 
 class _MovieRatingDialogState extends State<MovieRatingDialog> {
-  late double _rating = widget.initialRating;
-  late bool _isEditing = !widget.hasExistingRating;
+  late final double? _existingRating = MovieRatingStore.ratingFor(
+    widget.movieId,
+  );
+  late double _rating = _existingRating ?? 3.5;
+  late bool _isEditing = _existingRating == null;
+
+  void _confirmRating() {
+    if (_rating == 0) {
+      MovieRatingStore.clear(widget.movieId);
+    } else {
+      MovieRatingStore.save(widget.movieId, _rating);
+    }
+    Navigator.of(context).pop(_rating);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +56,7 @@ class _MovieRatingDialogState extends State<MovieRatingDialog> {
               enabled: _isEditing,
               onChanged: (rating) => setState(() => _rating = rating),
             ),
-            if (widget.hasExistingRating && !_isEditing) ...[
+            if (_existingRating != null && !_isEditing) ...[
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -81,12 +89,12 @@ class _MovieRatingDialogState extends State<MovieRatingDialog> {
                 ],
               ),
             ],
-            SizedBox(height: widget.hasExistingRating && !_isEditing ? 12 : 24),
+            SizedBox(height: _existingRating != null && !_isEditing ? 12 : 24),
             SizedBox(
               width: double.infinity,
               height: 48,
               child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(_rating),
+                onPressed: _confirmRating,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary600,
                   shape: RoundedRectangleBorder(

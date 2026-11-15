@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/member_check_service.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
@@ -14,6 +14,9 @@ import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
 import 'package:movielog/profile_screen/my_ratings_screen.dart';
 import 'package:movielog/start_screen.dart';
+import 'package:movielog/view_models/movie_home_view_model.dart';
+import 'package:movielog/view_models/movie_list_view_model.dart';
+import 'package:provider/provider.dart';
 
 class AppRouter {
   AppRouter._();
@@ -57,7 +60,13 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) =>
+                    ChangeNotifierProvider<MovieHomeViewModel>(
+                      create: (context) =>
+                          MovieHomeViewModel(context.read<TmdbMovieService>())
+                            ..loadPopular(),
+                      child: const HomeScreen(),
+                    ),
               ),
             ],
           ),
@@ -66,14 +75,23 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/movies',
-                builder: (context, state) => MovieListScreen(
-                  initialGenreQuery: state.uri.queryParameters['genre'],
-                ),
+                builder: (context, state) =>
+                    ChangeNotifierProvider<MovieListViewModel>(
+                      create: (context) =>
+                          MovieListViewModel(context.read<TmdbMovieService>())
+                            ..loadGenres(),
+                      child: MovieListScreen(
+                        initialGenreQuery: state.uri.queryParameters['genre'],
+                      ),
+                    ),
                 routes: [
                   GoRoute(
                     path: ':movieId',
                     builder: (context, state) => MovieDetailScreen(
                       movieId: state.pathParameters['movieId']!,
+                      movie: state.extra is TmdbMovieDto
+                          ? state.extra as TmdbMovieDto
+                          : null,
                     ),
                   ),
                 ],

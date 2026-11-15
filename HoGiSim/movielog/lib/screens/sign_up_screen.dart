@@ -411,7 +411,8 @@ class _LoginPrompt extends StatelessWidget {
       children: [
         const Text('이미 계정이 있나요? ', style: TextStyle(fontSize: 15)),
         TextButton(
-          onPressed: () {},
+          key: const Key('loginButton'),
+          onPressed: () => context.go('/home'),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 2),
