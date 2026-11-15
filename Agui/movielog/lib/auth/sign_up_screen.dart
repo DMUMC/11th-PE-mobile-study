@@ -119,6 +119,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               const SignUpHeader(),
                               const SizedBox(height: AppSpacing.x4),
                               SignUpForm(
+                                enabled:
+                                    viewModel.submitStatus !=
+                                    SubmitStatus.submitting,
                                 nicknameController: nicknameController,
                                 emailController: emailController,
                                 passwordController: passwordController,

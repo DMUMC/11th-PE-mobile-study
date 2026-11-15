@@ -32,7 +32,14 @@ class SignUpViewModel extends ChangeNotifier {
   }
 
   Future<void> submit(CreateMemberRequest request) async {
-    if (_disposed || submitStatus == SubmitStatus.submitting || !checksPassed) {
+    if (_disposed ||
+        submitStatus == SubmitStatus.submitting ||
+        !checksPassed ||
+        request.nickname.trim() != _currentNickname ||
+        request.email.trim() != _currentEmail ||
+        validateNickname(request.nickname) != null ||
+        validateEmail(request.email) != null ||
+        validatePassword(request.password) != null) {
       return;
     }
     submitStatus = SubmitStatus.submitting;
@@ -59,6 +66,16 @@ class SignUpViewModel extends ChangeNotifier {
         passwordErrorText = message;
       } else {
         snackbarMessage = message;
+        if (error.response?.statusCode == 409) {
+          if (message.contains('이메일')) {
+            _emailCheckStatus = CheckStatus.idle;
+          } else if (message.contains('닉네임')) {
+            _nicknameCheckStatus = CheckStatus.idle;
+          } else {
+            _nicknameCheckStatus = CheckStatus.idle;
+            _emailCheckStatus = CheckStatus.idle;
+          }
+        }
       }
     } catch (_) {
       if (_disposed) return;
@@ -86,12 +103,14 @@ class SignUpViewModel extends ChangeNotifier {
 
   bool get canCheckNickname =>
       !_disposed &&
+      submitStatus != SubmitStatus.submitting &&
       validateNickname(_currentNickname) == null &&
       _nicknameCheckStatus != CheckStatus.checking &&
       _nicknameCheckStatus != CheckStatus.duplicated;
 
   bool get canCheckEmail =>
       !_disposed &&
+      submitStatus != SubmitStatus.submitting &&
       validateEmail(_currentEmail) == null &&
       _emailCheckStatus != CheckStatus.checking &&
       _emailCheckStatus != CheckStatus.duplicated;
