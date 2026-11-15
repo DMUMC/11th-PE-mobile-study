@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
+import '../view_models/learning_member_session.dart';
 import '../widgets/common_app_bar.dart';
 import 'profile_screen.dart';
 
@@ -11,6 +13,7 @@ class MyPageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final memberId = context.watch<LearningMemberSession>().memberId;
     return Scaffold(
       appBar: const CommonAppBar(title: '내 프로필'),
       body: SafeArea(
@@ -37,11 +40,18 @@ class MyPageScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  leading: const Icon(Icons.star_rate_rounded,
-                      color: AppColors.violet),
+                  leading: const Icon(
+                    Icons.star_rate_rounded,
+                    color: AppColors.violet,
+                  ),
                   title: const Text(
                     '내가 등록한 평점',
                     style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    memberId == null
+                        ? '학습용 회원가입이 필요합니다'
+                        : '학습용 memberId $memberId',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   // root Navigator 위에 push → 뒤로가면 마이페이지로 돌아온다.
