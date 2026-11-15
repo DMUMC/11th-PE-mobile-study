@@ -2,28 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../core/config/movielog_config.dart';
 import '../data/models/tmdb_movie_dto.dart';
-import '../data/services/movielog_member_service.dart';
+import '../data/services/member_check_service.dart';
+import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/main_screen.dart';
 import '../screens/movie_detail_screen.dart';
 import '../screens/movie_list_screen.dart';
 import '../screens/my_page_screen.dart';
+import '../screens/my_ratings_screen.dart';
 import '../screens/sign_up_screen.dart';
 import '../screens/start_screen.dart';
 import '../view_models/movie_home_view_model.dart';
 import '../view_models/movie_list_view_model.dart';
-import '../view_models/my_page_view_model.dart';
+import '../view_models/my_ratings_view_model.dart';
 import '../view_models/sign_up_view_model.dart';
 
 class AppRouter {
   AppRouter._();
 
+  // root Navigator를 가리키는 키. 하단 탭을 가려야 하는 자식 화면이 이 키로 push된다.
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
+
   static final router = GoRouter(
-    // 시작 화면 → 회원가입(닉네임/이메일 중복 체크) → 홈
+    // 시작 화면 → 회원가입(닉네임/이메일 중복 확인) → 홈
     initialLocation: '/start',
+    navigatorKey: rootNavigatorKey,
     routes: [
       // 0주차 시작 화면
       GoRoute(
@@ -35,7 +40,7 @@ class AppRouter {
         path: '/register',
         builder: (context, state) => ChangeNotifierProvider<SignUpViewModel>(
           create: (context) =>
-              SignUpViewModel(context.read<MovieLogMemberService>()),
+              SignUpViewModel(context.read<MemberCheckService>()),
           child: const SignUpScreen(),
         ),
       ),
@@ -94,15 +99,23 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/my',
-                builder: (context, state) =>
-                    ChangeNotifierProvider<MyPageViewModel>(
-                      create: (context) => MyPageViewModel(
-                        memberService: context.read<MovieLogMemberService>(),
-                        tmdbService: context.read<TmdbMovieService>(),
-                        memberId: MovieLogConfig.demoMemberId,
-                      )..loadRatings(),
-                      child: const MyPageScreen(),
-                    ),
+                builder: (context, state) => const MyPageScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'ratings', // 최종 경로: /my/ratings
+                    // 지정하지 않으면 Shell의 Navigator를 써서 하단 NavigationBar가 남는다.
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) =>
+                        ChangeNotifierProvider<MyRatingsViewModel>(
+                          create: (context) => MyRatingsViewModel(
+                            context.read<RatingApiService>(),
+                            context.read<TmdbMovieService>(),
+                            sampleMemberId, // 6주차는 학습용 ID 1
+                          )..load(),
+                          child: const MyRatingsScreen(),
+                        ),
+                  ),
+                ],
               ),
             ],
           ),
