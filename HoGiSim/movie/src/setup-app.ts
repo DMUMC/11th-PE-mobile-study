@@ -1,5 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
+import { WriteExceptionFilter } from './write-exception.filter.js';
 
 export type CorsMode = 'restricted' | 'disabled' | 'wildcard';
 
@@ -7,6 +9,7 @@ export function setupApp(
   app: INestApplication,
   options: { corsMode?: CorsMode; origins?: string[] } = {},
 ): void {
+  app.useGlobalFilters(new WriteExceptionFilter(app.get(HttpAdapterHost)));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
