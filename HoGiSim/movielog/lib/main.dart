@@ -4,19 +4,25 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'core/network/movie_log_client.dart';
 import 'core/network/tmdb_client.dart';
 import 'data/models/tmdb_movie_dto.dart';
+import 'data/services/member_check_service.dart';
+import 'data/services/rating_api_service.dart';
 import 'data/services/tmdb_movie_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/movie_detail_screen.dart';
 import 'screens/movies_screen.dart';
 import 'screens/my_screen.dart';
+import 'screens/my_ratings_screen.dart';
 import 'screens/sign_up_screen.dart';
 import 'screens/start_screen.dart';
 import 'theme/app_theme.dart';
 import 'view_models/movie_home_view_model.dart';
 import 'view_models/movie_list_view_model.dart';
 import 'view_models/movie_detail_view_model.dart';
+import 'view_models/my_ratings_view_model.dart';
+import 'view_models/sign_up_view_model.dart';
 
 GoRouter createAppRouter({String initialLocation = '/start'}) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -25,7 +31,13 @@ GoRouter createAppRouter({String initialLocation = '/start'}) {
     initialLocation: initialLocation,
     routes: [
       GoRoute(path: '/start', builder: (_, _) => const StartScreen()),
-      GoRoute(path: '/signup', builder: (_, _) => const SignUpScreen()),
+      GoRoute(
+        path: '/signup',
+        builder: (context, _) => ChangeNotifierProvider(
+          create: (_) => SignUpViewModel(context.read<MemberCheckService>()),
+          child: const SignUpScreen(),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => MainShell(navigationShell: shell),
         branches: [
@@ -63,7 +75,25 @@ GoRouter createAppRouter({String initialLocation = '/start'}) {
             ],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: '/my', builder: (_, _) => const MyScreen())],
+            routes: [
+              GoRoute(
+                path: '/my',
+                builder: (_, _) => const MyScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'ratings',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, _) => ChangeNotifierProvider(
+                      create: (_) => MyRatingsViewModel(
+                        context.read<RatingApiService>(),
+                        context.read<TmdbMovieService>(),
+                      )..load(),
+                      child: const MyRatingsScreen(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -102,19 +132,34 @@ Future<void> main() async {
 }
 
 class MovieLogApp extends StatelessWidget {
-  const MovieLogApp({this.service, this.router, super.key});
+  const MovieLogApp({
+    this.service,
+    this.router,
+    this.workbookClient,
+    super.key,
+  });
   final TmdbMovieService? service;
   final GoRouter? router;
+  final Dio? workbookClient;
 
   @override
   Widget build(BuildContext context) => MultiProvider(
     providers: [
       Provider<Dio>(
-        create: (_) => createTmdbClient(),
+        create: (_) => workbookClient ?? createMovieLogClient(),
         dispose: (_, dio) => dio.close(force: true),
       ),
+      Provider<MemberCheckService>(
+        create: (context) => MemberCheckService(context.read<Dio>()),
+      ),
+      Provider<RatingApiService>(
+        create: (context) => RatingApiService(context.read<Dio>()),
+      ),
       Provider<TmdbMovieService>(
-        create: (context) => service ?? TmdbMovieService(context.read<Dio>()),
+        create: (_) => service ?? TmdbMovieService(createTmdbClient()),
+        dispose: (_, service) {
+          if (this.service == null) service.close();
+        },
       ),
     ],
     child: MaterialApp.router(
