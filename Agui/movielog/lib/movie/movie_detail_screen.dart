@@ -5,17 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
-import 'package:movielog/movie/data/movie_rating_store.dart';
 import 'package:movielog/movie/model/movie.dart';
 import 'package:movielog/movie/widgets/movie_rating_dialog.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/theme/app_text_style.dart';
+import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movieId});
+  const MovieDetailScreen({super.key, required this.movieId, this.movie});
 
   final String movieId;
+  final TmdbMovieDto? movie;
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
@@ -24,8 +26,8 @@ class MovieDetailScreen extends StatefulWidget {
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool _isFavorite = false;
 
-  int get _currentMovieId => int.tryParse(widget.movieId) ?? -1;
-  double? get _myRating => MovieRatingStore.ratingFor(_currentMovieId);
+  int get _currentMovieId =>
+      widget.movie?.id ?? int.tryParse(widget.movieId) ?? -1;
 
   static const _starlightSynopsis = [
     '바쁜 현대 사회 속에서 서로의 존재를 잊고 살아가던 두 남녀가 우연한 계기로 작은 천문대에서 만나게 됩니다. 매일 밤 별을 관측하며 서로의 상처를 치유하고, 잊고 있던 꿈과 사랑을 다시 깨닫게 되는 따뜻한 이야기입니다.',
@@ -35,7 +37,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = findMovieById(int.tryParse(widget.movieId));
+    final tmdbMovie = widget.movie;
+    final movie = tmdbMovie == null
+        ? findMovieById(int.tryParse(widget.movieId))
+        : null;
+    final hasMovie = tmdbMovie != null || movie != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +77,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
         actions: [
           IconButton(
             tooltip: '공유',
-            onPressed: movie == null ? null : () => _copyMovieLink(movie),
+            onPressed: hasMovie ? _copyMovieLink : null,
             icon: SvgPicture.asset(
               'assets/icons/share.svg',
               width: 24,
@@ -84,14 +90,18 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: movie == null
+      body: !hasMovie
           ? const Center(child: Text('영화를 찾을 수 없습니다.'))
-          : _DetailBody(movie: movie, synopsis: _starlightSynopsis),
-      bottomNavigationBar: movie == null ? null : _buildActionBar(movie),
+          : _DetailBody(
+              movie: movie,
+              tmdbMovie: tmdbMovie,
+              synopsis: _starlightSynopsis,
+            ),
+      bottomNavigationBar: hasMovie ? _buildActionBar() : null,
     );
   }
 
-  Widget _buildActionBar(Movie movie) {
+  Widget _buildActionBar() {
     return SafeArea(
       top: false,
       child: Container(
@@ -160,8 +170,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       );
   }
 
-  void _copyMovieLink(Movie movie) {
-    unawaited(Clipboard.setData(ClipboardData(text: '/movies/${movie.id}')));
+  void _copyMovieLink() {
+    unawaited(
+      Clipboard.setData(ClipboardData(text: '/movies/$_currentMovieId')),
+    );
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('영화 링크를 복사했습니다.')));
   }
@@ -170,22 +182,17 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     final rating = await showDialog<double>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => MovieRatingDialog(
-        initialRating: _myRating ?? 3.5,
-        hasExistingRating: _myRating != null,
-      ),
+      builder: (context) => MovieRatingDialog(movieId: _currentMovieId),
     );
 
     if (rating == null || !mounted) return;
     if (rating == 0) {
-      MovieRatingStore.clear(_currentMovieId);
       setState(() {});
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('평점을 초기화했습니다.')));
       return;
     }
 
-    MovieRatingStore.save(_currentMovieId, rating);
     setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('평점 ${rating.toStringAsFixed(1)}점을 저장했습니다.')),
@@ -194,21 +201,31 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 }
 
 class _DetailBody extends StatelessWidget {
-  const _DetailBody({required this.movie, required this.synopsis});
+  const _DetailBody({this.movie, this.tmdbMovie, required this.synopsis});
 
-  final Movie movie;
+  final Movie? movie;
+  final TmdbMovieDto? tmdbMovie;
   final List<String> synopsis;
 
   @override
   Widget build(BuildContext context) {
-    final isStarlight = movie.id == 10 || movie.id == 6;
+    final isStarlight =
+        tmdbMovie == null && (movie?.id == 10 || movie?.id == 6);
     final backdrop = isStarlight
         ? 'assets/images/posters/hero_under_the_starlight.jpg'
-        : movie.posterAsset;
-    final metadata = isStarlight
+        : movie?.posterAsset;
+    final metadata = tmdbMovie != null
+        ? (tmdbMovie!.releaseDate ?? '')
+        : isStarlight
         ? '2024 · 로맨스/드라마 · 124분'
-        : '${movie.year} · ${movie.genre}';
-    final rating = isStarlight ? 4.5 : movie.rating;
+        : '${movie!.year} · ${movie!.genre}';
+    final rating =
+        tmdbMovie?.voteAverage ?? (isStarlight ? 4.5 : movie?.rating);
+    final tags = tmdbMovie != null
+        ? <String>[]
+        : isStarlight
+        ? ['로맨스', '드라마', '감동적인']
+        : [movie!.genre];
 
     return SingleChildScrollView(
       child: Center(
@@ -217,13 +234,23 @@ class _DetailBody extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset(backdrop, height: 584, fit: BoxFit.cover),
+              if (tmdbMovie != null)
+                TmdbPosterImage(
+                  posterPath: tmdbMovie!.posterPath,
+                  width: double.infinity,
+                  height: 584,
+                )
+              else
+                Image.asset(backdrop!, height: 584, fit: BoxFit.cover),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(movie.title, style: AppTextStyles.headlineMediumBold),
+                    Text(
+                      tmdbMovie?.title ?? movie!.title,
+                      style: AppTextStyles.headlineMediumBold,
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       metadata,
@@ -236,7 +263,7 @@ class _DetailBody extends StatelessWidget {
                       Row(
                         children: [
                           RatingBarIndicator(
-                            rating: rating,
+                            rating: tmdbMovie != null ? rating / 2 : rating,
                             itemCount: 5,
                             itemSize: 20,
                             unratedColor: AppColors.neutral400,
@@ -261,26 +288,26 @@ class _DetailBody extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children:
-                          (isStarlight ? ['로맨스', '드라마', '감동적인'] : [movie.genre])
-                              .map(
-                                (tag) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surfaceContainer,
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: AppTextStyles.labelSmallMedium
-                                        .copyWith(color: AppColors.onSurface),
-                                  ),
+                      children: tags
+                          .map(
+                            (tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceContainer,
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Text(
+                                tag,
+                                style: AppTextStyles.labelSmallMedium.copyWith(
+                                  color: AppColors.onSurface,
                                 ),
-                              )
-                              .toList(),
+                              ),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                 ),
@@ -293,7 +320,16 @@ class _DetailBody extends StatelessWidget {
                   children: [
                     const Text('시놉시스', style: AppTextStyles.headlineMediumBold),
                     const SizedBox(height: 8),
-                    if (isStarlight)
+                    if (tmdbMovie != null)
+                      Text(
+                        tmdbMovie!.overview.isEmpty
+                            ? '영화 소개가 준비 중입니다.'
+                            : tmdbMovie!.overview,
+                        style: AppTextStyles.bodyMediumRegular.copyWith(
+                          height: 1.6,
+                        ),
+                      )
+                    else if (isStarlight)
                       for (final paragraph in synopsis) ...[
                         Text(
                           paragraph,

@@ -38,6 +38,9 @@ dependencies:
   go_router: ^18.0.1
   flutter_rating_bar: ^4.0.1
   shared_preferences: ^2.5.6
+  dio: ^5.11.1
+  provider: ^6.1.5+1
+  flutter_dotenv: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +60,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
+    - .env
     - assets/images/profile/
     - assets/images/posters/
     - assets/icons/
@@ -66,6 +70,9 @@ flutter:
     - family: Manrope
       fonts:
         - asset: assets/fonts/Manrope-VariableFont_wght.ttf
+
+  config:
+    enable-lldb-debugging: false
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

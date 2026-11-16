@@ -18,6 +18,7 @@ class MovieLogTextFormField extends StatelessWidget {
     this.hasError = false,
     this.isValid = false,
     this.errorMessage,
+    this.helperMessage,
   });
 
   final String label;
@@ -34,6 +35,9 @@ class MovieLogTextFormField extends StatelessWidget {
   final bool hasError;
   final bool isValid;
   final String? errorMessage;
+
+  /// 오류가 없을 때 입력창 아래에 보여줄 안내 문구 (예: 사용 가능한 닉네임이에요.)
+  final String? helperMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +132,16 @@ class MovieLogTextFormField extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Color(0xFFD32F2F),
+            ),
+          ),
+        ] else if (helperMessage != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            helperMessage!,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.violet,
             ),
           ),
         ],
