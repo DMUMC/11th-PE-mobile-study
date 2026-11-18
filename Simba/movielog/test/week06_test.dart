@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
@@ -13,7 +13,7 @@ import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 
 /// 응답을 테스트에서 직접 완료시킬 수 있는 가짜 Service
-class FakeMemberCheckService implements MemberCheckService {
+class FakeMemberCheckService implements SignUpService {
   final calls = <String>[];
   final pending = <Completer<bool>>[];
 
@@ -197,7 +197,12 @@ void main() {
       final tmdb = FakeTmdbMovieService();
       final vm = MyRatingsViewModel(
         FakeRatingApiService(
-          () async => [rating(1, 550), rating(2, 550), rating(3, 404), rating(4, 500)],
+          () async => [
+            rating(1, 550),
+            rating(2, 550),
+            rating(3, 404),
+            rating(4, 500),
+          ],
         ),
         tmdb,
         1,
@@ -218,7 +223,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MovieLogButton(label: '중복 확인', isLoading: true, onPressed: () {}),
+            body: MovieLogButton(
+              label: '중복 확인',
+              isLoading: true,
+              onPressed: () {},
+            ),
           ),
         ),
       );
@@ -237,7 +246,11 @@ void main() {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MovieLogButton(key: const Key('null'), label: '확인', onPressed: () {}),
+                  MovieLogButton(
+                    key: const Key('null'),
+                    label: '확인',
+                    onPressed: () {},
+                  ),
                   MovieLogButton(
                     key: const Key('inf'),
                     label: '확인',
