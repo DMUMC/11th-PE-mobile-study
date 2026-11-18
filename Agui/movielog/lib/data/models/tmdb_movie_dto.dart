@@ -2,13 +2,13 @@ class TmdbMovieDto {
   const TmdbMovieDto({
     required this.id,
     required this.title,
-    required this.overview,
+    this.overview = '',
     required this.posterPath,
-    required this.backdropPath,
-    required this.releaseDate,
-    required this.genreIds,
-    required this.voteAverage,
-    required this.popularity,
+    this.backdropPath,
+    this.releaseDate,
+    this.genreIds = const [],
+    this.voteAverage = 0,
+    this.popularity = 0,
   });
 
   final int id;
@@ -21,12 +21,26 @@ class TmdbMovieDto {
   final double voteAverage;
   final double popularity;
 
+  String? get posterUrl => posterPath != null && posterPath!.startsWith('/')
+      ? 'https://image.tmdb.org/t/p/w342$posterPath'
+      : null;
+
   factory TmdbMovieDto.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    final title = json['title'];
+    final posterPath = json['poster_path'];
+    if (id is! num ||
+        title is! String ||
+        (posterPath != null && posterPath is! String)) {
+      throw const FormatException('Invalid movie response');
+    }
     return TmdbMovieDto(
-      id: (json['id'] as num).toInt(),
-      title: json['title'] as String? ?? '제목 없음',
+      id: id.toInt(),
+      title: title.trim().isEmpty ? '영화 #${id.toInt()}' : title,
       overview: json['overview'] as String? ?? '',
-      posterPath: json['poster_path'] as String?,
+      posterPath: posterPath is String && posterPath.startsWith('/')
+          ? posterPath
+          : null,
       backdropPath: json['backdrop_path'] as String?,
       releaseDate: json['release_date'] as String?,
       genreIds: (json['genre_ids'] as List<dynamic>? ?? const [])

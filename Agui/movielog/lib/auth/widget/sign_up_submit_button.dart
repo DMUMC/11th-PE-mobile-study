@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_theme.dart';
+import '../../widgets/movielog_button.dart';
 
 class SignUpSubmitButton extends StatelessWidget {
   const SignUpSubmitButton({super.key, this.onPressed});
@@ -8,24 +8,9 @@ class SignUpSubmitButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: AppComponentHeight.button,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          disabledBackgroundColor: Theme.of(context)
-              .colorScheme
-              .primaryContainer,
-          disabledForegroundColor: Theme.of(context).colorScheme.onPrimary,
-          elevation: 0,
-          shape: const RoundedRectangleBorder(
-            borderRadius: AppRadius.borderRadius,
-          ),
-        ),
-        child: const Text('가입하기'),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => MovieLogButton(
+    label: '가입하기',
+    width: double.infinity,
+    onPressed: onPressed,
+  );
 }

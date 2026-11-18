@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../core/validation/sign_up_validators.dart';
 import '../theme/app_theme.dart';
+import '../view_models/sign_up_view_model.dart';
 import 'widget/sign_up_app_bar.dart';
 import 'widget/sign_up_footer.dart';
 import 'widget/sign_up_form.dart';
@@ -12,31 +15,41 @@ import 'widget/terms_checkbox.dart';
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
+  static const initialNickname = '영화광';
+  static const initialEmail = 'movie@umc.com';
+
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final formKey = GlobalKey<FormState>();
-  final nicknameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final nicknameController = TextEditingController(
+    text: SignUpScreen.initialNickname,
+  );
+  final emailController = TextEditingController(
+    text: SignUpScreen.initialEmail,
+  );
+  final passwordController = TextEditingController(text: '12345678');
 
   final nicknameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
 
-  bool agreedToTerms = false;
+  bool agreedToTerms = true;
   String? nicknameErrorText;
   String? emailErrorText;
   String? passwordErrorText;
-  bool isNicknameValid = false;
-  bool isEmailValid = false;
-  bool isPasswordValid = false;
-  bool isPasswordObscured = true;
+  bool isNicknameValid = true;
+  bool isEmailValid = true;
+  bool isPasswordValid = true;
 
-  bool get canSubmit =>
-      isNicknameValid && isEmailValid && isPasswordValid && agreedToTerms;
+  bool canSubmit(SignUpViewModel viewModel) =>
+      isNicknameValid &&
+      isEmailValid &&
+      isPasswordValid &&
+      agreedToTerms &&
+      viewModel.checksPassed;
 
   @override
   void dispose() {
@@ -51,6 +64,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<SignUpViewModel>();
     final isTablet = MediaQuery.sizeOf(context).width >= 700;
 
     return PopScope(
@@ -63,19 +77,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
               final isWideScreen = constraints.maxWidth >= 700;
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.x2,
-                  AppSpacing.x3,
-                  AppSpacing.x2,
-                  AppSpacing.x3,
-                ),
+                padding: const EdgeInsets.fromLTRB(18, 48, 18, 40),
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Center(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxWidth: isWideScreen ? 560 : double.infinity,
-                      minHeight: constraints.maxHeight - (AppSpacing.x3 * 2),
+                      minHeight: (constraints.maxHeight - 88).clamp(
+                        0,
+                        double.infinity,
+                      ),
                     ),
                     child: Form(
                       key: formKey,
@@ -109,18 +121,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 nicknameFocusNode: nicknameFocusNode,
                                 emailFocusNode: emailFocusNode,
                                 passwordFocusNode: passwordFocusNode,
-                                nicknameErrorText: nicknameErrorText,
-                                emailErrorText: emailErrorText,
+                                nicknameErrorText:
+                                    nicknameErrorText ??
+                                    viewModel.nicknameErrorText,
+                                emailErrorText:
+                                    emailErrorText ?? viewModel.emailErrorText,
                                 passwordErrorText: passwordErrorText,
-                                isNicknameValid: isNicknameValid,
-                                isEmailValid: isEmailValid,
-                                isPasswordValid: isPasswordValid,
-                                isPasswordObscured: isPasswordObscured,
-                                onTogglePasswordVisibility: () {
-                                  setState(() {
-                                    isPasswordObscured = !isPasswordObscured;
-                                  });
-                                },
+                                nicknameCheckStatus:
+                                    viewModel.nicknameCheckStatus,
+                                emailCheckStatus: viewModel.emailCheckStatus,
+                                onCheckNickname: viewModel.canCheckNickname
+                                    ? () => viewModel.checkNickname(
+                                        nicknameController.text,
+                                      )
+                                    : null,
+                                onCheckEmail: viewModel.canCheckEmail
+                                    ? () => viewModel.checkEmail(
+                                        emailController.text,
+                                      )
+                                    : null,
                                 onNicknameChanged: (value) {
                                   setState(() {
                                     final errorText = value.trim().isEmpty
@@ -131,6 +150,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         value.trim().isNotEmpty &&
                                         errorText == null;
                                   });
+                                  viewModel.onNicknameChanged(value);
                                 },
                                 onEmailChanged: (value) {
                                   setState(() {
@@ -142,6 +162,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         value.trim().isNotEmpty &&
                                         errorText == null;
                                   });
+                                  viewModel.onEmailChanged(value);
                                 },
                                 onPasswordChanged: (value) {
                                   setState(() {
@@ -168,9 +189,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   });
                                 },
                               ),
-                              const SizedBox(height: AppSpacing.x2),
+                              const SizedBox(height: AppSpacing.x3),
                               SignUpSubmitButton(
-                                onPressed: canSubmit
+                                onPressed: canSubmit(viewModel)
                                     ? () {
                                         final isValid =
                                             formKey.currentState?.validate() ??
@@ -181,7 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       }
                                     : null,
                               ),
-                              const SizedBox(height: AppSpacing.x3),
+                              const SizedBox(height: 56),
                               const SignUpFooter(),
                             ],
                           ),

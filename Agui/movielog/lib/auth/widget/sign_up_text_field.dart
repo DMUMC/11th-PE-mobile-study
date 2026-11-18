@@ -17,7 +17,9 @@ class SignUpTextField extends StatelessWidget {
     this.onSubmitted,
     this.errorText,
     this.showSuccessIcon = false,
-    this.onToggleObscureText,
+    this.trailing,
+    this.helperText,
+    this.helperColor,
   });
 
   final TextEditingController controller;
@@ -32,160 +34,113 @@ class SignUpTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final String? errorText;
   final bool showSuccessIcon;
-  final VoidCallback? onToggleObscureText;
+  final Widget? trailing;
+  final String? helperText;
+  final Color? helperColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final hasError = errorText != null;
 
-    return AnimatedBuilder(
-      animation: focusNode,
-      builder: (context, child) {
-        return FormField<String>(
-          validator: validator,
-          autovalidateMode: AutovalidateMode.disabled,
-          builder: (field) {
-            final displayedErrorText = errorText ?? field.errorText;
-            final hasError = displayedErrorText != null;
-            final hasFocus = focusNode.hasFocus;
+    OutlineInputBorder border(Color color) => OutlineInputBorder(
+      borderRadius: AppRadius.borderRadius,
+      borderSide: BorderSide(color: color),
+    );
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  label,
-                  style: textTheme.labelSmall?.copyWith(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: textTheme.bodyMedium?.copyWith(
+            color: colors.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Semantics(
+                label: label,
+                child: TextFormField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  cursorColor: colors.primary,
+                  keyboardType: keyboardType,
+                  textInputAction: textInputAction,
+                  obscureText: obscureText,
+                  style: textTheme.bodyMedium?.copyWith(
                     color: colors.onSurface,
-                    fontWeight: FontWeight.w700,
                   ),
-                ),
-                const SizedBox(height: AppSpacing.x1),
-                Container(
-                  height: AppComponentHeight.input,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: hasError
-                        ? colors.errorContainer
-                        : colors.surfaceContainerLow,
-                    border: Border.all(
-                      color: hasError
-                          ? colors.error
-                          : hasFocus
-                          ? colors.primary
-                          : colors.surfaceContainerHighest,
-                      width: 1,
+                  validator: validator,
+                  forceErrorText: errorText,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onChanged: onChanged,
+                  onFieldSubmitted: onSubmitted,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: textTheme.bodyMedium?.copyWith(
+                      color: colors.outline,
                     ),
-                    borderRadius: AppRadius.borderRadius,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.x1,
-                          ),
-                          child: TextField(
-                            controller: controller,
-                            focusNode: focusNode,
-                            cursorColor: colors.primary,
-                            keyboardType: keyboardType,
-                            textInputAction: textInputAction,
-                            obscureText: obscureText,
-                            textAlign: TextAlign.start,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colors.onSurface,
-                            ),
-                            onChanged: (value) {
-                              field.didChange(value);
-                              onChanged?.call(value);
-                            },
-                            onSubmitted: onSubmitted,
-                            decoration: InputDecoration(
-                              hintText: hintText,
-                              hintStyle: textTheme.bodySmall?.copyWith(
-                                color: colors.outline,
-                              ),
-                              filled: false,
-                              isCollapsed: true,
-                              contentPadding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (hasError)
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: onToggleObscureText == null
-                                ? AppSpacing.x2
-                                : AppSpacing.x1,
-                          ),
-                          child: Icon(
+                    filled: true,
+                    fillColor: hasError
+                        ? colors.errorContainer
+                        : colors.surface,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    enabledBorder: border(colors.surfaceContainerHighest),
+                    focusedBorder: border(colors.primary),
+                    errorBorder: border(colors.error),
+                    focusedErrorBorder: border(colors.error),
+                    errorStyle: textTheme.labelSmall?.copyWith(
+                      color: colors.error,
+                    ),
+                    errorMaxLines: 3,
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 20,
+                    ),
+                    suffixIcon: hasError
+                        ? Icon(
                             Icons.error_outline,
-                            size: 25,
                             color: colors.error,
-                          ),
-                        )
-                      else if (showSuccessIcon)
-                        Padding(
-                          padding: EdgeInsets.only(
-                            right: onToggleObscureText == null
-                                ? AppSpacing.x2
-                                : AppSpacing.x1,
-                          ),
-                          child: Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: colors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      if (onToggleObscureText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(right: AppSpacing.x1),
-                          child: IconButton(
-                            onPressed: onToggleObscureText,
-                            tooltip: obscureText ? '비밀번호 표시' : '비밀번호 숨기기',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints.tightFor(
-                              width: 24,
-                              height: 24,
-                            ),
-                            icon: Icon(
-                              obscureText
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              size: 22,
-                              color: colors.outline,
-                            ),
-                          ),
-                        ),
-                    ],
+                            size: 20,
+                          )
+                        : showSuccessIcon
+                        ? Icon(
+                            Icons.check_circle,
+                            color: colors.primary,
+                            size: 20,
+                          )
+                        : null,
                   ),
                 ),
-                if (displayedErrorText != null) ...[
-                  const SizedBox(height: AppSpacing.x1),
-                  Text(
-                    displayedErrorText,
-                    style: textTheme.labelSmall?.copyWith(color: colors.error),
-                  ),
-                ],
-              ],
-            );
-          },
-        );
-      },
+              ),
+            ),
+            if (trailing != null) ...[
+              const SizedBox(width: AppSpacing.x1),
+              trailing!,
+            ],
+          ],
+        ),
+        if (!hasError && helperText != null) ...[
+          const SizedBox(height: AppSpacing.x1),
+          Text(
+            helperText!,
+            style: textTheme.labelSmall?.copyWith(
+              color: helperColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

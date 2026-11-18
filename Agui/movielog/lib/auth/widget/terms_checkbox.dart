@@ -16,17 +16,30 @@ class TermsCheckbox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Checkbox(
-          value: agreedToTerms,
-          onChanged: (value) => onChanged(value ?? false),
-          visualDensity: VisualDensity.compact,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        SizedBox(
+          width: 26,
+          height: 26,
+          child: Transform.scale(
+            scale: 26 / 18,
+            child: Checkbox(
+              value: agreedToTerms,
+              onChanged: (value) => onChanged(value ?? false),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
         ),
         const SizedBox(width: AppSpacing.x1),
-        Text(
-          '필수 약관에 동의합니다',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
+        Flexible(
+          child: Text(
+            '필수 약관에 동의합니다',
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     );
