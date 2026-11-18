@@ -1,0 +1,334 @@
+{
+  "info": {
+    "name": "MovieLog Week 07",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "ownerToken",
+      "value": ""
+    },
+    {
+      "key": "otherToken",
+      "value": ""
+    },
+    {
+      "key": "ratingId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Create owner",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"owner+{{runId}}@example.com\",\n  \"nickname\": \"owner{{runId}}\",\n  \"password\": \"DemoPassword123!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('runId', Date.now().toString(36));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create other member",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"other+{{runId}}@example.com\",\n  \"nickname\": \"other{{runId}}\",\n  \"password\": \"DemoPassword456!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Owner login",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/login",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"owner+{{runId}}@example.com\",\n  \"password\": \"DemoPassword123!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Response has accessToken', () => pm.expect(pm.response.json()).to.have.property('accessToken'));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('ownerToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Other member login",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/login",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"other+{{runId}}@example.com\",\n  \"password\": \"DemoPassword456!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Response has accessToken', () => pm.expect(pm.response.json()).to.have.property('accessToken'));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('otherToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Profile without token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/me",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+              "pm.test('Error code', () => pm.expect(pm.response.json().code).to.eql('UNAUTHORIZED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Owner profile",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/me",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Register rating as owner",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/ratings",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 550,\n  \"score\": 4\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('Response has id', () => pm.expect(pm.response.json()).to.have.property('id'));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('ratingId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Attempt rating update as other member",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{otherToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 2\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.test('Error code', () => pm.expect(pm.response.json().code).to.eql('RATING_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Update rating as owner",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{ownerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 5\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,451 @@
+{
+  "info": {
+    "name": "MovieLog 6주차 백엔드",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 회원 가입 · 201",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"vector-{{runId}}@example.com\",\n  \"nickname\": \"Vector{{runId}}\",\n  \"password\": \"SamplePassword123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('runId', Date.now().toString());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('ownerId', pm.response.json().id);",
+              "pm.test('비밀번호 필드 제외', () => pm.expect(Object.keys(pm.response.json()).sort()).to.eql(['email', 'id', 'nickname']));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 중복 회원 · 409",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"vector-{{runId}}@example.com\",\n  \"nickname\": \"Vector{{runId}}\",\n  \"password\": \"SamplePassword123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('DUPLICATE_MEMBER', () => pm.expect(pm.response.json().code).to.eql('DUPLICATE_MEMBER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 다른 회원 가입 · 201",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/members",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"other-{{runId}}@example.com\",\n  \"nickname\": \"Other{{runId}}\",\n  \"password\": \"SamplePassword123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('otherId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 이메일 중복 조회 · 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/check-email?email=vector-{{runId}}%40example.com",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('이메일 중복', () => pm.expect(pm.response.json().available).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 닉네임 중복 조회 · 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/check-nickname?nickname=Vector{{runId}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('닉네임 중복', () => pm.expect(pm.response.json().available).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 평점 등록 · 201",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/ratings",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{ownerId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 157336,\n  \"score\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('ratingId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 잘못된 별점 · 400",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/ratings",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{ownerId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 157336,\n  \"score\": 6\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('VALIDATION_ERROR', () => pm.expect(pm.response.json().code).to.eql('VALIDATION_ERROR'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 중복 평점 · 409",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/ratings",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{ownerId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"movieId\": 157336,\n  \"score\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('DUPLICATE_RATING', () => pm.expect(pm.response.json().code).to.eql('DUPLICATE_RATING'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 저장된 평점 1건 확인 · 200",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/members/{{ownerId}}/ratings",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('중복 저장 없음', () => pm.expect(pm.response.json().filter(r => r.movieId === 157336)).to.have.length(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 타인 평점 수정 · 403",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{otherId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.test('RATING_FORBIDDEN', () => pm.expect(pm.response.json().code).to.eql('RATING_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 타인 평점 삭제 · 403",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{otherId}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.test('RATING_FORBIDDEN', () => pm.expect(pm.response.json().code).to.eql('RATING_FORBIDDEN'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 본인 평점 수정 · 200",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{ownerId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score\": 4\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('수정된 평점', () => pm.expect(pm.response.json().score).to.eql(4));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 본인 평점 삭제 · 204",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{ownerId}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "pm.test('빈 응답 본문', () => pm.expect(pm.response.text()).to.eql(''));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 삭제된 평점 재요청 · 404",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/ratings/{{ratingId}}",
+        "header": [
+          {
+            "key": "X-Member-Id",
+            "value": "{{ownerId}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('RATING_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('RATING_NOT_FOUND'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
