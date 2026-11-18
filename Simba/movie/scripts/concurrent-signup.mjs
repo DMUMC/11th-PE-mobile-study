@@ -2,7 +2,7 @@
 //
 // 실행: 서버를 켠 뒤 (npm run start:dev)
 //   node scripts/concurrent-signup.mjs            # 회원가입 동시 요청 (기본 10개)
-//   node scripts/concurrent-signup.mjs rating 1   # 1번 회원이 같은 영화에 평점 동시 요청
+//   node scripts/concurrent-signup.mjs rating <accessToken>   # 로그인한 회원이 같은 영화에 평점 동시 요청
 //
 // 같은 요청을 동시에 보내면 여러 요청이 exists() 체크를 "아직 없음"으로 통과한 뒤 INSERT에서 충돌한다.
 // 회원가입은 체크와 INSERT 사이에 bcrypt 해시(수십 ms)가 있어서 거의 매번 재현된다.
@@ -11,14 +11,19 @@
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';
 const COUNT = Number(process.env.COUNT ?? 10);
-const [mode = 'member', memberId = '1'] = process.argv.slice(2);
+// 7주차: 평점 등록은 memberId 대신 POST /auth/login으로 받은 Access Token을 쓴다.
+const [mode = 'member', accessToken = ''] = process.argv.slice(2);
 
 const suffix = Date.now().toString(36);
 
 function buildRequest() {
   if (mode === 'rating') {
+    if (!accessToken) {
+      console.error('사용법: node scripts/concurrent-signup.mjs rating <accessToken>');
+      process.exit(1);
+    }
     return {
-      url: `${BASE_URL}/members/${memberId}/ratings`,
+      url: `${BASE_URL}/ratings`,
       body: { movieId: 900000 + Math.floor(Math.random() * 99999), score: 4 },
     };
   }
@@ -40,7 +45,10 @@ const results = await Promise.all(
   Array.from({ length: COUNT }, async () => {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      },
       body: JSON.stringify(body),
     });
     const json = await res.json();

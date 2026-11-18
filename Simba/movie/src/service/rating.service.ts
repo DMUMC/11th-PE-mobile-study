@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BusinessException } from '../common/business.exception';
+import { ApiException } from '../exception/api.exception';
 import { ErrorStatus } from '../common/error-status';
 import { CreateRatingDto, UpdateRatingDto } from '../dto/rating-request.dto';
 import { RatingResponseDto } from '../dto/rating-response.dto';
@@ -40,7 +40,7 @@ export class RatingService {
       where: { member: { memberId }, movieId: dto.movieId },
     });
     if (duplicated) {
-      throw new BusinessException(ErrorStatus.RATING_DUPLICATED);
+      throw new ApiException(ErrorStatus.RATING_DUPLICATED);
     }
 
     const rating = await this.ratingRepository.save(
@@ -81,7 +81,7 @@ export class RatingService {
   private async ensureMemberExists(memberId: number): Promise<void> {
     const exists = await this.memberRepository.exists({ where: { memberId } });
     if (!exists) {
-      throw new BusinessException(ErrorStatus.MEMBER_NOT_FOUND);
+      throw new ApiException(ErrorStatus.MEMBER_NOT_FOUND);
     }
   }
 
@@ -95,10 +95,10 @@ export class RatingService {
       relations: { member: true },
     });
     if (!rating) {
-      throw new BusinessException(ErrorStatus.RATING_NOT_FOUND);
+      throw new ApiException(ErrorStatus.RATING_NOT_FOUND);
     }
     if (Number(rating.member.memberId) !== memberId) {
-      throw new BusinessException(ErrorStatus.RATING_FORBIDDEN);
+      throw new ApiException(ErrorStatus.RATING_FORBIDDEN);
     }
     return rating;
   }

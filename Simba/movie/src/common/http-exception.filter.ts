@@ -9,7 +9,7 @@ import {
 import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 import { ApiResponse } from './api-response';
-import { BusinessException } from './business.exception';
+import { ApiException } from '../exception/api.exception';
 import { ErrorStatus, ErrorStatusValue } from './error-status';
 
 // MySQL UNIQUE 인덱스 이름 → 실패 응답. 인덱스 이름은 sql/schema.sql 기준이다.
@@ -42,9 +42,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private toFailure(exception: unknown): Failure {
-    // 1) 서비스에서 던진 비즈니스 예외
-    if (exception instanceof BusinessException) {
-      return this.from(exception.errorStatus);
+    // 1) 서비스·가드에서 던진 ApiException: 예외에 담긴 code를 그대로 응답한다.
+    if (exception instanceof ApiException) {
+      return {
+        status: exception.getStatus(),
+        body: ApiResponse.failure(exception.code, exception.message),
+      };
     }
 
     // 2) DB 제약 위반: 사전 중복 체크를 통과한 동시 요청이 UNIQUE에 걸리는 경우
