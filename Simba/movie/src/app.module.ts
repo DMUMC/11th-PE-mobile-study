@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthController } from './controller/auth.controller';
 import { MemberController } from './controller/member.controller';
 import { RatingController } from './controller/rating.controller';
 import { Member } from './entity/member.entity';
 import { Rating } from './entity/rating.entity';
+import { AuthGuard } from './guard/auth.guard';
+import { AuthService } from './service/auth.service';
 import { MemberService } from './service/member.service';
 import { RatingService } from './service/rating.service';
 
@@ -29,8 +33,28 @@ import { RatingService } from './service/rating.service';
       synchronize: false,
     }),
     TypeOrmModule.forFeature([Member, Rating]),
+    // global: true → 어느 클래스에서든 JwtService를 주입받을 수 있다.
+    // registerAsync + ConfigService: .env를 읽은 뒤에 secret/expiresIn을 정한다.
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const secret = config.getOrThrow<string>('JWT_SECRET');
+        if (secret.length < 32) {
+          throw new Error('JWT_SECRET은 32자 이상이어야 합니다.');
+        }
+        return {
+          secret,
+          signOptions: {
+            // .env 값은 항상 문자열이다. "3600"을 그대로 넘기면 jsonwebtoken이
+            // 단위 없는 문자열을 밀리초로 해석해 3.6초짜리 토큰이 된다. 숫자(초)로 바꿔 넘긴다.
+            expiresIn: Number(config.getOrThrow<string>('JWT_ACCESS_EXPIRATION')),
+          },
+        };
+      },
+    }),
   ],
-  controllers: [MemberController, RatingController],
-  providers: [MemberService, RatingService],
+  controllers: [AuthController, MemberController, RatingController],
+  providers: [AuthService, MemberService, RatingService, AuthGuard],
 })
 export class AppModule {}

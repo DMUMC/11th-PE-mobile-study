@@ -13,6 +13,9 @@ class MovieLogTextFormField extends StatelessWidget {
     required this.isValid,
     required this.showErrorState,
     this.fieldKey,
+    this.serverErrorText,
+    this.successText,
+    this.trailing,
     this.focusNode,
     this.keyboardType,
     this.obscureText = false,
@@ -22,6 +25,9 @@ class MovieLogTextFormField extends StatelessWidget {
   });
 
   final Key? fieldKey;
+  final String? serverErrorText;
+  final String? successText;
+  final Widget? trailing;
   final String label;
   final String hintText;
   final TextEditingController controller;
@@ -46,61 +52,81 @@ class MovieLogTextFormField extends StatelessWidget {
       borderSide: const BorderSide(color: AppColors.error, width: 1.5),
     );
 
+    final field = TextFormField(
+      key: fieldKey,
+      controller: controller,
+      focusNode: focusNode,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      obscureText: obscureText,
+      obscuringCharacter: '•',
+      validator: validator,
+      forceErrorText: serverErrorText,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: onChanged,
+      onFieldSubmitted: onFieldSubmitted,
+      style: const TextStyle(fontSize: 17, color: AppColors.onSurface),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(
+          color: AppColors.onSurfaceVariant,
+          fontSize: 16,
+        ),
+        filled: true,
+        fillColor: _hasError
+            ? AppColors.errorContainer
+            : AppColors.fieldSurface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 17,
+        ),
+        enabledBorder: border,
+        focusedBorder: border.copyWith(
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: errorBorder,
+        focusedErrorBorder: errorBorder,
+        errorStyle: const TextStyle(
+          color: AppColors.error,
+          fontSize: 13,
+          height: 1.3,
+        ),
+        suffixIcon: _buildSuffixIcon(),
+      ),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        TextFormField(
-          key: fieldKey,
-          controller: controller,
-          focusNode: focusNode,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          obscureText: obscureText,
-          obscuringCharacter: '•',
-          validator: validator,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          onChanged: onChanged,
-          onFieldSubmitted: onFieldSubmitted,
-          style: const TextStyle(fontSize: 17, color: AppColors.onSurface),
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: const TextStyle(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 16,
+        if (trailing case final button?)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: field),
+              const SizedBox(width: 8),
+              Padding(padding: const EdgeInsets.only(top: 8), child: button),
+            ],
+          )
+        else
+          field,
+        if (successText case final message?)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              message,
+              style: const TextStyle(color: AppColors.primary),
             ),
-            filled: true,
-            fillColor: showErrorState
-                ? AppColors.errorContainer
-                : AppColors.fieldSurface,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 17,
-            ),
-            enabledBorder: border,
-            focusedBorder: border.copyWith(
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: errorBorder,
-            focusedErrorBorder: errorBorder,
-            errorStyle: const TextStyle(
-              color: AppColors.error,
-              fontSize: 13,
-              height: 1.3,
-            ),
-            suffixIcon: _buildSuffixIcon(),
           ),
-        ),
       ],
     );
   }
 
+  bool get _hasError => showErrorState || serverErrorText != null;
+
   Widget? _buildSuffixIcon() {
-    if (showErrorState) {
+    if (_hasError) {
       return const Icon(Icons.error_outline, color: AppColors.error);
     }
     if (isValid) {

@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,9 +31,14 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String nickname;
 
+    @Builder
     public Member(String email, String password, String nickname) {
         this.email = email;
         this.password = password;
+        this.nickname = nickname;
+    }
+
+    public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
 }

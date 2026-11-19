@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
+
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/data/services/rating_api_service.dart';

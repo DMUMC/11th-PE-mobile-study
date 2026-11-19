@@ -1,8 +1,8 @@
 import 'package:movielog/view_models/learning_member_session.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:movielog/core/network/movie_log_client.dart';
 import 'package:movielog/core/network/tmdb_client.dart';
 import 'package:movielog/data/services/sign_up_service.dart';

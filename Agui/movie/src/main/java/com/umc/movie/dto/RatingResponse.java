@@ -1,7 +1,6 @@
 package com.umc.movie.dto;
 
 import com.umc.movie.entity.Rating;
-
 import java.time.LocalDateTime;
 
 public record RatingResponse(
@@ -14,12 +13,7 @@ public record RatingResponse(
 ) {
     public static RatingResponse from(Rating rating) {
         return new RatingResponse(
-                rating.getRatingId(),
-                rating.getMovieId(),
-                rating.getScore(),
-                rating.getComment(),
-                rating.getCreatedAt(),
-                rating.getUpdatedAt()
-        );
+                rating.getRatingId(), rating.getMovieId(), rating.getScore(),
+                rating.getComment(), rating.getCreatedAt(), rating.getUpdatedAt());
     }
 }

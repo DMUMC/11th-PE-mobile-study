@@ -9,6 +9,8 @@ class TmdbMovieService {
   TmdbMovieService(this._dio);
   final Dio _dio;
 
+  void close() => _dio.close(force: true);
+
   Future<TmdbMoviePageDto> fetchPopular({
     int page = 1,
     CancelToken? cancelToken,
