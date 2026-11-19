@@ -14,7 +14,7 @@ class MovieListError extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline),
           const SizedBox(height: 12),
-          Text(message ?? '영화를 불러오지 못했습니다.', textAlign: TextAlign.center),
+          Text(message ?? '영화를 불러오지 못했습니다.'),
           const SizedBox(height: 16),
           FilledButton(onPressed: onRetry, child: const Text('다시 시도')),
         ],

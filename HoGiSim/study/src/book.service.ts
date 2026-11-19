@@ -1,18 +1,49 @@
-// src/book.service.ts
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { QueryFailedError } from 'typeorm';
 import { BookRepository } from './book.repository.js';
+import { BookResponseDto } from './dto/book-response.dto.js';
+import type { CreateBookDto } from './dto/create-book.dto.js';
 
 @Injectable()
 export class BookService {
-  // 창고지기(BookRepository)를 주입받습니다.
   constructor(private readonly bookRepository: BookRepository) {}
 
-  async getAllBooks(): Promise<any> {
-    return await this.bookRepository.findAll();
+  async getAllBooks(keyword?: string): Promise<BookResponseDto[]> {
+    return (await this.bookRepository.findAll(keyword)).map(
+      BookResponseDto.from,
+    );
   }
-  // book.service.ts에 추가
-  async createBook(body: Record<string, any>): Promise<string> {
-    await this.bookRepository.create(body);
-    return '도서 등록이 완료되었습니다!';
+
+  async createBook(body: CreateBookDto): Promise<BookResponseDto> {
+    const category = await this.bookRepository.findCategory(body.categoryId);
+    if (!category) {
+      throw new NotFoundException('존재하지 않는 카테고리입니다.');
+    }
+
+    try {
+      return BookResponseDto.from(
+        await this.bookRepository.create(
+          category,
+          body.title,
+          body.description,
+        ),
+      );
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const driverError = error.driverError as { code?: string };
+        // DB UNIQUE 제약이 동시 요청의 중복 등록도 막습니다.
+        if (driverError.code === 'ER_DUP_ENTRY') {
+          throw new ConflictException('이미 등록된 도서 제목입니다.');
+        }
+        if (driverError.code === 'ER_NO_REFERENCED_ROW_2') {
+          throw new NotFoundException('존재하지 않는 카테고리입니다.');
+        }
+      }
+      throw error;
+    }
   }
 }

@@ -49,7 +49,10 @@ class _MovieDetailLoaderState extends State<MovieDetailLoader> {
           context.read<LearningMemberSession>().memberId,
           snapshot.data!,
         ),
-        child: const MovieDetailScreen(),
+        child: MovieDetailScreen(
+          movieId: widget.movieId.toString(),
+          movie: snapshot.data!,
+        ),
       );
     },
   );

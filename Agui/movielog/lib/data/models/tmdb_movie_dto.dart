@@ -2,50 +2,42 @@ class TmdbMovieDto {
   const TmdbMovieDto({
     required this.id,
     required this.title,
-    required this.posterPath,
     this.overview = '',
-    this.releaseDate = '',
-    this.voteAverage,
+    required this.posterPath,
+    this.backdropPath,
+    this.releaseDate,
     this.genreIds = const [],
+    this.voteAverage = 0,
+    this.popularity = 0,
   });
 
   final int id;
   final String title;
-  final String? posterPath;
   final String overview;
-  final String releaseDate;
-  final double? voteAverage;
+  final String? posterPath;
+  final String? backdropPath;
+  final String? releaseDate;
   final List<int> genreIds;
+  final double voteAverage;
+  final double popularity;
 
-  String? get posterUrl =>
-      posterPath == null ? null : 'https://image.tmdb.org/t/p/w342$posterPath';
+  String? get posterUrl => posterPath != null && posterPath!.startsWith('/')
+      ? 'https://image.tmdb.org/t/p/w342$posterPath'
+      : null;
 
   factory TmdbMovieDto.fromJson(Map<String, dynamic> json) {
-    final id = json['id'];
-    final title = json['title'];
-    final posterPath = json['poster_path'];
-    if (id is! num ||
-        title is! String ||
-        (posterPath != null && posterPath is! String)) {
-      throw const FormatException('Invalid movie response');
-    }
     return TmdbMovieDto(
-      id: id.toInt(),
-      title: title.trim().isEmpty ? '영화 #${id.toInt()}' : title,
-      overview: json['overview'] is String ? json['overview'] as String : '',
-      releaseDate: json['release_date'] is String
-          ? json['release_date'] as String
-          : '',
-      voteAverage: (json['vote_average'] as num?)?.toDouble(),
-      genreIds:
-          (json['genre_ids'] as List?)
-              ?.whereType<num>()
-              .map((e) => e.toInt())
-              .toList() ??
-          const [],
-      posterPath: posterPath is String && posterPath.startsWith('/')
-          ? posterPath
-          : null,
+      id: (json['id'] as num).toInt(),
+      title: json['title'] as String? ?? '제목 없음',
+      overview: json['overview'] as String? ?? '',
+      posterPath: json['poster_path'] as String?,
+      backdropPath: json['backdrop_path'] as String?,
+      releaseDate: json['release_date'] as String?,
+      genreIds: (json['genre_ids'] as List<dynamic>? ?? const [])
+          .map((value) => (value as num).toInt())
+          .toList(),
+      voteAverage: (json['vote_average'] as num? ?? 0).toDouble(),
+      popularity: (json['popularity'] as num? ?? 0).toDouble(),
     );
   }
 }

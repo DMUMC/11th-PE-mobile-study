@@ -1,0 +1,20 @@
+[
+  {
+    "level": "error",
+    "message": "[MovieLog API 연결 실패] Failed to fetch",
+    "timestamp": "2026-10-29T10:31:23.794Z",
+    "url": "http://localhost:5174/app.js"
+  },
+  {
+    "level": "error",
+    "message": "[MovieLog API 연결 실패] Failed to fetch",
+    "timestamp": "2026-10-29T10:31:23.797Z",
+    "url": "http://localhost:5174/app.js"
+  },
+  {
+    "level": "error",
+    "message": "[MovieLog API 연결 실패] Failed to fetch",
+    "timestamp": "2026-10-29T10:31:23.799Z",
+    "url": "http://localhost:5174/app.js"
+  }
+]

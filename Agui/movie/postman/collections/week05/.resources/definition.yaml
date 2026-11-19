@@ -1,0 +1,8 @@
+$kind: collection
+name: 'Week05 Movie API'
+description: '워크북 시드 데이터 기준. 실서버 조회만 수행하며 데이터를 변경하지 않습니다.'
+variables:
+  - key: base_url
+    value: 'http://localhost:8080'
+auth:
+  type: noauth

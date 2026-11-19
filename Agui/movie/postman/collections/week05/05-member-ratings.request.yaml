@@ -1,0 +1,27 @@
+$kind: http-request
+name: "회원별 평점 조회"
+method: GET
+url: '{{base_url}}/members/1/ratings'
+order: 5000
+headers:
+  - key: Origin
+    value: 'http://localhost:5173'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('CORS permits the frontend', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('http://localhost:5173'));
+      pm.test('Two workbook seed ratings', () => pm.expect(pm.response.json()).to.have.lengthOf(2));
+      pm.test('Only response DTO fields', () => {
+        pm.response.json().forEach(r => pm.expect(r).to.have.all.keys('ratingId','movieId','score','comment','createdAt','updatedAt'));
+      });
+      pm.test('Rating IDs descending', () => {
+        const ids = pm.response.json().map(r => r.ratingId);
+        pm.expect(ids).to.eql([...ids].sort((a,b) => b-a));
+      });
+      pm.test('Expected movies and valid scores', () => {
+        const ratings = pm.response.json();
+        pm.expect(ratings.map(r => r.movieId)).to.have.members([155,550]);
+        ratings.forEach(r => pm.expect(r.score).to.be.within(1,5));
+      });

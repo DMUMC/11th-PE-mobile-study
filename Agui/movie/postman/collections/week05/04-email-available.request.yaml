@@ -1,0 +1,15 @@
+$kind: http-request
+name: "이메일 사용 가능"
+method: GET
+url: '{{base_url}}/members/email/week05-unused@example.test'
+order: 4000
+headers:
+  - key: Origin
+    value: 'http://localhost:5173'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('CORS permits the frontend', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('http://localhost:5173'));
+      pm.test('Available email', () => pm.expect(pm.response.json()).to.eql({available:true}));

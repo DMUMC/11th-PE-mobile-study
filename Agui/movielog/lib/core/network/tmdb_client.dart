@@ -1,17 +1,25 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:movielog/core/config/tmdb_config.dart';
+import 'package:movielog/core/network/tmdb_debug_network_interceptor.dart';
+import 'package:movielog/core/network/tmdb_logging_interceptor.dart';
 
-// Pass the existing .env with --dart-define-from-file=.env when running.
 Dio createTmdbClient() {
-  const token = String.fromEnvironment('TMDB_ACCESS_TOKEN');
-  return Dio(
+  final dio = Dio(
     BaseOptions(
       baseUrl: 'https://api.themoviedb.org/3',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {
-        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
+        'Authorization': 'Bearer ${TmdbConfig.accessToken}',
+        'accept': 'application/json',
       },
     ),
   );
+
+  if (kDebugMode) {
+    dio.interceptors.add(TmdbLoggingInterceptor());
+    dio.interceptors.add(TmdbDebugNetworkInterceptor());
+  }
+  return dio;
 }
