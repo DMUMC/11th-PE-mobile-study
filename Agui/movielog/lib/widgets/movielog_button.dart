@@ -7,12 +7,18 @@ class MovieLogButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.width,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderRadius = 12,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +30,8 @@ class MovieLogButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.primary,
-          foregroundColor: colors.onPrimary,
+          backgroundColor: backgroundColor ?? colors.primary,
+          foregroundColor: foregroundColor ?? colors.onPrimary,
           disabledBackgroundColor: colors.outline,
           disabledForegroundColor: colors.onPrimary,
           minimumSize: const Size(0, 44),
@@ -33,7 +39,7 @@ class MovieLogButton extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
           textStyle: Theme.of(context).textTheme.labelLarge
               ?.copyWith(fontWeight: FontWeight.w700),

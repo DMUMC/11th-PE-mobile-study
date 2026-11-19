@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
@@ -182,27 +182,33 @@ void main() {
 
     await tester.tap(find.text('평점 남기기'));
     await tester.pumpAndSettle();
-    expect(find.text('영화는 어떠셨나요?'), findsOneWidget);
+    expect(find.text('평점을 남겨주세요'), findsOneWidget);
     expect(find.byType(MovieRatingInput), findsOneWidget);
+    final confirm = find.widgetWithText(ElevatedButton, '확인');
+    expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
+    await tester.enterText(find.byType(TextField), '인상적인 장면');
+    expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
+    tester.widget<MovieRatingInput>(find.byType(MovieRatingInput)).onChanged(4);
+    await tester.pumpAndSettle();
+    expect(find.text('인상적인 장면'), findsOneWidget);
     await tester.tap(find.text('확인'));
     await tester.pumpAndSettle();
     expect(find.text('평점 남기기'), findsOneWidget);
 
     await tester.tap(find.text('평점 남기기'));
     await tester.pumpAndSettle();
-    expect(find.text('다시 선택하기'), findsOneWidget);
     expect(
-      tester.widget<MovieRatingInput>(find.byType(MovieRatingInput)).enabled,
-      isFalse,
+      tester.widget<MovieRatingInput>(find.byType(MovieRatingInput)).rating,
+      4,
     );
-    await tester.tap(find.text('다시 선택하기'));
+    expect(find.text('인상적인 장면'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '취소할 변경');
+    await tester.tap(find.text('취소'));
     await tester.pumpAndSettle();
-    expect(find.text('다시 선택하기'), findsNothing);
-    expect(
-      tester.widget<MovieRatingInput>(find.byType(MovieRatingInput)).enabled,
-      isTrue,
-    );
-    await tester.tap(find.text('확인'));
+    await tester.tap(find.text('평점 남기기'));
+    await tester.pumpAndSettle();
+    expect(find.text('인상적인 장면'), findsOneWidget);
+    await tester.tap(find.text('취소'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('공유'));
@@ -240,7 +246,7 @@ void main() {
   ) async {
     AppRouter.router.go('/start');
     await tester.pumpWidget(
-      MovieLogApp(memberCheckService: _AvailableMemberCheckService()),
+      MovieLogApp(memberCheckService: _AvailableSignUpService()),
     );
     await tester.pumpAndSettle();
 
@@ -308,8 +314,8 @@ void main() {
   });
 }
 
-class _AvailableMemberCheckService extends MemberCheckService {
-  _AvailableMemberCheckService() : super(Dio());
+class _AvailableSignUpService extends SignUpService {
+  _AvailableSignUpService() : super(Dio());
 
   @override
   Future<bool> checkNickname(String nickname) async => true;

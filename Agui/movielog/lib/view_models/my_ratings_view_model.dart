@@ -19,6 +19,9 @@ class MyRatingsViewModel extends ChangeNotifier {
   final Map<int, TmdbMovieDto?> _movieCache = {};
   int _requestVersion = 0;
   bool _disposed = false;
+  bool _isUpdating = false;
+  bool isDeletingSelected = false;
+  String? refreshWarning;
 
   List<RatingWithMovie> _ratings = const [];
   MyRatingsLoadStatus _status = MyRatingsLoadStatus.idle;
@@ -63,6 +66,7 @@ class MyRatingsViewModel extends ChangeNotifier {
       }
 
       if (!_isCurrent(version)) return;
+      refreshWarning = null;
       _ratings = List.unmodifiable(entries);
       _status = entries.isEmpty
           ? MyRatingsLoadStatus.empty
@@ -78,9 +82,124 @@ class MyRatingsViewModel extends ChangeNotifier {
       if (!_isCurrent(version)) return;
       _status = MyRatingsLoadStatus.error;
       _message = '평점 정보를 읽지 못했습니다. 다시 시도해 주세요.';
+    } catch (_) {
+      if (!_isCurrent(version)) return;
+      _status = MyRatingsLoadStatus.error;
+      _message = '평점 정보를 불러오지 못했습니다. 조회를 다시 시도해 주세요.';
     }
 
     if (_isCurrent(version)) notifyListeners();
+  }
+
+  Future<void> updateRating({
+    required int ratingId,
+    required int score,
+    String? comment,
+  }) async {
+    if (_disposed || _isUpdating) {
+      throw const RatingWriteException('수정 요청을 처리 중입니다.');
+    }
+    _isUpdating = true;
+    try {
+      await _service.updateRating(
+        memberId: memberId,
+        ratingId: ratingId,
+        score: score,
+        comment: comment,
+      );
+    } on DioException catch (error) {
+      if (_disposed) return;
+      final message = writeRatingErrorMessage(error);
+      if (error.response?.statusCode == 403 ||
+          error.response?.statusCode == 404) {
+        await load();
+      }
+      throw RatingWriteException(message);
+    } on RatingWriteException {
+      rethrow;
+    } catch (_) {
+      if (_disposed) return;
+      throw const RatingWriteException('수정 결과를 확인하지 못했습니다. 목록을 다시 조회해 주세요.');
+    } finally {
+      _isUpdating = false;
+    }
+    if (_disposed) return;
+    await load();
+    if (_disposed) return;
+    if (_status == MyRatingsLoadStatus.error) {
+      refreshWarning = '수정은 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.';
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteRating(int ratingId) async {
+    if (_disposed || _isUpdating) {
+      throw const RatingWriteException('평점 요청을 처리 중입니다.');
+    }
+    _isUpdating = true;
+    try {
+      await _service.deleteRating(memberId: memberId, ratingId: ratingId);
+    } on DioException catch (error) {
+      if (_disposed) return;
+      final message = writeRatingErrorMessage(error, operation: '삭제');
+      if (error.response?.statusCode == 403 ||
+          error.response?.statusCode == 404) {
+        await load();
+      }
+      throw RatingWriteException(message);
+    } on RatingWriteException {
+      rethrow;
+    } catch (_) {
+      if (_disposed) return;
+      throw const RatingWriteException('삭제 결과를 확인하지 못했습니다. 목록을 다시 조회해 주세요.');
+    } finally {
+      _isUpdating = false;
+    }
+    if (_disposed) return;
+    await load();
+    if (_disposed) return;
+    if (_status == MyRatingsLoadStatus.error) {
+      refreshWarning = '삭제는 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.';
+      notifyListeners();
+    }
+  }
+
+  Future<Set<int>> deleteSelectedRatings(Set<int> ratingIds) async {
+    if (_disposed || _isUpdating || isDeletingSelected || ratingIds.isEmpty) {
+      return Set.of(ratingIds);
+    }
+    isDeletingSelected = true;
+    _isUpdating = true;
+    refreshWarning = null;
+    notifyListeners();
+    final failed = <int>{};
+    final deleted = <int>{};
+    try {
+      for (final id in ratingIds.toList()) {
+        if (_disposed) break;
+        try {
+          await _service.deleteRating(memberId: memberId, ratingId: id);
+          deleted.add(id);
+        } catch (_) {
+          failed.add(id);
+        }
+      }
+      if (_disposed) return failed;
+      // 재조회가 실패하더라도 삭제 성공 항목은 다시 선택하지 않습니다.
+      _ratings = List.unmodifiable(
+        _ratings.where((entry) => !deleted.contains(entry.rating.ratingId)),
+      );
+      await load();
+      if (_disposed) return failed;
+      if (_status == MyRatingsLoadStatus.error) {
+        refreshWarning = '삭제 요청이 완료됐지만 목록을 불러오지 못했습니다. 조회만 다시 시도해 주세요.';
+      }
+      return failed;
+    } finally {
+      _isUpdating = false;
+      isDeletingSelected = false;
+      if (!_disposed) notifyListeners();
+    }
   }
 
   @override

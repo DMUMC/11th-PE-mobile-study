@@ -2,6 +2,7 @@ String? validateNickname(String? value) {
   final nickname = value?.trim() ?? '';
   if (nickname.isEmpty) return '닉네임을 입력해주세요.';
   if (nickname.length < 2) return '닉네임은 2자 이상이어야 합니다.';
+  if (nickname.length > 12) return '닉네임은 12자 이하여야 합니다.';
   return null;
 }
 
@@ -17,6 +18,12 @@ String? validateEmail(String? value) {
 String? validatePassword(String? value) {
   final password = value ?? '';
   if (password.isEmpty) return '비밀번호를 입력해주세요.';
-  if (password.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+  if (password.length < 8 ||
+      !RegExp(r'[a-z]').hasMatch(password) ||
+      !RegExp(r'[A-Z]').hasMatch(password) ||
+      !RegExp(r'[0-9]').hasMatch(password) ||
+      !RegExp(r'[!@#$%^&*]').hasMatch(password)) {
+    return '비밀번호는 8자 이상이며 영문 대소문자, 숫자, 특수문자를 포함해야 합니다.';
+  }
   return null;
 }

@@ -1,8 +1,12 @@
+import '../data/models/create_member_request.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core/validation/sign_up_validators.dart';
-import '../data/services/member_check_service.dart';
+import '../data/services/sign_up_service.dart';
+
+enum SubmitStatus { idle, submitting, success, error }
 
 enum CheckStatus { idle, checking, available, duplicated, error }
 
@@ -14,8 +18,72 @@ class SignUpViewModel extends ChangeNotifier {
   }) : _currentNickname = initialNickname.trim(),
        _currentEmail = initialEmail.trim();
 
-  final MemberCheckService _service;
+  final SignUpService _service;
   bool _disposed = false;
+
+  SubmitStatus submitStatus = SubmitStatus.idle;
+  int? createdMemberId;
+  String? passwordErrorText;
+  String? snackbarMessage;
+
+  void onPasswordChanged() {
+    passwordErrorText = null;
+    notifyListeners();
+  }
+
+  Future<void> submit(CreateMemberRequest request) async {
+    if (_disposed ||
+        submitStatus == SubmitStatus.submitting ||
+        !checksPassed ||
+        request.nickname.trim() != _currentNickname ||
+        request.email.trim() != _currentEmail ||
+        validateNickname(request.nickname) != null ||
+        validateEmail(request.email) != null ||
+        validatePassword(request.password) != null) {
+      return;
+    }
+    submitStatus = SubmitStatus.submitting;
+    createdMemberId = null;
+    passwordErrorText = null;
+    snackbarMessage = null;
+    notifyListeners();
+    try {
+      final response = await _service.signUp(request);
+      if (!response.isSuccess || response.result?.memberId == null) {
+        throw StateError('Invalid sign-up result');
+      }
+      if (_disposed) return;
+      createdMemberId = response.result!.memberId;
+      submitStatus = SubmitStatus.success;
+    } on DioException catch (error) {
+      if (_disposed) return;
+      submitStatus = SubmitStatus.error;
+      final data = error.response?.data;
+      final message = data is Map && data['message'] is String
+          ? data['message'] as String
+          : '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+      if (error.response?.statusCode == 400 && message.contains('비밀번호')) {
+        passwordErrorText = message;
+      } else {
+        snackbarMessage = message;
+        if (error.response?.statusCode == 409) {
+          if (message.contains('이메일')) {
+            _emailCheckStatus = CheckStatus.idle;
+          } else if (message.contains('닉네임')) {
+            _nicknameCheckStatus = CheckStatus.idle;
+          } else {
+            _nicknameCheckStatus = CheckStatus.idle;
+            _emailCheckStatus = CheckStatus.idle;
+          }
+        }
+      }
+    } catch (_) {
+      if (_disposed) return;
+      submitStatus = SubmitStatus.error;
+      snackbarMessage = '가입 결과를 확인하지 못했습니다. 새 요청 전에 서버 상태를 확인해 주세요.';
+    }
+    if (!_disposed) notifyListeners();
+  }
 
   CheckStatus _nicknameCheckStatus = CheckStatus.idle;
   CheckStatus _emailCheckStatus = CheckStatus.idle;
@@ -35,12 +103,14 @@ class SignUpViewModel extends ChangeNotifier {
 
   bool get canCheckNickname =>
       !_disposed &&
+      submitStatus != SubmitStatus.submitting &&
       validateNickname(_currentNickname) == null &&
       _nicknameCheckStatus != CheckStatus.checking &&
       _nicknameCheckStatus != CheckStatus.duplicated;
 
   bool get canCheckEmail =>
       !_disposed &&
+      submitStatus != SubmitStatus.submitting &&
       validateEmail(_currentEmail) == null &&
       _emailCheckStatus != CheckStatus.checking &&
       _emailCheckStatus != CheckStatus.duplicated;
@@ -51,6 +121,7 @@ class SignUpViewModel extends ChangeNotifier {
 
   void onNicknameChanged(String value) {
     if (_disposed) return;
+    snackbarMessage = null;
     _currentNickname = value.trim();
     _nicknameRequestVersion++;
     final duplicated = _currentNickname == _duplicatedNickname;
@@ -63,6 +134,7 @@ class SignUpViewModel extends ChangeNotifier {
 
   void onEmailChanged(String value) {
     if (_disposed) return;
+    snackbarMessage = null;
     _currentEmail = value.trim();
     _emailRequestVersion++;
     final duplicated = _currentEmail == _duplicatedEmail;

@@ -1,16 +1,17 @@
 // Separate development entry point; not imported by the regular app.
-// flutter run -t lib/dev/required_mission_main.dart --dart-define-from-file=.env
+// flutter run -t lib/dev/required_mission_main.dart
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../auth/sign_up_screen.dart';
 import '../core/network/tmdb_client.dart';
-import '../data/services/member_check_service.dart';
+import '../data/services/sign_up_service.dart';
 import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../profile_screen/my_ratings_screen.dart';
@@ -19,14 +20,18 @@ import '../view_models/my_ratings_view_model.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/movielog_button.dart';
 
-void main() => runApp(
-  MaterialApp.router(
-    debugShowCheckedModeBanner: false,
-    title: 'Required Mission 기능 확인',
-    theme: AppTheme.light,
-    routerConfig: _router,
-  ),
-);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
+  runApp(
+    MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'Required Mission 기능 확인',
+      theme: AppTheme.light,
+      routerConfig: _router,
+    ),
+  );
+}
 
 final _router = GoRouter(
   initialLocation: '/tools',
@@ -58,7 +63,7 @@ final _router = GoRouter(
               ),
               ChangeNotifierProvider(
                 create: (context) => SignUpViewModel(
-                  MemberCheckService(context.read<Dio>()),
+                  SignUpService(context.read<Dio>()),
                   initialNickname: SignUpScreen.initialNickname,
                   initialEmail: SignUpScreen.initialEmail,
                 ),

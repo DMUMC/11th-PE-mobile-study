@@ -25,6 +25,7 @@ class SignUpForm extends StatelessWidget {
     this.nicknameErrorText,
     this.emailErrorText,
     this.passwordErrorText,
+    this.enabled = true,
   });
 
   final TextEditingController nicknameController;
@@ -43,6 +44,7 @@ class SignUpForm extends StatelessWidget {
   final String? nicknameErrorText;
   final String? emailErrorText;
   final String? passwordErrorText;
+  final bool enabled;
 
   String? _helperText(CheckStatus status, String label) => switch (status) {
     CheckStatus.idle => '$label 중복 확인을 해주세요.',
@@ -64,6 +66,7 @@ class SignUpForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SignUpTextField(
+          enabled: enabled,
           controller: nicknameController,
           label: '닉네임',
           hintText: '닉네임을 입력해주세요',
@@ -85,6 +88,7 @@ class SignUpForm extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.x1),
         SignUpTextField(
+          enabled: enabled,
           controller: emailController,
           label: '이메일',
           hintText: '이메일 주소를 입력해주세요',
@@ -107,6 +111,7 @@ class SignUpForm extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.x1),
         SignUpTextField(
+          enabled: enabled,
           controller: passwordController,
           focusNode: passwordFocusNode,
           label: '비밀번호',

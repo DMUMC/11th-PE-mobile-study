@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_theme.dart';
+import '../../theme/app_colors.dart';
 
 class MyRatingCard extends StatelessWidget {
   const MyRatingCard({
@@ -10,6 +10,8 @@ class MyRatingCard extends StatelessWidget {
     required this.comment,
     this.createdAt,
     this.posterUrl,
+    this.onEdit,
+    this.onDelete,
   });
 
   final String title;
@@ -17,24 +19,21 @@ class MyRatingCard extends StatelessWidget {
   final String? comment;
   final DateTime? createdAt;
   final String? posterUrl;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final localDate = createdAt?.toLocal();
-    final placeholder = Container(
-      color: colors.secondary.withValues(alpha: 0.3),
+    final placeholder = ColoredBox(
+      color: AppColors.secondary300.withValues(alpha: 0.7),
     );
-
     return Container(
-      constraints: const BoxConstraints(minHeight: 160),
-      padding: const EdgeInsets.all(AppSpacing.x2),
+      constraints: const BoxConstraints(minHeight: 156),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
+        color: AppColors.white,
         border: Border.all(
-          color: colors.secondary.withValues(alpha: 0.32),
-          width: 2,
+          color: AppColors.secondary300.withValues(alpha: 0.6),
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -42,7 +41,7 @@ class MyRatingCard extends StatelessWidget {
         children: [
           ExcludeSemantics(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: SizedBox(
                 width: 80,
                 height: 124,
@@ -58,7 +57,7 @@ class MyRatingCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.x2),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,41 +65,95 @@ class MyRatingCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: textTheme.bodyLarge?.copyWith(
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.x1),
+                const SizedBox(height: 8),
                 Text(
                   '별점 $score / 5',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w700,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.5,
+                    color: AppColors.primary600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (comment?.trim().isNotEmpty ?? false) ...[
-                  const SizedBox(height: AppSpacing.x1),
+                  const SizedBox(height: 8),
                   Text(
                     comment!,
-                    style: textTheme.bodyMedium?.copyWith(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
                       fontSize: 12,
                       height: 1.5,
-                      color: colors.onSurfaceVariant,
+                      color: AppColors.gray,
                     ),
-                  ),
-                ],
-                if (localDate != null) ...[
-                  const SizedBox(height: AppSpacing.x1),
-                  Text(
-                    '등록일 ${localDate.year}.${localDate.month.toString().padLeft(2, '0')}.${localDate.day.toString().padLeft(2, '0')}',
-                    style: textTheme.labelSmall,
                   ),
                 ],
               ],
             ),
           ),
+          const SizedBox(width: 12),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _RatingAction(
+                label: '수정',
+                background: AppColors.primary100,
+                foreground: AppColors.primary600,
+                onPressed: onEdit,
+              ),
+              const SizedBox(height: 8),
+              _RatingAction(
+                label: '삭제',
+                background: const Color(0xFFFFF4F2),
+                foreground: AppColors.errorBorder,
+                onPressed: onDelete,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
+}
+
+class _RatingAction extends StatelessWidget {
+  const _RatingAction({
+    required this.label,
+    required this.background,
+    required this.foreground,
+    this.onPressed,
+  });
+  final String label;
+  final Color background;
+  final Color foreground;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 62,
+    height: 36,
+    child: TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        disabledBackgroundColor: background,
+        disabledForegroundColor: foreground,
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+      child: Text(label),
+    ),
+  );
 }

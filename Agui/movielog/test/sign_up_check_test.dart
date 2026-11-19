@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:movielog/data/services/member_check_service.dart';
+import 'package:movielog/data/services/sign_up_service.dart';
 import 'package:movielog/main.dart';
 import 'package:movielog/router/app_router.dart';
 import 'package:movielog/theme/app_theme.dart';
@@ -103,7 +103,7 @@ void main() {
   );
 }
 
-class _ControlledService extends MemberCheckService {
+class _ControlledService extends SignUpService {
   _ControlledService() : super(Dio());
   final result = Completer<bool>();
   int calls = 0;

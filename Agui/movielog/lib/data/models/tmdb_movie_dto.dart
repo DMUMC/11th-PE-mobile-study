@@ -41,6 +41,7 @@ class TmdbMovieDto {
       posterPath: posterPath is String && posterPath.startsWith('/')
           ? posterPath
           : null,
+
       backdropPath: json['backdrop_path'] as String?,
       releaseDate: json['release_date'] as String?,
       genreIds: (json['genre_ids'] as List<dynamic>? ?? const [])

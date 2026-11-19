@@ -12,6 +12,7 @@ class SignUpTextField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.obscureText = false,
+    this.enabled = true,
     this.validator,
     this.onChanged,
     this.onSubmitted,
@@ -29,6 +30,7 @@ class SignUpTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool obscureText;
+  final bool enabled;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -73,6 +75,7 @@ class SignUpTextField extends StatelessWidget {
                   keyboardType: keyboardType,
                   textInputAction: textInputAction,
                   obscureText: obscureText,
+                  enabled: enabled,
                   style: textTheme.bodyMedium?.copyWith(
                     color: colors.onSurface,
                   ),

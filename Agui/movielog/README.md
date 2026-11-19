@@ -7,7 +7,7 @@ A new Flutter project.
 프로젝트의 `.env`에 `TMDB_ACCESS_TOKEN`을 설정한 뒤 실행합니다.
 
 ```sh
-flutter run --dart-define-from-file=.env
+flutter run
 ```
 
 평점 화면은 워크북 API의 학습용 회원 1을 조회하고, TMDB에서 영화 제목·포스터를 가져옵니다.
@@ -16,7 +16,7 @@ TMDB 설정이 없거나 영화 조회가 실패하면 평점은 유지하고 �
 ## Required Mission 기능 확인
 
 ```sh
-flutter run -t lib/dev/required_mission_main.dart --dart-define-from-file=.env
+flutter run -t lib/dev/required_mission_main.dart
 ```
 
 별도의 개발용 실행 화면에서 버튼 너비, 평점 빈 목록·오류 후 재시도·영화 정보 누락,

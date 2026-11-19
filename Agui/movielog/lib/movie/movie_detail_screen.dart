@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:movielog/view_models/movie_detail_view_model.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/model/movie.dart';
@@ -179,24 +181,19 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   }
 
   Future<void> _showRatingDialog() async {
-    final rating = await showDialog<double>(
+    final viewModel = context.read<MovieDetailViewModel>();
+    final saved = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black54,
-      builder: (context) => MovieRatingDialog(movieId: _currentMovieId),
+      barrierDismissible: false,
+      builder: (context) => MovieRatingDialog(
+        onSubmit: (score, comment) =>
+            viewModel.createRating(score: score, comment: comment),
+      ),
     );
-
-    if (rating == null || !mounted) return;
-    if (rating == 0) {
-      setState(() {});
+    if (saved == true && mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('평점을 초기화했습니다.')));
-      return;
+          .showSnackBar(const SnackBar(content: Text('평점을 저장했습니다.')));
     }
-
-    setState(() {});
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('평점 ${rating.toStringAsFixed(1)}점을 저장했습니다.')),
-    );
   }
 }
 
