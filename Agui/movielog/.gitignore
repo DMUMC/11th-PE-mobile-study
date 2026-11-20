@@ -48,7 +48,6 @@ app.*.map.json
 .widget_preview/
 
 workbook.md
-flutter_layout_notes.md
 
 # TMDB 환경변수
 .env

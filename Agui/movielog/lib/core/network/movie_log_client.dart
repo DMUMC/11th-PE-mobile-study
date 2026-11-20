@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 
+import '../storage/token_storage.dart';
+import 'auth_interceptor.dart';
+
 Dio createMovieLogClient() => Dio(
   BaseOptions(
     baseUrl: const String.fromEnvironment(
@@ -10,3 +13,9 @@ Dio createMovieLogClient() => Dio(
     receiveTimeout: const Duration(seconds: 10),
   ),
 );
+
+Dio createAuthMovieLogClient(TokenStorage storage) {
+  final dio = createMovieLogClient();
+  dio.interceptors.add(AuthInterceptor(storage));
+  return dio;
+}

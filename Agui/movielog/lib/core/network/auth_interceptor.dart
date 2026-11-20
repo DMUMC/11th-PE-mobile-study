@@ -1,0 +1,39 @@
+import 'package:dio/dio.dart';
+
+import '../storage/token_storage.dart';
+
+class AuthInterceptor extends Interceptor {
+  AuthInterceptor(this._storage);
+  final TokenStorage _storage;
+
+  @override
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final path = options.uri.path;
+    if (options.uri.host != 'workbook.devnoco.com' ||
+        !(path == '/v7/members/me' ||
+            path == '/v7/ratings' ||
+            path.startsWith('/v7/ratings/'))) {
+      handler.next(options);
+      return;
+    }
+    options.headers.remove('Authorization');
+    try {
+      final token = await _storage.readAccessToken();
+      if (token != null && token.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
+      handler.next(options);
+    } catch (_) {
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          type: DioExceptionType.unknown,
+          error: StateError('인증 저장소를 읽지 못했습니다.'),
+        ),
+      );
+    }
+  }
+}

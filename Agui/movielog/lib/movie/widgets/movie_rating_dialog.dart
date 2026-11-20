@@ -153,6 +153,8 @@ class _MovieRatingDialogState extends State<MovieRatingDialog> {
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
+      ScaffoldMessenger.maybeOf(context)
+          ?.showSnackBar(SnackBar(content: Text(error.toString())));
       setState(() {
         _isSubmitting = false;
         _errorText = error.toString();

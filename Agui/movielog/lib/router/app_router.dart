@@ -1,4 +1,9 @@
-import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:movielog/auth/login_screen.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:movielog/view_models/edit_profile_view_model.dart';
+import 'package:movielog/data/services/member_api_service.dart';
+import 'package:movielog/profile_screen/edit_profile_screen.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +28,8 @@ import 'package:movielog/view_models/movie_list_view_model.dart';
 class AppRouter {
   AppRouter._();
 
+  static late GoRouter router;
+
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
   static final _homeNavigatorKey = GlobalKey<NavigatorState>(
     debugLabel: 'home',
@@ -37,11 +44,25 @@ class AppRouter {
   // Change this path to open a different screen when the app starts.
   static const initialLocation = '/start';
 
-  static final router = GoRouter(
+  static GoRouter createRouter(AuthViewModel auth) => GoRouter(
+    refreshListenable: auth,
+    redirect: (context, state) {
+      final path = state.uri.path;
+      final atStart = path == '/start';
+      final atPublic = path == '/login' || path == '/register';
+      return switch (auth.status) {
+        AuthStatus.initializing ||
+        AuthStatus.retryRequired => atStart ? null : '/start',
+        AuthStatus.signedOut ||
+        AuthStatus.authenticating => atPublic ? null : '/login',
+        AuthStatus.signedIn => (atStart || atPublic) ? '/home' : null,
+      };
+    },
     navigatorKey: _rootNavigatorKey,
     initialLocation: initialLocation,
     routes: [
       GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => ChangeNotifierProvider(
@@ -119,21 +140,34 @@ class AppRouter {
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
                   GoRoute(
+                    path: 'profile/edit',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final auth = context.watch<AuthViewModel>();
+                      if (auth.member == null) {
+                        return Scaffold(
+                          appBar: AppBar(centerTitle: true, title: const Text('프로필 수정')),
+                          body: Center(
+                            child: auth.memberStatus == MemberLoadStatus.error
+                                ? MovieLogButton(label: '다시 시도', onPressed: () => auth.loadMember(force: true))
+                                : const CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return ChangeNotifierProvider<EditProfileViewModel>(
+                        create: (context) => EditProfileViewModel(context.read<MemberApiService>(), auth),
+                        child: const EditProfileScreen(),
+                      );
+                    },
+                  ),
+                  GoRoute(
                     path: 'ratings',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
-                      final id = context.read<LearningMemberSession>().memberId;
-                      if (id == null) {
-                        return Scaffold(
-                          appBar: AppBar(title: const Text('내가 등록한 평점')),
-                          body: const Center(child: Text('학습용 회원가입이 필요합니다.')),
-                        );
-                      }
                       return ChangeNotifierProvider(
                         create: (context) => MyRatingsViewModel(
                           context.read<RatingApiService>(),
-                          context.read<TmdbMovieService>(),
-                          id,
+                          context.read<AuthViewModel>(),
                         )..load(),
                         child: const MyRatingsScreen(),
                       );
