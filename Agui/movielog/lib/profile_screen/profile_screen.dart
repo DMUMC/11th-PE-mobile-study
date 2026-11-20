@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:movielog/profile_screen/mock_profile_data.dart';
 import 'package:movielog/profile_screen/profile_body/favorite_genrs.dart';
 import 'package:movielog/profile_screen/profile_body/my_ratings_entry.dart';
@@ -6,6 +7,7 @@ import 'package:movielog/profile_screen/profile_body/profile_header.dart';
 import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
 
 import '../theme/app_theme.dart';
+import '../view_models/auth_view_model.dart';
 import 'app_bar/app_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -15,7 +17,19 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: const MovieLogAppBar(title: '내 프로필'),
+      appBar: MovieLogAppBar(
+        title: '내 프로필',
+        actions: [
+          TextButton(
+            onPressed: context.select<AuthViewModel, bool>(
+              (auth) => auth.storageCleanupInProgress,
+            )
+                ? null
+                : () => context.read<AuthViewModel>().logout(),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
       body: SafeArea(
         minimum: EdgeInsets.symmetric(),
         child: SingleChildScrollView(

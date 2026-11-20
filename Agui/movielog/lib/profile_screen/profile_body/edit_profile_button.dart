@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../theme/app_theme.dart';
+import '../../view_models/auth_view_model.dart';
 
 class EditProfileButton extends StatelessWidget {
   const EditProfileButton({super.key});
@@ -13,8 +16,9 @@ class EditProfileButton extends StatelessWidget {
     return Padding(
       padding: EdgeInsetsGeometry.all(0),
       child: TextButton(
-        // 프로필 수정 화면은 아직 연결하지 않습니다.
-        onPressed: () {},
+        onPressed: context.select<AuthViewModel, bool>((auth) => auth.member != null)
+            ? () => context.push('/my/profile/edit')
+            : null,
         style: TextButton.styleFrom(
           padding: EdgeInsets.only(
             top: AppSpacing.x1,

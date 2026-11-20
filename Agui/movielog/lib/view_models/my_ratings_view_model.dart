@@ -39,6 +39,7 @@ class MyRatingsViewModel extends ChangeNotifier {
     DioException error,
     int version,
     String operation,
+    int ratingId,
   ) async {
     if (!_current(version)) throw const RatingWriteException('세션이 변경되었습니다.');
     if (const {
@@ -48,6 +49,9 @@ class MyRatingsViewModel extends ChangeNotifier {
     }.contains(apiErrorCode(error))) {
       await _auth.expireSession();
       throw const RatingWriteException('로그인이 만료됐어요. 다시 로그인해 주세요.');
+    }
+    if (apiErrorCode(error) == 'RATING404_1') {
+      _auth.removeSessionRating(ratingId);
     }
     throw RatingWriteException(
       writeRatingErrorMessage(error, operation: operation),
@@ -73,7 +77,7 @@ class MyRatingsViewModel extends ChangeNotifier {
       if (!_current(version)) throw const RatingWriteException('세션이 변경되었습니다.');
       _auth.saveSessionRating(result);
     } on DioException catch (error) {
-      await _handleError(error, version, '수정');
+      await _handleError(error, version, '수정', ratingId);
     } finally {
       _isUpdating = false;
     }
@@ -90,7 +94,7 @@ class MyRatingsViewModel extends ChangeNotifier {
       if (!_current(version)) throw const RatingWriteException('세션이 변경되었습니다.');
       _auth.removeSessionRating(ratingId);
     } on DioException catch (error) {
-      await _handleError(error, version, '삭제');
+      await _handleError(error, version, '삭제', ratingId);
     } finally {
       _isUpdating = false;
     }

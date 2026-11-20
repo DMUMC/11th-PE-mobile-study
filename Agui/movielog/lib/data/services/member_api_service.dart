@@ -9,4 +9,12 @@ class MemberApiService {
     final response = await _dio.get('/v7/members/me');
     return parseMemberInfo(response.data);
   }
+
+  Future<MemberInfo> updateNickname(String nickname) async {
+    final response = await _dio.patch(
+      '/v7/members/me',
+      data: {'nickname': nickname},
+    );
+    return parseMemberInfo(response.data);
+  }
 }

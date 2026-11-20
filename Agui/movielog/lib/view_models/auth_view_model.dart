@@ -69,6 +69,13 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  void updateMember(MemberInfo updated) {
+    if (_disposed || status != AuthStatus.signedIn) return;
+    member = updated;
+    memberStatus = MemberLoadStatus.success;
+    _notify();
+  }
+
   Future<void> login(String email, String password) async {
     if (_disposed ||
         storageCleanupInProgress ||

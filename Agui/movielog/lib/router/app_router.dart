@@ -1,5 +1,9 @@
 import 'package:movielog/auth/login_screen.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:movielog/view_models/edit_profile_view_model.dart';
+import 'package:movielog/data/services/member_api_service.dart';
+import 'package:movielog/profile_screen/edit_profile_screen.dart';
+import 'package:movielog/widgets/movielog_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -135,6 +139,27 @@ class AppRouter {
                 path: '/my',
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'profile/edit',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final auth = context.watch<AuthViewModel>();
+                      if (auth.member == null) {
+                        return Scaffold(
+                          appBar: AppBar(centerTitle: true, title: const Text('프로필 수정')),
+                          body: Center(
+                            child: auth.memberStatus == MemberLoadStatus.error
+                                ? MovieLogButton(label: '다시 시도', onPressed: () => auth.loadMember(force: true))
+                                : const CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return ChangeNotifierProvider<EditProfileViewModel>(
+                        create: (context) => EditProfileViewModel(context.read<MemberApiService>(), auth),
+                        child: const EditProfileScreen(),
+                      );
+                    },
+                  ),
                   GoRoute(
                     path: 'ratings',
                     parentNavigatorKey: _rootNavigatorKey,

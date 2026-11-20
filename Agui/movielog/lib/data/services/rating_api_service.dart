@@ -43,7 +43,12 @@ class RatingApiService {
 
   Future<void> deleteRating(int ratingId) async {
     final response = await _authDio.delete<dynamic>('/v7/ratings/$ratingId');
-    if (response.statusCode != 200) {
+    final data = response.data;
+    if (response.statusCode != 200 || data is! Map<String, dynamic>) {
+      throw const RatingWriteException('삭제 결과를 확인하지 못했습니다.');
+    }
+    final common = CommonResponse<Object?>.fromJson(data, (value) => value);
+    if (!common.isSuccess || common.result != null) {
       throw const RatingWriteException('삭제 결과를 확인하지 못했습니다.');
     }
   }
