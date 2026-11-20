@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../view_models/auth_view_model.dart';
 import '../widgets/movielog_button.dart';
@@ -16,6 +17,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _preferences = SharedPreferencesAsync();
+  static const _savedEmailKey = 'movielog.saved_email';
+  bool _rememberEmail = false;
+  bool _preferenceBusy = true;
   late final AuthViewModel _auth;
 
   @override
@@ -24,6 +29,71 @@ class _LoginScreenState extends State<LoginScreen> {
     _auth = context.read<AuthViewModel>();
     _auth.addListener(_showExpired);
     WidgetsBinding.instance.addPostFrameCallback((_) => _showExpired());
+    _loadSavedEmail();
+  }
+
+  Future<void> _loadSavedEmail() async {
+    try {
+      final savedEmail = await _preferences.getString(_savedEmailKey);
+      if (!mounted) return;
+      if (savedEmail != null && savedEmail.isNotEmpty) {
+        _email.text = savedEmail;
+        _rememberEmail = true;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('저장된 이메일을 불러오지 못했어요.')),
+        );
+      });
+    } finally {
+      if (mounted) setState(() => _preferenceBusy = false);
+    }
+  }
+
+  Future<void> _setRememberEmail(bool value) async {
+    if (value) {
+      setState(() => _rememberEmail = true);
+      return;
+    }
+    setState(() {
+      _rememberEmail = false;
+      _preferenceBusy = true;
+    });
+    try {
+      await _preferences.remove(_savedEmailKey);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _rememberEmail = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('저장된 이메일을 삭제하지 못했어요. 다시 시도해 주세요.')),
+      );
+    } finally {
+      if (mounted) setState(() => _preferenceBusy = false);
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final email = _email.text.trim();
+    final password = _password.text;
+    final rememberEmail = _rememberEmail;
+    final version = _auth.sessionVersion + 1;
+    final messenger = ScaffoldMessenger.of(context);
+    await _auth.login(email, password);
+    if (!rememberEmail || _auth.status != AuthStatus.signedIn ||
+        _auth.sessionVersion != version) return;
+    try {
+      await _preferences.setString(_savedEmailKey, email);
+    } catch (_) {
+      if (messenger.mounted) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('이메일을 저장하지 못했어요.')),
+        );
+      }
+    }
   }
 
   void _showExpired() {
@@ -48,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthViewModel>();
     final loading = auth.status == AuthStatus.authenticating;
-    final enabled = !loading && !auth.storageCleanupInProgress;
+    final enabled = !loading && !auth.storageCleanupInProgress && !_preferenceBusy;
     final invalidCredentials = auth.message == '이메일 또는 비밀번호를 확인해 주세요.';
     return Scaffold(
       backgroundColor: const Color(0xFFFEFCF9),
@@ -127,16 +197,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                const SizedBox(height: 100),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberEmail,
+                      onChanged: enabled
+                          ? (value) => _setRememberEmail(value ?? false)
+                          : null,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const Text('이메일 저장'),
+                  ],
+                ),
+                const SizedBox(height: 32),
                 MovieLogButton(
                   label: '로그인',
                   isLoading: loading,
                   onPressed: enabled
-                      ? () {
-                          if (_formKey.currentState!.validate()) {
-                            _auth.login(_email.text, _password.text);
-                          }
-                        }
+                      ? _submit
                       : null,
                 ),
                 const SizedBox(height: 8),

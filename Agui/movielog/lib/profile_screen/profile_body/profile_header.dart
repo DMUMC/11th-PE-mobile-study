@@ -1,6 +1,7 @@
 import 'package:provider/provider.dart';
 
 import '../../view_models/auth_view_model.dart';
+import '../../data/models/member_info.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -23,6 +24,9 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final member = context.select<AuthViewModel, MemberInfo?>(
+      (auth) => auth.member,
+    );
     final defaultProfileIcon = SvgPicture.asset(
       'assets/icons/person.svg',
       width: 72,
@@ -83,22 +87,22 @@ class ProfileHeader extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.x3),
           Text(
-            context.select<AuthViewModel, String?>(
-                  (auth) => auth.member?.nickname,
-                ) ??
-                '',
+            member?.nickname ?? '',
             style: textTheme.titleMedium,
           ),
-          const SizedBox(height: AppSpacing.x1),
-          Text(
-            '좋아하는 영화를 기록하고 있어요',
-            textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(
-              color: colors.onSurface,
-              fontSize: 15,
-              height: 1.5,
+          if (member != null) ...[
+            const SizedBox(height: AppSpacing.x1),
+            Text(
+              '${member.createdAt.year.toString().padLeft(4, '0')}.${member.createdAt.month.toString().padLeft(2, '0')}.${member.createdAt.day.toString().padLeft(2, '0')} 가입',
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
             ),
-          ),
+            Text(
+              member.email,
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+            ),
+          ],
           const SizedBox(height: AppSpacing.x2),
           const EditProfileButton(),
         ],

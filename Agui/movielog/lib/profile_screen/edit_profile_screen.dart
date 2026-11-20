@@ -16,13 +16,77 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _nickname;
+  late final String _initialNickname;
+  bool _allowPop = false;
+  bool _dialogOpen = false;
+
+  bool get _hasChanges => _nickname.text != _initialNickname;
 
   @override
   void initState() {
     super.initState();
-    _nickname = TextEditingController(
-      text: context.read<AuthViewModel>().member?.nickname ?? '',
+    _initialNickname = context.read<AuthViewModel>().member?.nickname ?? '';
+    _nickname = TextEditingController(text: _initialNickname);
+  }
+
+  Future<void> _popWithoutConfirmation() async {
+    setState(() => _allowPop = true);
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) context.pop();
+  }
+
+  Future<void> _requestBack() async {
+    if (_dialogOpen || context.read<EditProfileViewModel>().status == EditProfileStatus.saving) return;
+    if (!_hasChanges) {
+      context.pop();
+      return;
+    }
+
+    _dialogOpen = true;
+    final discard = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 30),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('변경 내용을 버릴까요?',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('저장하지 않은 내용은 사라집니다.', textAlign: TextAlign.center),
+              const SizedBox(height: 48),
+              Row(
+                children: [
+                  Expanded(
+                    child: MovieLogButton(
+                      label: '계속 수정',
+                      backgroundColor: AppColors.primary100,
+                      foregroundColor: AppColors.primary600,
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: MovieLogButton(
+                      label: '나가기',
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+    _dialogOpen = false;
+    if (mounted && discard == true) await _popWithoutConfirmation();
   }
 
   @override
@@ -34,12 +98,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _submit() async {
     final viewModel = context.read<EditProfileViewModel>();
     final messenger = ScaffoldMessenger.of(context);
-    final router = GoRouter.of(context);
     final success = await viewModel.save(_nickname.text);
     if (!mounted) return;
     if (success) {
       messenger.showSnackBar(const SnackBar(content: Text('프로필을 수정했어요.')));
-      router.pop();
+      await _popWithoutConfirmation();
     } else if (viewModel.message != null) {
       messenger.showSnackBar(SnackBar(content: Text(viewModel.message!)));
     }
@@ -56,12 +119,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     const background = Color(0xFFFEFCF9);
 
     return PopScope(
-      canPop: !saving,
+      canPop: !saving && (!_hasChanges || _allowPop),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && !saving && !_allowPop && _hasChanges) _requestBack();
+      },
       child: Scaffold(
         backgroundColor: background,
         appBar: AppBar(
           backgroundColor: background,
           centerTitle: true,
+          leading: IconButton(
+            tooltip: '뒤로 가기',
+            onPressed: saving ? null : _requestBack,
+            icon: const Icon(Icons.arrow_back),
+          ),
           title: Text(
             '프로필 수정',
             style: textTheme.titleMedium?.copyWith(
@@ -99,7 +170,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           controller: _nickname,
                           enabled: !saving,
                           maxLength: 12,
-                          onChanged: (_) => viewModel.onNicknameChanged(),
+                          onChanged: (_) {
+                            setState(() {});
+                            viewModel.onNicknameChanged();
+                          },
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.white,

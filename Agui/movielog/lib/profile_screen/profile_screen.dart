@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:movielog/profile_screen/mock_profile_data.dart';
 import 'package:movielog/profile_screen/profile_body/favorite_genrs.dart';
@@ -8,6 +9,7 @@ import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
 
 import '../theme/app_theme.dart';
 import '../view_models/auth_view_model.dart';
+import '../widgets/movielog_button.dart';
 import 'app_bar/app_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -16,11 +18,25 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final auth = context.watch<AuthViewModel>();
+    final isLoading = auth.memberStatus == MemberLoadStatus.loading ||
+        (auth.memberStatus == MemberLoadStatus.idle && auth.member == null);
+    final hasError = auth.memberStatus == MemberLoadStatus.error;
+    final showStatus = isLoading || hasError;
     return Scaffold(
+      backgroundColor: showStatus ? const Color(0xFFFEFCF9) : null,
       appBar: MovieLogAppBar(
         title: '내 프로필',
+        centerTitle: showStatus,
+        backgroundColor: showStatus ? const Color(0xFFFEFCF9) : null,
         actions: [
-          TextButton(
+          if (kDebugMode && !hasError)
+            IconButton(
+              tooltip: '디버그: 내 정보 불러오기 실패',
+              onPressed: isLoading ? null : auth.simulateMemberLoadFailure,
+              icon: const Icon(Icons.bug_report_outlined),
+            ),
+          if (!hasError) TextButton(
             onPressed: context.select<AuthViewModel, bool>(
               (auth) => auth.storageCleanupInProgress,
             )
@@ -32,7 +48,27 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: SafeArea(
         minimum: EdgeInsets.symmetric(),
-        child: SingleChildScrollView(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : hasError
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      auth.message ?? '내 정보를 불러오지 못했어요.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    MovieLogButton(
+                      label: '다시 시도',
+                      width: 216,
+                      onPressed: () => auth.loadMember(force: true),
+                    ),
+                  ],
+                ),
+              )
+            : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.x2,
             vertical: AppSpacing.x4,

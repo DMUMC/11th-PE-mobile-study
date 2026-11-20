@@ -50,6 +50,7 @@ class AuthViewModel extends ChangeNotifier {
 
   String? message;
   int _sessionVersion = 0;
+  int _memberRequestVersion = 0;
   int get sessionVersion => _sessionVersion;
   bool sessionExpired = false;
   bool storageCleanupInProgress = false;
@@ -162,15 +163,17 @@ class AuthViewModel extends ChangeNotifier {
       return;
     }
     final version = _sessionVersion;
+    final requestVersion = ++_memberRequestVersion;
     memberStatus = MemberLoadStatus.loading;
+    message = null;
     _notify();
     try {
       final result = await _memberApi.fetchMe();
-      if (!_isCurrent(version)) return;
+      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
       member = result;
       memberStatus = MemberLoadStatus.success;
     } on DioException catch (error) {
-      if (!_isCurrent(version)) return;
+      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
       if (_expired(error)) {
         await _clearCurrentSession(expired: true);
         return;
@@ -178,10 +181,26 @@ class AuthViewModel extends ChangeNotifier {
       memberStatus = MemberLoadStatus.error;
       message = '내 정보를 불러오지 못했어요.';
     } catch (_) {
-      if (!_isCurrent(version)) return;
+      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
       memberStatus = MemberLoadStatus.error;
       message = '내 정보를 불러오지 못했어요.';
     }
+    _notify();
+  }
+
+  Future<void> simulateMemberLoadFailure() async {
+    if (!kDebugMode || _disposed || status != AuthStatus.signedIn ||
+        memberStatus == MemberLoadStatus.loading) return;
+    final version = _sessionVersion;
+    final requestVersion = ++_memberRequestVersion;
+    memberStatus = MemberLoadStatus.loading;
+    message = null;
+    _notify();
+
+    await Future<void>.delayed(const Duration(seconds: 5));
+    if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
+    memberStatus = MemberLoadStatus.error;
+    message = '내 정보를 불러오지 못했어요.';
     _notify();
   }
 
