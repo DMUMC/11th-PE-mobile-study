@@ -325,7 +325,7 @@ class _AvailableSignUpService extends SignUpService {
 }
 
 class _PreviewRatingApiService extends RatingApiService {
-  _PreviewRatingApiService() : super(Dio());
+  _PreviewRatingApiService() : super(Dio(), Dio());
 
   @override
   Future<List<RatingDto>> fetchMyRatings(int memberId) async => [

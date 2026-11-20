@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:movielog/view_models/movie_detail_view_model.dart';
+import 'package:movielog/view_models/auth_view_model.dart';
 import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/mock_movies.dart';
 import 'package:movielog/movie/model/movie.dart';
@@ -223,6 +224,11 @@ class _DetailBody extends StatelessWidget {
         : isStarlight
         ? ['로맨스', '드라마', '감동적인']
         : [movie!.genre];
+    final sessionRatings =
+        context.watch<AuthViewModel?>()?.sessionRatings ?? [];
+    final currentRatings = sessionRatings.where(
+      (entry) => entry.rating.movieId == tmdbMovie?.id,
+    );
 
     return SingleChildScrollView(
       child: Center(
@@ -310,6 +316,20 @@ class _DetailBody extends StatelessWidget {
                 ),
               ),
               const Divider(height: 1, color: AppColors.surfaceContainer),
+              if (currentRatings.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Card(
+                    child: ListTile(
+                      title: Text(
+                        '내 평점 ${currentRatings.first.rating.score} / 5',
+                      ),
+                      subtitle: currentRatings.first.rating.comment == null
+                          ? null
+                          : Text(currentRatings.first.rating.comment!),
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 child: Column(
