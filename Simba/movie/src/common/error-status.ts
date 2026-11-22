@@ -87,4 +87,16 @@ export const ErrorStatus = {
     code: 'RATING409_1',
     message: '이미 이 영화에 평점을 남겼습니다.',
   },
+
+  // 즐겨찾기
+  FAVORITE_NOT_FOUND: {
+    status: HttpStatus.NOT_FOUND,
+    code: 'FAVORITE404_1',
+    message: '즐겨찾기하지 않은 영화입니다.',
+  },
+  FAVORITE_DUPLICATED: {
+    status: HttpStatus.CONFLICT,
+    code: 'FAVORITE409_1',
+    message: '이미 즐겨찾기한 영화입니다.',
+  },
 } as const satisfies Record<string, ErrorStatusValue>;

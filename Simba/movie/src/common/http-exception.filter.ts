@@ -18,6 +18,7 @@ const DUPLICATE_KEY_ERRORS: Record<string, ErrorStatusValue> = {
   email: ErrorStatus.MEMBER_EMAIL_DUPLICATED,
   nickname: ErrorStatus.MEMBER_NICKNAME_DUPLICATED,
   uk_rating_member_movie: ErrorStatus.RATING_DUPLICATED,
+  uk_favorite_member_movie: ErrorStatus.FAVORITE_DUPLICATED,
 };
 
 interface MysqlDriverError {
