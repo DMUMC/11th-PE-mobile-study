@@ -5,8 +5,9 @@ import '../data/models/tmdb_movie_dto.dart';
 import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../theme/app_colors.dart';
-import '../view_models/learning_member_session.dart';
+import '../view_models/auth_view_model.dart';
 import '../view_models/movie_detail_view_model.dart';
+import '../view_models/session_ratings_store.dart';
 import 'movie_detail_screen.dart';
 
 /// 영화 상세의 시작점. 목록에서 온 extra가 없으면(직접 접근·Deep Link)
@@ -61,7 +62,8 @@ class _MovieDetailLoaderState extends State<MovieDetailLoader> {
         return ChangeNotifierProvider<MovieDetailViewModel>(
           create: (context) => MovieDetailViewModel(
             context.read<RatingApiService>(),
-            context.read<LearningMemberSession>().memberId,
+            context.read<AuthViewModel>(),
+            context.read<SessionRatingsStore>(),
             movie,
           ),
           child: const MovieDetailScreen(),

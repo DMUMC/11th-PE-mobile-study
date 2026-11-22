@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../data/models/create_member_request.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../view_models/learning_member_session.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/movie_log_text_form_field.dart';
 import '../widgets/movielog_button.dart';
@@ -163,11 +162,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final memberId = viewModel.createdMemberId;
     final messenger = ScaffoldMessenger.of(context);
     if (viewModel.submitStatus == SubmitStatus.success && memberId != null) {
-      context.read<LearningMemberSession>().setMemberId(memberId);
+      // v7: 회원가입은 로그인이 아니다. 가입한 이메일로 로그인 화면에서 토큰을 받는다.
       messenger.showSnackBar(
-        SnackBar(content: Text('회원가입이 완료되었습니다! (학습용 memberId $memberId)')),
+        const SnackBar(content: Text('회원가입이 완료되었습니다! 로그인해 주세요.')),
       );
-      context.go('/movies');
+      context.go('/login', extra: _emailController.text.trim());
       return;
     }
     final message = viewModel.snackbarMessage;
@@ -191,7 +190,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: isSubmitting ? null : () => context.go('/start'),
+            onPressed: isSubmitting ? null : () => context.go('/login'),
           ),
           title: const Text('회원가입', style: AppTextStyles.appBarTitle),
           centerTitle: true,
@@ -485,8 +484,7 @@ class LoginFooter extends StatelessWidget {
           style: TextStyle(fontSize: 14, color: AppColors.black),
         ),
         GestureDetector(
-          // 로그인 화면은 7주차에 만든다. 지금은 가입 없이 홈으로 이동한다.
-          onTap: () => context.go('/home'),
+          onTap: () => context.go('/login'),
           child: const Text(
             '로그인',
             style: TextStyle(

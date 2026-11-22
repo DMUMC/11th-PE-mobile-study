@@ -70,37 +70,24 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return switch (viewModel.status) {
-      MyRatingsLoadStatus.idle || MyRatingsLoadStatus.loading => const Center(
-        child: CircularProgressIndicator(color: AppColors.violet),
-      ),
-      MyRatingsLoadStatus.empty => _StateMessage(
+    if (viewModel.isEmpty) {
+      return const _StateMessage(
         icon: Icons.star_outline,
-        message: '아직 등록된 평점이 없어요.',
-        memberId: viewModel.memberId,
-      ),
-      MyRatingsLoadStatus.error => _StateMessage(
-        icon: Icons.error_outline,
-        // 저장 성공 뒤 GET만 실패했으면 그 사실을 따로 알리고 조회만 다시 시도한다.
-        message:
-            viewModel.refreshWarning ?? viewModel.message ?? '평점을 불러오지 못했습니다.',
-        memberId: viewModel.memberId,
-        onRetry: viewModel.load,
-      ),
-      MyRatingsLoadStatus.success => _RatingList(viewModel: viewModel),
-    };
+        message: '이번 로그인에서 등록한 평점이 없어요.\n영화 상세에서 평점을 남겨 보세요.',
+      );
+    }
+    return _RatingList(viewModel: viewModel);
   }
 }
 
-class _SampleNotice extends StatelessWidget {
-  const _SampleNotice({required this.memberId});
-
-  final int memberId;
+/// v7에는 토큰 기반 "내 평점 목록 GET"이 없어 현재 세션에서 등록한 평점만 보여준다.
+class _SessionNotice extends StatelessWidget {
+  const _SessionNotice();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '학습용 memberId $memberId의 평점입니다. (로그인 인증 아님)',
+    return const Text(
+      '이번 로그인에서 등록한 평점만 표시돼요. 앱을 다시 시작하면 목록이 비워집니다.',
       style: AppTextStyles.labelSmall,
     );
   }
@@ -113,70 +100,61 @@ class _RatingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = viewModel.message;
     final isEditMode = viewModel.isEditMode;
 
-    return RefreshIndicator(
-      color: AppColors.violet,
-      onRefresh: viewModel.load,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-        children: [
-          // 편집 진입 / 선택 중 헤더
-          SizedBox(
-            height: 48,
-            child: Row(
-              children: [
-                if (isEditMode)
-                  Text(
-                    '${viewModel.selectedRatingIds.length}개 선택',
-                    style: AppTextStyles.sectionTitle.copyWith(
-                      color: AppColors.violet,
-                    ),
-                  )
-                else ...[
-                  const Text('평점 기록', style: AppTextStyles.sectionTitle),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${viewModel.ratings.length}',
-                    style: AppTextStyles.sectionTitle.copyWith(
-                      color: AppColors.violet,
-                    ),
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      children: [
+        // 편집 진입 / 선택 중 헤더
+        SizedBox(
+          height: 48,
+          child: Row(
+            children: [
+              if (isEditMode)
+                Text(
+                  '${viewModel.selectedRatingIds.length}개 선택',
+                  style: AppTextStyles.sectionTitle.copyWith(
+                    color: AppColors.violet,
                   ),
-                ],
-                const Spacer(),
-                TextButton(
-                  onPressed: viewModel.isDeletingSelected
-                      ? null
-                      : isEditMode
-                      ? viewModel.exitEditMode
-                      : viewModel.enterEditMode,
-                  child: Text(isEditMode ? '취소' : '편집'),
+                )
+              else ...[
+                const Text('평점 기록', style: AppTextStyles.sectionTitle),
+                const SizedBox(width: 8),
+                Text(
+                  '${viewModel.ratings.length}',
+                  style: AppTextStyles.sectionTitle.copyWith(
+                    color: AppColors.violet,
+                  ),
                 ),
               ],
-            ),
-          ),
-          _SampleNotice(memberId: viewModel.memberId),
-          if (message != null) ...[
-            const SizedBox(height: 8),
-            Text(message, style: AppTextStyles.labelSmall),
-          ],
-          const SizedBox(height: 12),
-          for (final entry in viewModel.ratings)
-            _RatingCard(
-              key: ValueKey(entry.rating.ratingId),
-              entry: entry,
-              isEditMode: isEditMode,
-              isSelected: viewModel.selectedRatingIds.contains(
-                entry.rating.ratingId,
+              const Spacer(),
+              TextButton(
+                onPressed: viewModel.isDeletingSelected
+                    ? null
+                    : isEditMode
+                    ? viewModel.exitEditMode
+                    : viewModel.enterEditMode,
+                child: Text(isEditMode ? '취소' : '편집'),
               ),
-              onToggle: () => viewModel.toggleSelection(entry.rating.ratingId),
-              onEdit: () => _onEditPressed(context, entry.rating),
-              onDelete: () => _onDeletePressed(context, entry.rating),
+            ],
+          ),
+        ),
+        const _SessionNotice(),
+        const SizedBox(height: 12),
+        for (final entry in viewModel.ratings)
+          _RatingCard(
+            key: ValueKey(entry.rating.ratingId),
+            entry: entry,
+            isEditMode: isEditMode,
+            isSelected: viewModel.selectedRatingIds.contains(
+              entry.rating.ratingId,
             ),
-        ],
-      ),
+            onToggle: () => viewModel.toggleSelection(entry.rating.ratingId),
+            onEdit: () => _onEditPressed(context, entry.rating),
+            onDelete: () => _onDeletePressed(context, entry.rating),
+          ),
+      ],
     );
   }
 }
@@ -318,17 +296,10 @@ class _RatingCard extends StatelessWidget {
 }
 
 class _StateMessage extends StatelessWidget {
-  const _StateMessage({
-    required this.icon,
-    required this.message,
-    required this.memberId,
-    this.onRetry,
-  });
+  const _StateMessage({required this.icon, required this.message});
 
   final IconData icon;
   final String message;
-  final int memberId;
-  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -345,13 +316,8 @@ class _StateMessage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.black, height: 1.5),
             ),
-            const SizedBox(height: 4),
-            _SampleNotice(memberId: memberId),
-            if (onRetry != null) ...[
-              const SizedBox(height: 16),
-              // 고정 너비 버튼: 문구 길이와 관계없이 항상 96px
-              MovieLogButton(label: '다시 시도', width: 96, onPressed: onRetry),
-            ],
+            const SizedBox(height: 8),
+            const _SessionNotice(),
           ],
         ),
       ),
@@ -377,7 +343,8 @@ Future<void> _onEditPressed(BuildContext context, RatingDto rating) async {
       ),
     ),
   );
-  // 성공하면 updateRating 안에서 목록을 다시 읽는다. 실패는 Dialog 안에서 안내한다.
+  // 성공하면 수정 result로 목록을 갱신한다. 실패는 Dialog 안에서 안내한다.
+  // (401이면 세션이 정리돼 Router가 /login으로 이동한다)
 }
 
 // ── 단일 삭제: 삭제하는 동안 Dialog를 유지한다 ──
@@ -436,7 +403,7 @@ class _DeleteRatingDialogState extends State<_DeleteRatingDialog> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _isDeleting = false);
-      // 403(본인 평점 아님)과 404(없는 평점)를 서버 문구로 구분해 보여준다.
+      // 403(본인 평점 아님)은 안내만, 404(없는 평점)는 목록에서 빠진 뒤 안내한다.
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(describeSubmitError(error))));
     }
@@ -473,7 +440,7 @@ Future<void> _onDeleteSelectedPressed(BuildContext context) async {
       content: Text(
         failed == 0
             ? '선택한 $count개 평점을 삭제했습니다.'
-            : '${count - failed}개를 삭제했고, $failed개는 삭제하지 못했습니다. 남은 선택 항목을 확인해 주세요.',
+            : '일부만 삭제했어요. $failed개는 삭제하지 못해 선택된 채로 남겨 두었습니다.',
       ),
     ),
   );

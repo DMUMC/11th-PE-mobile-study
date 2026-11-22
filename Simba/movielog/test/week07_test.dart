@@ -3,15 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/data/models/common_response.dart';
 import 'package:movielog/data/models/create_member_request.dart';
-import 'package:movielog/data/models/rating_dto.dart';
 import 'package:movielog/data/models/rating_request.dart';
 import 'package:movielog/data/models/sign_up_models.dart';
-import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/rating_api_service.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
-import 'package:movielog/data/services/tmdb_movie_service.dart';
-import 'package:movielog/view_models/movie_detail_view_model.dart';
-import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/rating_dialog.dart';
 
@@ -58,72 +53,6 @@ class FakeSignUpService implements SignUpService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
-class FakeRatingApiService implements RatingApiService {
-  List<RatingDto> serverRatings = [];
-  Object? fetchError;
-  Object? Function(int ratingId)? deleteError;
-  Object? updateError;
-  final updates = <Map<String, dynamic>>[];
-  final created = <Map<String, dynamic>>[];
-  Object? createError;
-
-  @override
-  Future<List<RatingDto>> fetchMyRatings(int memberId) async {
-    if (fetchError != null) throw fetchError!;
-    return List.of(serverRatings);
-  }
-
-  @override
-  Future<void> createRating({
-    required int memberId,
-    required CreateRatingRequest request,
-  }) async {
-    if (createError != null) throw createError!;
-    created.add({'memberId': memberId, ...request.toJson()});
-  }
-
-  @override
-  Future<void> updateRating({
-    required int memberId,
-    required int ratingId,
-    required UpdateRatingRequest request,
-  }) async {
-    if (updateError != null) throw updateError!;
-    updates.add({'ratingId': ratingId, ...request.toJson()});
-  }
-
-  @override
-  Future<void> deleteRating({
-    required int memberId,
-    required int ratingId,
-  }) async {
-    final error = deleteError?.call(ratingId);
-    if (error != null) throw error;
-    serverRatings.removeWhere((r) => r.ratingId == ratingId);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeTmdb implements TmdbMovieService {
-  @override
-  Future<TmdbMovieDto?> findMovieById(int movieId) async =>
-      TmdbMovieDto.fromJson({'id': movieId, 'title': '영화 $movieId'});
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-RatingDto rating(int id, {int movieId = 550, String? comment}) =>
-    RatingDto.fromJson({
-      'ratingId': id,
-      'movieId': movieId,
-      'score': 4,
-      'comment': comment,
-      'createdAt': '2026-11-15T10:00:00.000Z',
-    });
 
 void main() {
   group('요청·응답 Model', () {
@@ -177,12 +106,9 @@ void main() {
       expect(() => validateServerScore(6), throwsArgumentError);
     });
 
-    test('같은 COMMON404라도 서버 message를 그대로 쓰고, 403·404만 재조회한다', () {
-      final userMissing = apiError(404, 'COMMON404', '존재하지 않는 유저입니다.');
-      final conflict = apiError(409, 'COMMON409', '이미 이 영화에 평점을 남기셨습니다.');
-      expect(writeErrorMessage(userMissing), '존재하지 않는 유저입니다.');
-      expect(shouldRefreshAfterRatingError(userMissing), isTrue);
-      expect(shouldRefreshAfterRatingError(conflict), isFalse);
+    test('쓰기 실패는 서버 message를 그대로 쓴다', () {
+      final userMissing = apiError(404, 'MEMBER404_1', '해당 회원을 찾을 수 없습니다.');
+      expect(writeErrorMessage(userMissing), '해당 회원을 찾을 수 없습니다.');
       expect(writeErrorMessage(networkError()), contains('요청에 실패했습니다'));
     });
   });
@@ -257,106 +183,6 @@ void main() {
       await vm.submit(request);
       await first;
       expect(service.signUpCalls, 1);
-    });
-  });
-
-  group('MovieDetailViewModel.createRating', () {
-    final movie = TmdbMovieDto.fromJson({'id': 550, 'title': '파이트 클럽'});
-
-    test('회원가입 전이면 요청하지 않고 안내한다', () async {
-      final api = FakeRatingApiService();
-      final vm = MovieDetailViewModel(api, null, movie);
-      await vm.createRating(score: 5);
-      expect(vm.submitStatus, SubmitStatus.error);
-      expect(api.created, isEmpty);
-    });
-
-    test('TMDB id를 movieId로 보내고, 409는 서버 문구로 실패한다', () async {
-      final api = FakeRatingApiService();
-      final vm = MovieDetailViewModel(api, 9, movie);
-      await vm.createRating(score: 5, comment: '최고');
-      expect(vm.submitStatus, SubmitStatus.success);
-      expect(api.created.single, {
-        'memberId': 9,
-        'movieId': 550,
-        'score': 5,
-        'comment': '최고',
-      });
-
-      api.createError = apiError(409, 'COMMON409', '이미 이 영화에 평점을 남기셨습니다.');
-      await vm.createRating(score: 4);
-      expect(vm.submitStatus, SubmitStatus.error);
-      expect(vm.submitMessage, '이미 이 영화에 평점을 남기셨습니다.');
-    });
-  });
-
-  group('MyRatingsViewModel 수정·삭제', () {
-    late FakeRatingApiService api;
-    late MyRatingsViewModel vm;
-
-    setUp(() async {
-      api = FakeRatingApiService()
-        ..serverRatings = [rating(1), rating(2, movieId: 680), rating(3)];
-      vm = MyRatingsViewModel(api, FakeTmdb(), 9);
-      await vm.load();
-    });
-
-    test('수정은 comment를 명시적으로 보내고 성공 뒤 목록을 다시 읽는다', () async {
-      api.serverRatings = [rating(1, comment: '바뀜')];
-      await vm.updateRating(ratingId: 1, score: 2, comment: null);
-      expect(api.updates.single, {'ratingId': 1, 'score': 2, 'comment': null});
-      expect(vm.ratings.single.rating.comment, '바뀜');
-    });
-
-    test('저장 성공 뒤 GET만 실패하면 저장 실패로 던지지 않고 경고만 남긴다', () async {
-      api.fetchError = networkError();
-      await vm.updateRating(ratingId: 1, score: 2); // 예외 없음
-      expect(vm.status, MyRatingsLoadStatus.error);
-      expect(vm.refreshWarning, contains('저장은 완료됐지만'));
-
-      api.fetchError = null;
-      await vm.load(); // 조회만 다시 시도
-      expect(vm.status, MyRatingsLoadStatus.success);
-      expect(vm.refreshWarning, isNull);
-    });
-
-    test('404 쓰기 실패는 다시 던지고 목록을 재조회한다', () async {
-      api.updateError = apiError(404, 'COMMON404', '존재하지 않는 평점입니다.');
-      api.serverRatings = [rating(2, movieId: 680)];
-      await expectLater(
-        vm.updateRating(ratingId: 1, score: 3),
-        throwsA(isA<DioException>()),
-      );
-      expect(vm.ratings.map((e) => e.rating.ratingId), [2]);
-    });
-
-    test('마지막 항목을 삭제하면 Empty', () async {
-      api.serverRatings = [rating(1)];
-      await vm.load();
-      await vm.deleteRating(1);
-      expect(vm.status, MyRatingsLoadStatus.empty);
-    });
-
-    test('다중 삭제 일부 실패: 성공한 것만 사라지고 실패한 것은 선택 유지', () async {
-      api.deleteError = (id) => id == 2 ? networkError() : null;
-      vm.enterEditMode();
-      vm.toggleSelection(1);
-      vm.toggleSelection(2);
-      final failed = await vm.deleteSelectedRatings();
-      expect(failed, 1);
-      expect(vm.ratings.map((e) => e.rating.ratingId), [2, 3]);
-      expect(vm.selectedRatingIds, {2});
-      expect(vm.isEditMode, isTrue);
-      expect(vm.isDeletingSelected, isFalse);
-    });
-
-    test('다중 삭제 전부 성공하면 편집 모드를 끝낸다', () async {
-      vm.enterEditMode();
-      vm.toggleSelection(1);
-      vm.toggleSelection(3);
-      expect(await vm.deleteSelectedRatings(), 0);
-      expect(vm.ratings.map((e) => e.rating.ratingId), [2]);
-      expect(vm.isEditMode, isFalse);
     });
   });
 

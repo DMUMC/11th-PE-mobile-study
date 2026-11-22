@@ -4,11 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/data/models/rating_dto.dart';
-import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/data/services/sign_up_service.dart';
-import 'package:movielog/data/services/rating_api_service.dart';
-import 'package:movielog/data/services/tmdb_movie_service.dart';
-import 'package:movielog/view_models/my_ratings_view_model.dart';
 import 'package:movielog/view_models/sign_up_view_model.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 
@@ -44,40 +40,6 @@ DioException dioError([int? status]) {
         : DioExceptionType.badResponse,
   );
 }
-
-class FakeRatingApiService implements RatingApiService {
-  FakeRatingApiService(this.result);
-  final Future<List<RatingDto>> Function() result;
-
-  @override
-  Future<List<RatingDto>> fetchMyRatings(int memberId) => result();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeTmdbMovieService implements TmdbMovieService {
-  final calls = <int>[];
-
-  @override
-  Future<TmdbMovieDto?> findMovieById(int movieId) async {
-    calls.add(movieId);
-    if (movieId == 404) return null;
-    if (movieId == 500) throw dioError(500);
-    return TmdbMovieDto.fromJson({'id': movieId, 'title': '영화 $movieId'});
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-RatingDto rating(int id, int movieId) => RatingDto.fromJson({
-  'ratingId': id,
-  'movieId': movieId,
-  'score': 4,
-  'comment': null,
-  'createdAt': '2026-11-07T19:00:16.676Z',
-});
 
 void main() {
   group('RatingDto', () {
@@ -166,55 +128,6 @@ void main() {
       vm.onEmailChanged('a@b.com');
       expect(vm.nicknameCheckStatus, CheckStatus.duplicated);
       expect(vm.emailCheckStatus, CheckStatus.idle);
-    });
-  });
-
-  group('MyRatingsViewModel', () {
-    test('빈 배열은 Empty', () async {
-      final vm = MyRatingsViewModel(
-        FakeRatingApiService(() async => []),
-        FakeTmdbMovieService(),
-        1,
-      );
-      final future = vm.load();
-      expect(vm.status, MyRatingsLoadStatus.loading);
-      await future;
-      expect(vm.status, MyRatingsLoadStatus.empty);
-    });
-
-    test('404는 Error + 회원 없음 문구', () async {
-      final vm = MyRatingsViewModel(
-        FakeRatingApiService(() async => throw dioError(404)),
-        FakeTmdbMovieService(),
-        999999,
-      );
-      await vm.load();
-      expect(vm.status, MyRatingsLoadStatus.error);
-      expect(vm.message, '존재하지 않는 회원입니다.');
-    });
-
-    test('TMDB 실패해도 평점은 남고, 같은 movieId는 한 번만 조회한다', () async {
-      final tmdb = FakeTmdbMovieService();
-      final vm = MyRatingsViewModel(
-        FakeRatingApiService(
-          () async => [
-            rating(1, 550),
-            rating(2, 550),
-            rating(3, 404),
-            rating(4, 500),
-          ],
-        ),
-        tmdb,
-        1,
-      );
-      await vm.load();
-      expect(vm.status, MyRatingsLoadStatus.success);
-      expect(vm.ratings, hasLength(4));
-      expect(vm.ratings[0].movie?.title, '영화 550');
-      expect(vm.ratings[2].movie, isNull);
-      expect(vm.ratings[3].movie, isNull);
-      expect(vm.message, isNotNull);
-      expect(tmdb.calls, [550, 404, 500]);
     });
   });
 
