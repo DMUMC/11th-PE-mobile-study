@@ -169,11 +169,15 @@ class AuthViewModel extends ChangeNotifier {
     _notify();
     try {
       final result = await _memberApi.fetchMe();
-      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
+      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) {
+        return;
+      }
       member = result;
       memberStatus = MemberLoadStatus.success;
     } on DioException catch (error) {
-      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
+      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) {
+        return;
+      }
       if (_expired(error)) {
         await _clearCurrentSession(expired: true);
         return;
@@ -181,7 +185,9 @@ class AuthViewModel extends ChangeNotifier {
       memberStatus = MemberLoadStatus.error;
       message = '내 정보를 불러오지 못했어요.';
     } catch (_) {
-      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) return;
+      if (!_isCurrent(version) || requestVersion != _memberRequestVersion) {
+        return;
+      }
       memberStatus = MemberLoadStatus.error;
       message = '내 정보를 불러오지 못했어요.';
     }
@@ -189,8 +195,12 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> simulateMemberLoadFailure() async {
-    if (!kDebugMode || _disposed || status != AuthStatus.signedIn ||
-        memberStatus == MemberLoadStatus.loading) return;
+    if (!kDebugMode ||
+        _disposed ||
+        status != AuthStatus.signedIn ||
+        memberStatus == MemberLoadStatus.loading) {
+      return;
+    }
     final version = _sessionVersion;
     final requestVersion = ++_memberRequestVersion;
     memberStatus = MemberLoadStatus.loading;
@@ -205,6 +215,10 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> expireSession() => _clearCurrentSession(expired: true);
+  Future<void> expireSessionIfCurrent(int version) async {
+    if (_isCurrent(version)) await expireSession();
+  }
+
   Future<void> logout() => _clearCurrentSession(expired: false);
   void consumeSessionExpired() {
     sessionExpired = false;

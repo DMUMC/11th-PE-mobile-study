@@ -15,7 +15,7 @@ class SignUpService {
     CreateMemberRequest request,
   ) async {
     final response = await _dio.post<dynamic>(
-      '/v6/members',
+      '/v8/members',
       data: request.toJson(),
     );
     return CommonResponse.fromJson(
@@ -25,9 +25,9 @@ class SignUpService {
   }
 
   Future<bool> checkNickname(String nickname) =>
-      _check('/v6/members/nickname', nickname);
+      _check('/v8/members/nickname', nickname);
 
-  Future<bool> checkEmail(String email) => _check('/v6/members/email', email);
+  Future<bool> checkEmail(String email) => _check('/v8/members/email', email);
 
   Future<bool> _check(String path, String value) async {
     final encoded = Uri.encodeComponent(value.trim());
@@ -36,7 +36,7 @@ class SignUpService {
     if (data is! Map<String, dynamic>) {
       throw const FormatException('Expected an availability object');
     }
-    // v6 returns the object directly, without a result wrapper.
+    // v8 returns the object directly, without a result wrapper.
     return CheckResult.fromJson(data).available;
   }
 }

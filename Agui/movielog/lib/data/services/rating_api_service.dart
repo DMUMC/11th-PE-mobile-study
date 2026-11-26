@@ -22,7 +22,7 @@ class RatingApiService {
 
   Future<RatingDto> createRating(CreateRatingRequest request) async {
     final response = await _authDio.post<dynamic>(
-      '/v7/ratings',
+      '/v8/ratings',
       data: request.toJson(),
     );
     return _parseRating(response.data);
@@ -35,14 +35,14 @@ class RatingApiService {
   }) async {
     validateServerScore(score.toDouble());
     final response = await _authDio.patch<dynamic>(
-      '/v7/ratings/$ratingId',
+      '/v8/ratings/$ratingId',
       data: {'score': score, 'comment': comment},
     );
     return _parseRating(response.data);
   }
 
   Future<void> deleteRating(int ratingId) async {
-    final response = await _authDio.delete<dynamic>('/v7/ratings/$ratingId');
+    final response = await _authDio.delete<dynamic>('/v8/ratings/$ratingId');
     final data = response.data;
     if (response.statusCode != 200 || data is! Map<String, dynamic>) {
       throw const RatingWriteException('삭제 결과를 확인하지 못했습니다.');
@@ -55,7 +55,7 @@ class RatingApiService {
 
   Future<List<RatingDto>> fetchMyRatings(int memberId) async {
     final response = await _publicDio.get<dynamic>(
-      '/v7/members/$memberId/ratings',
+      '/v8/members/$memberId/ratings',
     );
     final data = response.data;
     if (data is! List) throw const FormatException('Expected a rating array');

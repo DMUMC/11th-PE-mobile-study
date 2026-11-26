@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,8 @@ import 'package:movielog/data/models/member_info.dart';
 import 'package:movielog/data/services/auth_api_service.dart';
 import 'package:movielog/data/services/member_api_service.dart';
 import 'package:movielog/view_models/auth_view_model.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 class MemoryStorage implements TokenStorage {
   String? token;
@@ -39,8 +42,14 @@ class FakeMemberApi extends MemberApiService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
   testWidgets('app opens login when no token is stored', (tester) async {
-    const channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+    const channel = MethodChannel(
+      'plugins.it_nomads.com/flutter_secure_storage',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async => null);
     await tester.pumpWidget(const MovieLogApp());
@@ -49,7 +58,10 @@ void main() {
     await tester.tap(find.byType(MovieLogButton));
     await tester.pumpAndSettle();
     expect(find.text('이메일을 입력해 주세요.'), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField).first, 'movie@example.com');
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'movie@example.com',
+    );
     await tester.pumpAndSettle();
     expect(find.text('이메일을 입력해 주세요.'), findsNothing);
     expect(find.text('비밀번호를 입력해 주세요.'), findsOneWidget);
@@ -57,7 +69,11 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
   });
-  final member = MemberInfo(email: 'test@example.com', nickname: 'tester', createdAt: DateTime(2026));
+  final member = MemberInfo(
+    email: 'test@example.com',
+    nickname: 'tester',
+    createdAt: DateTime(2026),
+  );
   test('restoration waits for server verification', () async {
     final storage = MemoryStorage()..token = 'test-token';
     final completer = Completer<MemberInfo>();
@@ -74,7 +90,10 @@ void main() {
   });
   test('network failure keeps stored token and offers retry', () async {
     final storage = MemoryStorage()..token = 'test-token';
-    final api = FakeMemberApi()..response = () async => throw DioException(requestOptions: RequestOptions(path: '/v7/members/me'));
+    final api = FakeMemberApi()
+      ..response = () async => throw DioException(
+        requestOptions: RequestOptions(path: '/v8/members/me'),
+      );
     final auth = AuthViewModel(FakeAuthApi(), api, storage);
     await auth.restoreSession();
     expect(auth.status, AuthStatus.retryRequired);

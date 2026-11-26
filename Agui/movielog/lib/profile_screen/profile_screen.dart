@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:movielog/profile_screen/mock_profile_data.dart';
 import 'package:movielog/profile_screen/profile_body/favorite_genrs.dart';
 import 'package:movielog/profile_screen/profile_body/my_ratings_entry.dart';
+import 'package:movielog/profile_screen/profile_body/my_favorites_entry.dart';
 import 'package:movielog/profile_screen/profile_body/profile_header.dart';
 import 'package:movielog/profile_screen/profile_body/profile_stats.dart';
 
@@ -97,6 +98,8 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.x3),
               const MyRatingsEntry(),
+              const SizedBox(height: AppSpacing.x1),
+              const MyFavoritesEntry(),
               SizedBox(height: AppSpacing.x4),
               Align(
                 alignment: Alignment.centerLeft,
