@@ -40,6 +40,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/members/nickname/**",
                         "/members/email/**",
                         "/members/*/ratings",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
                         "/error"
                 );
     }
