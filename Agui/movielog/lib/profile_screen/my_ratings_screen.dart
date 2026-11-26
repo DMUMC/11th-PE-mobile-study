@@ -103,6 +103,7 @@ class _MyRatingsScreenState extends State<MyRatingsScreen> {
                   AppSpacing.x3,
                 ),
                 children: [
+                  const Text('현재 로그인 세션에서 등록한 평점만 표시됩니다.'),
                   Row(
                     children: [
                       if (_isSelecting)
@@ -156,7 +157,8 @@ class _MyRatingsScreenState extends State<MyRatingsScreen> {
                           size: 32,
                           color: colors.primary,
                         ),
-                        message: '등록된 평점이 없습니다.',
+                        message:
+                            '현재 로그인 세션에서 등록한 평점이 없습니다.\n기존 평점은 불러올 수 없습니다.',
                         onRetry: viewModel.load,
                       ),
                     ],

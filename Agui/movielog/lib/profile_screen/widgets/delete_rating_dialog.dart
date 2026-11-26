@@ -107,6 +107,8 @@ class _DeleteRatingDialogState extends State<DeleteRatingDialog> {
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
+      ScaffoldMessenger.maybeOf(context)
+          ?.showSnackBar(SnackBar(content: Text(error.toString())));
       setState(() {
         _isDeleting = false;
         _errorText = error.toString();

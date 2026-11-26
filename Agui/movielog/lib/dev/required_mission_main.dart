@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../auth/sign_up_screen.dart';
 import '../core/network/tmdb_client.dart';
@@ -17,6 +18,11 @@ import '../data/services/tmdb_movie_service.dart';
 import '../profile_screen/my_ratings_screen.dart';
 import '../theme/app_theme.dart';
 import '../view_models/my_ratings_view_model.dart';
+import '../view_models/auth_view_model.dart';
+import '../core/storage/token_storage.dart';
+import '../data/services/auth_api_service.dart';
+import '../data/services/member_api_service.dart';
+import '../data/models/rating_with_movie.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/movielog_button.dart';
 
@@ -193,15 +199,73 @@ class _RatingsExample extends StatelessWidget {
         dispose: (_, service) => service.close(),
       ),
       ChangeNotifierProvider(
-        create: (context) => MyRatingsViewModel(
-          RatingApiService(context.read<Dio>()),
-          context.read<TmdbMovieService>(),
-          sampleMemberId,
-        )..load(),
+        create: (context) {
+          final dio = context.read<Dio>();
+          final auth = AuthViewModel(
+            AuthApiService(dio),
+            MemberApiService(dio),
+            SecureTokenStorage(const FlutterSecureStorage()),
+          )..status = AuthStatus.signedIn;
+          return _PreviewRatingsViewModel(
+            RatingApiService(dio, dio),
+            auth,
+            context.read<TmdbMovieService>(),
+          )..load();
+        },
       ),
     ],
     child: const MyRatingsScreen(),
   );
+}
+
+class _PreviewRatingsViewModel extends MyRatingsViewModel {
+  _PreviewRatingsViewModel(this.service, this._previewAuth, this.movies)
+    : super(service, _previewAuth);
+  final RatingApiService service;
+  final AuthViewModel _previewAuth;
+  final TmdbMovieService movies;
+  List<RatingWithMovie> _entries = [];
+  MyRatingsLoadStatus _previewStatus = MyRatingsLoadStatus.idle;
+  bool _previewDisposed = false;
+  @override
+  List<RatingWithMovie> get ratings => _entries;
+  @override
+  MyRatingsLoadStatus get status => _previewStatus;
+  @override
+  Future<void> load() async {
+    _previewStatus = MyRatingsLoadStatus.loading;
+    notifyListeners();
+    try {
+      final items = await service.fetchMyRatings(1);
+      if (_previewDisposed) return;
+      final entries = <RatingWithMovie>[];
+      for (final rating in items) {
+        try {
+          final movie = await movies.findMovieById(rating.movieId);
+          if (_previewDisposed) return;
+          entries.add(RatingWithMovie(rating: rating, movie: movie));
+        } catch (_) {
+          entries.add(RatingWithMovie(rating: rating));
+        }
+      }
+      _entries = entries;
+      _previewStatus = entries.isEmpty
+          ? MyRatingsLoadStatus.empty
+          : MyRatingsLoadStatus.success;
+    } catch (_) {
+      if (_previewDisposed) return;
+      _previewStatus = MyRatingsLoadStatus.error;
+    }
+    if (_previewDisposed) return;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _previewDisposed = true;
+    super.dispose();
+    _previewAuth.dispose();
+  }
 }
 
 ResponseBody _jsonResponse(Object data, [int status = 200]) =>
@@ -227,7 +291,7 @@ class _RatingResponses implements HttpClientAdapter {
   ) async {
     final request = ++_requests;
     await Future<void>.delayed(const Duration(seconds: 3));
-    if (options.method != 'GET' || options.path != '/v5/members/1/ratings') {
+    if (options.method != 'GET' || options.path != '/v7/members/1/ratings') {
       return _jsonResponse({
         'message': 'Outside the development scenario',
       }, 501);

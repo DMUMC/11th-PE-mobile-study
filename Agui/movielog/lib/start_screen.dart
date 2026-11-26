@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'view_models/auth_view_model.dart';
+import 'widgets/movielog_button.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final auth = context.watch<AuthViewModel>();
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -20,7 +23,7 @@ class StartScreen extends StatelessWidget {
               Column(
                 children: [
                   const SizedBox(height: 32),
-                  const Text('FLUTTER 0주차'),
+                  const Text('FLUTTER 8주차'),
                   const SizedBox(height: 64),
                   SvgPicture.asset(
                     'assets/logos/movielog_logo.svg',
@@ -43,18 +46,20 @@ class StartScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => context.go('/register'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    backgroundColor: colors.primary,
-                    foregroundColor: colors.onPrimary,
-                  ),
-                  child: const Text('시작하기'),
-                ),
-              ),
+              if (auth.status == AuthStatus.retryRequired)
+                Column(
+                  children: [
+                    Text(auth.message ?? '로그인 상태를 확인하지 못했어요.'),
+                    const SizedBox(height: 12),
+                    MovieLogButton(
+                      label: '다시 시도',
+                      width: double.infinity,
+                      onPressed: auth.restoreSession,
+                    ),
+                  ],
+                )
+              else
+                const CircularProgressIndicator(),
             ],
           ),
         ),
