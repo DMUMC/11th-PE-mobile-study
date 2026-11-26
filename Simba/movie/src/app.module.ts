@@ -3,13 +3,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './controller/auth.controller';
+import { FavoriteController } from './controller/favorite.controller';
 import { MemberController } from './controller/member.controller';
+import { MovieRecordController } from './controller/movie-record.controller';
 import { RatingController } from './controller/rating.controller';
+import { Favorite } from './entity/favorite.entity';
 import { Member } from './entity/member.entity';
 import { Rating } from './entity/rating.entity';
 import { AuthGuard } from './guard/auth.guard';
 import { AuthService } from './service/auth.service';
+import { FavoriteService } from './service/favorite.service';
 import { MemberService } from './service/member.service';
+import { MovieRecordService } from './service/movie-record.service';
 import { RatingService } from './service/rating.service';
 
 // 도메인 모듈 없이 AppModule 하나가 모든 Controller/Service/Entity를 등록한다 (레이어 구조).
@@ -32,7 +37,7 @@ import { RatingService } from './service/rating.service';
       // 테이블은 sql/schema.sql로 직접 만든다. TypeORM이 스키마를 바꾸지 않게 한다.
       synchronize: false,
     }),
-    TypeOrmModule.forFeature([Member, Rating]),
+    TypeOrmModule.forFeature([Member, Rating, Favorite]),
     // global: true → 어느 클래스에서든 JwtService를 주입받을 수 있다.
     // registerAsync + ConfigService: .env를 읽은 뒤에 secret/expiresIn을 정한다.
     JwtModule.registerAsync({
@@ -54,7 +59,20 @@ import { RatingService } from './service/rating.service';
       },
     }),
   ],
-  controllers: [AuthController, MemberController, RatingController],
-  providers: [AuthService, MemberService, RatingService, AuthGuard],
+  controllers: [
+    AuthController,
+    MemberController,
+    RatingController,
+    FavoriteController,
+    MovieRecordController,
+  ],
+  providers: [
+    AuthService,
+    MemberService,
+    RatingService,
+    FavoriteService,
+    MovieRecordService,
+    AuthGuard,
+  ],
 })
 export class AppModule {}

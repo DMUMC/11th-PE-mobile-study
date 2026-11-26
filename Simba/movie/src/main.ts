@@ -1,8 +1,10 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { ResponseInterceptor } from './common/response.interceptor';
+import { BEARER_AUTH } from './common/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +32,25 @@ async function bootstrap() {
     // 7주차: 브라우저가 Authorization 헤더를 보내려면 preflight에서 이 헤더를 허용해야 한다.
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  // (선택 미션) Swagger 문서: http://localhost:3000/api-docs
+  // Authorize 버튼에 로그인으로 받은 accessToken을 넣으면 자물쇠가 붙은 API를 바로 호출할 수 있다.
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('MovieLog API (Simba)')
+    .setDescription(
+      '모든 응답은 { isSuccess, code, message, result } 형식입니다. 8주차: 즐겨찾기, 영화 기록(트랜잭션).',
+    )
+    .setVersion('8')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      BEARER_AUTH,
+    )
+    .build();
+  SwaggerModule.setup(
+    'api-docs',
+    app,
+    SwaggerModule.createDocument(app, swaggerConfig),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }
