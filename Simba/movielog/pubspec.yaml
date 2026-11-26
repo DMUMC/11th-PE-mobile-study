@@ -18,6 +18,8 @@ dependencies:
   dio: ^5.8.0 # TMDB HTTP 통신
   provider: ^6.1.2 # ViewModel 상태 관리
   flutter_dotenv: ^5.2.1 # TMDB Token을 .env로 관리
+  flutter_secure_storage: ^11.2.0
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_test:

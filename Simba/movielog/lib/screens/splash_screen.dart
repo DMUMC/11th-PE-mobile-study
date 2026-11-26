@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/movielog_button.dart';
 
-class StartScreen extends StatelessWidget {
-  const StartScreen({super.key});
+/// 앱 시작 시 저장된 토큰을 확인하는 동안 보여주는 화면.
+/// 1주차 StartScreen의 로고·제목·설명 레이아웃을 그대로 재사용하고,
+/// 하단 '시작하기' 버튼 자리를 로딩(확인 중) / 다시 시도(확인 실패)로 바꿨다.
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key, this.message, this.onRetry});
+
+  final String? message;
+
+  /// null이면 확인 중(initializing), 있으면 확인 실패(retryRequired)
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +28,8 @@ class StartScreen extends StatelessWidget {
               Column(
                 children: [
                   const SizedBox(height: 24),
-                  const Text(
-                    'FLUTTER 1주차',
-                    style: AppTextStyles.labelSmall,
-                  ),
+                  const Text('FLUTTER 8주차', style: AppTextStyles.labelSmall),
                   const SizedBox(height: 56),
-                  // Challenge Mission: SVG colorFilter 적용
                   SvgPicture.asset(
                     'assets/logos/movielog_logo.svg',
                     width: 76,
@@ -51,25 +56,27 @@ class StartScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () => context.go('/register'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.violet,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              if (onRetry == null)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: CircularProgressIndicator(color: AppColors.violet),
+                )
+              else
+                Column(
+                  children: [
+                    Text(
+                      message ?? '로그인 상태를 확인하지 못했어요.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMedium,
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    '시작하기',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                    const SizedBox(height: 12),
+                    MovieLogButton(
+                      label: '다시 시도',
+                      width: double.infinity,
+                      onPressed: onRetry,
+                    ),
+                  ],
                 ),
-              ),
             ],
           ),
         ),

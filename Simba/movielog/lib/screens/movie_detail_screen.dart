@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../theme/app_colors.dart';
 import '../utils/movie_format.dart';
 import '../view_models/movie_detail_view_model.dart';
 import '../widgets/rating_dialog.dart';
@@ -152,24 +150,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 회원가입 전에는 평점 등록 버튼을 비활성화하고 회원가입으로 안내한다.
-              if (!viewModel.canRate)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        '학습용 회원가입 후 평점을 남길 수 있어요.',
-                        style: TextStyle(fontSize: 13, color: AppColors.gray),
-                      ),
-                      TextButton(
-                        onPressed: () => context.go('/register'),
-                        child: const Text('회원가입'),
-                      ),
-                    ],
-                  ),
-                ),
               Row(
                 children: [
                   Expanded(
@@ -187,7 +167,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: viewModel.canRate ? _openRatingDialog : null,
+                      onPressed: _openRatingDialog,
                       icon: const Icon(Icons.rate_review_outlined),
                       label: const Text('평점 남기기'),
                       style: ElevatedButton.styleFrom(

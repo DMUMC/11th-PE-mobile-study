@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/common_app_bar.dart';
@@ -10,10 +11,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      appBar: CommonAppBar(
-        title: '내 프로필',
-        centerTitle: false,
-      ),
+      appBar: CommonAppBar(title: '내 프로필', centerTitle: false),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -38,9 +36,24 @@ class ProfileScreen extends StatelessWidget {
 
 // 1. 프로필 헤더 (Challenge: 이미지 없을 때 기본 Icon fallback)
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key, this.imagePath});
+  const ProfileHeader({
+    super.key,
+    this.imagePath,
+    this.nickname = '무비러버',
+    this.email,
+    this.joinedText,
+    this.onEditProfile,
+  });
 
   final String? imagePath;
+
+  /// 8주차: GET me로 받은 닉네임·이메일·가입일
+  final String nickname;
+  final String? email;
+  final String? joinedText;
+
+  /// null이면 프로필 수정 버튼 비활성 (내 정보를 아직 못 받은 경우)
+  final VoidCallback? onEditProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -56,15 +69,25 @@ class ProfileHeader extends StatelessWidget {
             child: CircleAvatar(
               radius: 54,
               backgroundColor: AppColors.cardBg,
-              backgroundImage:
-                  imagePath != null ? AssetImage(imagePath!) : null,
+              backgroundImage: imagePath != null
+                  ? AssetImage(imagePath!)
+                  : null,
               child: imagePath == null
                   ? const Icon(Icons.person, size: 54, color: AppColors.violet)
                   : null,
             ),
           ),
           const SizedBox(height: 16),
-          const Text('무비러버', style: AppTextStyles.titleLarge),
+          Text(nickname, style: AppTextStyles.titleLarge),
+          if (email != null) ...[
+            const SizedBox(height: 4),
+            Text(email!, style: AppTextStyles.labelSmall),
+          ],
+          // (Challenge) 닉네임 아래 가입일 "2026.10.10 가입"
+          if (joinedText != null) ...[
+            const SizedBox(height: 4),
+            Text(joinedText!, style: AppTextStyles.labelSmall),
+          ],
           const SizedBox(height: 10),
           const Text(
             '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋\n은 영화를 보고 기록하는 것을 좋아합니다.',
@@ -74,16 +97,13 @@ class ProfileHeader extends StatelessWidget {
           const SizedBox(height: 16),
           // 프로필 수정 아웃라인 버튼
           OutlinedButton(
-            onPressed: () {},
+            onPressed: onEditProfile,
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.violet),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             child: Text(
               '프로필 수정',
@@ -115,10 +135,7 @@ class ProfileStats extends StatelessWidget {
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: StatItem(
-              label: item['label']!,
-              value: item['value']!,
-            ),
+            child: StatItem(label: item['label']!, value: item['value']!),
           ),
         );
       }).toList(),
@@ -144,18 +161,12 @@ class FavoriteGenres extends StatelessWidget {
           runSpacing: 8,
           children: genres.map((genre) {
             return Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.lightViolet,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                genre,
-                style: AppTextStyles.chipText,
-              ),
+              child: Text(genre, style: AppTextStyles.chipText),
             );
           }).toList(),
         ),
