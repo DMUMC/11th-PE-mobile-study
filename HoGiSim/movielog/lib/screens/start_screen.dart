@@ -46,7 +46,7 @@ class StartScreen extends StatelessWidget {
                 height: 58,
                 child: FilledButton(
                   key: const Key('startButton'),
-                  onPressed: () => context.go('/signup'),
+                  onPressed: () => context.push('/signup'),
                   child: const Text(
                     '시작하기',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),

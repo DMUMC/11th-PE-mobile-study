@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 
 import 'core/network/movie_log_client.dart';
 import 'core/network/tmdb_client.dart';
+import 'data/genre_preference_store.dart';
 import 'data/models/tmdb_movie_dto.dart';
-import 'data/services/member_check_service.dart';
+import 'data/services/sign_up_service.dart';
 import 'data/services/rating_api_service.dart';
 import 'data/services/tmdb_movie_service.dart';
 import 'screens/home_screen.dart';
@@ -18,13 +19,17 @@ import 'screens/my_ratings_screen.dart';
 import 'screens/sign_up_screen.dart';
 import 'screens/start_screen.dart';
 import 'theme/app_theme.dart';
+import 'view_models/learning_member_session.dart';
 import 'view_models/movie_home_view_model.dart';
 import 'view_models/movie_list_view_model.dart';
 import 'view_models/movie_detail_view_model.dart';
 import 'view_models/my_ratings_view_model.dart';
 import 'view_models/sign_up_view_model.dart';
 
-GoRouter createAppRouter({String initialLocation = '/start'}) {
+GoRouter createAppRouter({
+  String initialLocation = '/start',
+  GenrePreferenceStore? genrePreferenceStore,
+}) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -34,7 +39,7 @@ GoRouter createAppRouter({String initialLocation = '/start'}) {
       GoRoute(
         path: '/signup',
         builder: (context, _) => ChangeNotifierProvider(
-          create: (_) => SignUpViewModel(context.read<MemberCheckService>()),
+          create: (_) => SignUpViewModel(context.read<SignUpService>()),
           child: const SignUpScreen(),
         ),
       ),
@@ -61,6 +66,7 @@ GoRouter createAppRouter({String initialLocation = '/start'}) {
                 builder: (context, state) => ChangeNotifierProvider(
                   create: (_) => MovieListViewModel(
                     context.read<TmdbMovieService>(),
+                    preferenceStore: genrePreferenceStore,
                     initialGenres:
                         state.uri.queryParametersAll.containsKey('genre')
                         ? state.uri.queryParametersAll['genre']!
@@ -83,13 +89,23 @@ GoRouter createAppRouter({String initialLocation = '/start'}) {
                   GoRoute(
                     path: 'ratings',
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, _) => ChangeNotifierProvider(
-                      create: (_) => MyRatingsViewModel(
-                        context.read<RatingApiService>(),
-                        context.read<TmdbMovieService>(),
-                      )..load(),
-                      child: const MyRatingsScreen(),
-                    ),
+                    builder: (context, _) {
+                      final memberId = context
+                          .watch<LearningMemberSession>()
+                          .memberId;
+                      if (memberId == null) {
+                        return const MyRatingsSignUpRequiredScreen();
+                      }
+                      return ChangeNotifierProvider(
+                        key: ValueKey(memberId),
+                        create: (_) => MyRatingsViewModel(
+                          context.read<RatingApiService>(),
+                          context.read<TmdbMovieService>(),
+                          memberId,
+                        )..load(),
+                        child: const MyRatingsScreen(),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -113,6 +129,7 @@ GoRouter createAppRouter({String initialLocation = '/start'}) {
             create: (_) => MovieDetailViewModel(
               context.read<TmdbMovieService>(),
               movieId,
+              context.read<RatingApiService>(),
               movie: initial,
             )..load(),
             child: const MovieDetailPage(),
@@ -145,12 +162,13 @@ class MovieLogApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiProvider(
     providers: [
+      ChangeNotifierProvider(create: (_) => LearningMemberSession()),
       Provider<Dio>(
         create: (_) => workbookClient ?? createMovieLogClient(),
         dispose: (_, dio) => dio.close(force: true),
       ),
-      Provider<MemberCheckService>(
-        create: (context) => MemberCheckService(context.read<Dio>()),
+      Provider<SignUpService>(
+        create: (context) => SignUpService(context.read<Dio>()),
       ),
       Provider<RatingApiService>(
         create: (context) => RatingApiService(context.read<Dio>()),

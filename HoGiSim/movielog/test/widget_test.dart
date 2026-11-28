@@ -6,7 +6,7 @@ import 'package:movielog/main.dart';
 import 'package:movielog/screens/movies_screen.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:movielog/widgets/movie_list_states.dart';
-import 'package:movielog/widgets/movie_rating_input.dart';
+
 import 'package:movielog/widgets/tmdb_poster_image.dart';
 
 import 'support/tmdb_fixture.dart';
@@ -33,7 +33,7 @@ void main() {
     expect(router.state.uri.path, '/signup');
   });
 
-  testWidgets('회원가입 완료 후 홈으로 이동한다', (tester) async {
+  testWidgets('중복 확인 전에는 가입할 수 없다', (tester) async {
     await pumpAt(tester, '/signup');
     await tester.enterText(find.byKey(const Key('nicknameField')), '무비러버');
     await tester.enterText(
@@ -42,15 +42,17 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('passwordField')),
-      'password123',
+      'Testpass1!',
     );
     await tester.tap(find.byKey(const Key('termsCheckbox')));
     await tester.pump();
     await tester.ensureVisible(find.byKey(const Key('signUpButton')));
-    await tester.tap(find.byKey(const Key('signUpButton')));
-    await tester.pumpAndSettle();
-    expect(router.state.uri.path, '/home');
-    expect(find.byKey(const Key('mainNavigationBar')), findsOneWidget);
+    final submit = find.descendant(
+      of: find.byKey(const Key('signUpButton')),
+      matching: find.byType(ElevatedButton),
+    );
+    expect(tester.widget<ElevatedButton>(submit).onPressed, isNull);
+    expect(router.state.uri.path, '/signup');
   });
 
   testWidgets('로그인 버튼을 누르면 테스트용 홈으로 바로 이동한다', (tester) async {
@@ -61,7 +63,7 @@ void main() {
     expect(find.byKey(const Key('mainNavigationBar')), findsOneWidget);
   });
 
-  testWidgets('영화 카드의 실제 TMDB ID가 상세와 평점 Dialog까지 전달된다', (tester) async {
+  testWidgets('영화 카드의 TMDB ID가 상세로 전달되고 회원가입 전에는 등록을 막는다', (tester) async {
     await pumpAt(tester, '/home');
     await tester.tap(find.byKey(const Key('featuredMovieCard')));
     await tester.pumpAndSettle();
@@ -73,14 +75,11 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     expect(find.text('줄거리 정보가 없어요.'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('openRatingDialog')));
-    await tester.pumpAndSettle();
-    final dialog = tester.widget<MovieRatingInput>(
-      find.byType(MovieRatingInput),
+    final button = tester.widget<FilledButton>(
+      find.byKey(const Key('openRatingDialog')),
     );
-    expect(dialog.movieId, 550);
-    expect(dialog.movieTitle, '영화 550');
-    expect(find.byKey(const Key('ratingInput')), findsOneWidget);
+    expect(button.onPressed, isNull);
+    expect(find.text('평점을 남기려면 학습용 회원가입이 필요합니다.'), findsOneWidget);
   });
 
   testWidgets('장르 BottomSheet는 Genre API ID를 선택해 OR 조건으로 보낸다', (tester) async {

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../data/models/create_member_request.dart';
 import '../theme/app_colors.dart';
+import '../view_models/learning_member_session.dart';
 import '../widgets/movie_log_text_form_field.dart';
 import '../widgets/movielog_button.dart';
 import '../view_models/sign_up_view_model.dart';
@@ -11,7 +13,9 @@ abstract final class SignUpValidators {
   static String? nickname(String? value) {
     final nickname = value?.trim() ?? '';
     if (nickname.isEmpty) return '닉네임을 입력해주세요.';
-    if (nickname.length < 2) return '닉네임은 2자 이상이어야 합니다.';
+    if (nickname.runes.length < 2 || nickname.runes.length > 12) {
+      return '닉네임은 2~12자여야 합니다.';
+    }
     return null;
   }
 
@@ -26,7 +30,13 @@ abstract final class SignUpValidators {
   static String? password(String? value) {
     final password = value ?? '';
     if (password.isEmpty) return '비밀번호를 입력해주세요.';
-    if (password.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+    if (password.length < 8 ||
+        !RegExp(r'[a-z]').hasMatch(password) ||
+        !RegExp(r'[A-Z]').hasMatch(password) ||
+        !RegExp(r'[0-9]').hasMatch(password) ||
+        !RegExp(r'[!@#$%^&*]').hasMatch(password)) {
+      return r'비밀번호는 대문자, 소문자, 숫자, 특수문자(!@#$%^&*)를 포함한 8자 이상이어야 합니다.';
+    }
     return null;
   }
 }
@@ -72,6 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _onFieldChanged(_SignUpField field) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     setState(() {
       switch (field) {
         case _SignUpField.nickname:
@@ -84,20 +95,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    final model = context.read<SignUpViewModel>();
+    if (!model.canSubmit) return;
     setState(() => _submitted = true);
     if (!(_formKey.currentState?.validate() ?? false) || !_agreedToTerms) {
       return;
     }
+
     FocusScope.of(context).unfocus();
-    context.go('/home');
+    setState(() => _obscurePassword = true);
+    await model.submit(
+      CreateMemberRequest(
+        email: _emailController.text,
+        password: _passwordController.text,
+        nickname: _nicknameController.text,
+      ),
+    );
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    final id = model.createdMemberId;
+    if (model.submitStatus == SubmitStatus.success && id != null) {
+      context.read<LearningMemberSession>().setMemberId(id);
+      _passwordController.clear();
+      context.go('/movies');
+      messenger.showSnackBar(
+        SnackBar(content: Text('회원가입을 완료했습니다. 회원 ID $id')),
+      );
+    } else if (model.snackbarMessage case final message?) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final checks = context.watch<SignUpViewModel>();
     return PopScope(
-      canPop: false,
+      canPop: !checks.isSubmitting,
       child: Scaffold(
         body: SafeArea(
           child: LayoutBuilder(
@@ -127,7 +161,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               if (isWide)
                                 const SizedBox(height: 240)
                               else
-                                const _MobileAppBar(),
+                                _MobileAppBar(
+                                  isSubmitting: checks.isSubmitting,
+                                ),
                               SizedBox(height: isWide ? 12 : 70),
                               SignUpHeader(isWide: isWide),
                               SizedBox(height: isWide ? 34 : 64),
@@ -159,8 +195,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   _onFieldChanged(_SignUpField.email);
                                   checks.onEmailChanged(value);
                                 },
-                                onPasswordChanged: (_) =>
-                                    _onFieldChanged(_SignUpField.password),
+                                onPasswordChanged: (_) {
+                                  _onFieldChanged(_SignUpField.password);
+                                  checks.onPasswordChanged();
+                                },
                                 onTogglePassword: () => setState(
                                   () => _obscurePassword = !_obscurePassword,
                                 ),
@@ -171,22 +209,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 const Spacer(),
                               AgreementCheckbox(
                                 value: _agreedToTerms,
-                                onChanged: (value) =>
-                                    setState(() => _agreedToTerms = value),
+                                onChanged: checks.isSubmitting
+                                    ? null
+                                    : (value) => setState(
+                                        () => _agreedToTerms = value,
+                                      ),
                               ),
                               const SizedBox(height: 24),
                               SignUpActionArea(
-                                enabled:
-                                    _canSubmit &&
-                                    checks.nickname.errorText == null &&
-                                    checks.email.errorText == null &&
-                                    checks.nickname.status !=
-                                        CheckStatus.checking &&
-                                    checks.email.status != CheckStatus.checking,
+                                enabled: _canSubmit && checks.canSubmit,
+                                isLoading: checks.isSubmitting,
                                 onSubmit: _submit,
                               ),
                               SizedBox(height: isWide ? 26 : 38),
-                              const _LoginPrompt(),
+                              _LoginPrompt(isSubmitting: checks.isSubmitting),
                               SizedBox(height: isWide ? 80 : 28),
                             ],
                           ),
@@ -207,7 +243,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 enum _SignUpField { nickname, email, password }
 
 class _MobileAppBar extends StatelessWidget {
-  const _MobileAppBar();
+  const _MobileAppBar({required this.isSubmitting});
+
+  final bool isSubmitting;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +258,15 @@ class _MobileAppBar extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: IconButton(
               tooltip: '뒤로가기',
-              onPressed: () => Navigator.maybePop(context),
+              onPressed: isSubmitting
+                  ? null
+                  : () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/start');
+                      }
+                    },
               icon: const Icon(Icons.arrow_back, size: 30),
               color: AppColors.onSurfaceVariant,
             ),
@@ -306,6 +352,7 @@ class SignUpFields extends StatelessWidget {
           label: '닉네임',
           hintText: isWide ? '영화로운 닉네임을 입력하세요' : '닉네임을 입력해주세요',
           controller: nicknameController,
+          enabled: !checks.isSubmitting,
           validator: SignUpValidators.nickname,
           onChanged: onNicknameChanged,
           textInputAction: TextInputAction.next,
@@ -317,7 +364,10 @@ class SignUpFields extends StatelessWidget {
             key: const Key('nicknameCheckButton'),
             label: '중복 확인',
             isLoading: checks.nickname.status == CheckStatus.checking,
-            onPressed: nicknameValid && checks.nickname.canCheck
+            onPressed:
+                !checks.isSubmitting &&
+                    nicknameValid &&
+                    checks.nickname.canCheck
                 ? checks.checkNickname
                 : null,
           ),
@@ -329,6 +379,7 @@ class SignUpFields extends StatelessWidget {
           label: isWide ? '이메일 주소' : '이메일',
           hintText: isWide ? 'example@movielog.com' : '이메일 주소를 입력해주세요',
           controller: emailController,
+          enabled: !checks.isSubmitting,
           focusNode: emailFocusNode,
           keyboardType: TextInputType.emailAddress,
           validator: SignUpValidators.email,
@@ -342,7 +393,8 @@ class SignUpFields extends StatelessWidget {
             key: const Key('emailCheckButton'),
             label: '중복 확인',
             isLoading: checks.email.status == CheckStatus.checking,
-            onPressed: emailValid && checks.email.canCheck
+            onPressed:
+                !checks.isSubmitting && emailValid && checks.email.canCheck
                 ? checks.checkEmail
                 : null,
           ),
@@ -354,6 +406,8 @@ class SignUpFields extends StatelessWidget {
           label: '비밀번호',
           hintText: isWide ? '영문, 숫자 포함 8자 이상' : '비밀번호를 입력해주세요',
           controller: passwordController,
+          enabled: !checks.isSubmitting,
+          serverErrorText: checks.passwordErrorText,
           focusNode: passwordFocusNode,
           keyboardType: TextInputType.visiblePassword,
           validator: SignUpValidators.password,
@@ -362,7 +416,7 @@ class SignUpFields extends StatelessWidget {
           obscureText: obscurePassword,
           isValid: passwordValid,
           showErrorState: passwordHasError,
-          onToggleObscure: onTogglePassword,
+          onToggleObscure: checks.isSubmitting ? null : onTogglePassword,
           onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
         ),
       ],
@@ -378,19 +432,21 @@ class AgreementCheckbox extends StatelessWidget {
   });
 
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      onTap: () => onChanged(!value),
+      onTap: onChanged == null ? null : () => onChanged!(!value),
       child: Row(
         children: [
           Checkbox(
             key: const Key('termsCheckbox'),
             value: value,
-            onChanged: (newValue) => onChanged(newValue ?? false),
+            onChanged: onChanged == null
+                ? null
+                : (newValue) => onChanged!(newValue ?? false),
           ),
           const SizedBox(width: 6),
           const Expanded(
@@ -406,17 +462,20 @@ class SignUpActionArea extends StatelessWidget {
   const SignUpActionArea({
     required this.enabled,
     required this.onSubmit,
+    required this.isLoading,
     super.key,
   });
 
   final bool enabled;
   final VoidCallback onSubmit;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return MovieLogButton(
       key: const Key('signUpButton'),
       label: '가입하기',
+      isLoading: isLoading,
       width: double.infinity,
       height: 58,
       onPressed: enabled ? onSubmit : null,
@@ -425,7 +484,9 @@ class SignUpActionArea extends StatelessWidget {
 }
 
 class _LoginPrompt extends StatelessWidget {
-  const _LoginPrompt();
+  const _LoginPrompt({required this.isSubmitting});
+
+  final bool isSubmitting;
 
   @override
   Widget build(BuildContext context) {
@@ -435,7 +496,7 @@ class _LoginPrompt extends StatelessWidget {
         const Text('이미 계정이 있나요? ', style: TextStyle(fontSize: 15)),
         TextButton(
           key: const Key('loginButton'),
-          onPressed: () => context.go('/home'),
+          onPressed: isSubmitting ? null : () => context.go('/home'),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 2),
