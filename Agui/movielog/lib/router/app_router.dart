@@ -29,6 +29,8 @@ import 'package:movielog/view_models/movie_list_view_model.dart';
 import '../core/session/session_guard.dart';
 import '../data/services/favorite_api_service.dart';
 import '../view_models/favorites_view_model.dart';
+import '../view_models/paged_movies_view_model.dart';
+import '../movie/movie_search_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -113,6 +115,17 @@ class AppRouter {
                       ),
                     ),
                 routes: [
+                  GoRoute(
+                    path: 'search',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => ChangeNotifierProvider(
+                      create: (context) => PagedMoviesViewModel(
+                        tmdbApi: context.read<TmdbMovieService>(),
+                        searchOnly: true,
+                      ),
+                      child: const MovieSearchScreen(),
+                    ),
+                  ),
                   GoRoute(
                     path: ':movieId',
                     parentNavigatorKey: _rootNavigatorKey,

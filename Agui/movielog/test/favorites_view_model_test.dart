@@ -235,6 +235,36 @@ void main() {
 
   for (final nextAccount in ['b@example.com', 'a@example.com']) {
     test(
+      'cached favorites are cleared immediately before login as $nextAccount',
+      () async {
+        favorites.values = [_favorite(1)];
+        await vm.refresh();
+        expect(vm.items.single.movie!.id, 1);
+        var notifications = 0;
+        vm.addListener(() => notifications++);
+        guard.invalidate();
+        expect(vm.items, isEmpty);
+        expect(vm.phase, LoadPhase.idle);
+        expect(vm.errorMessage, isNull);
+        expect(notifications, 1);
+        guard.startSession(nextAccount);
+        final current = FavoritesViewModel(
+          favoriteApi: favorites,
+          tmdbApi: movies,
+          sessionGuard: guard,
+          accountId: nextAccount,
+        );
+        addTearDown(current.dispose);
+        favorites.values = [_favorite(2)];
+        await current.refresh();
+        expect(current.items.single.movie!.id, 2);
+        expect(vm.items, isEmpty);
+        await vm.refresh();
+        expect(favorites.requests, 2);
+      },
+    );
+
+    test(
       'previous-session responses and calls are ignored after login as $nextAccount',
       () async {
         final gate = Completer<List<FavoriteResponseDto>>();
@@ -251,6 +281,34 @@ void main() {
       },
     );
   }
+
+  test(
+    'session change clears an in-flight card retry and ignores its result',
+    () async {
+      favorites.values = [_favorite(1)];
+      movies.respond = (_) async => throw StateError('movie failed');
+      await vm.refresh();
+      final gate = Completer<TmdbMovieDto>();
+      movies.respond = (_) => gate.future;
+      final pending = vm.retryMovie(1);
+      expect(vm.retryingMovieIds, {1});
+      guard.invalidate();
+      expect(vm.items, isEmpty);
+      expect(vm.retryingMovieIds, isEmpty);
+      gate.complete(_movie(1));
+      await pending;
+      expect(vm.items, isEmpty);
+      expect(vm.phase, LoadPhase.idle);
+    },
+  );
+
+  test('dispose detaches the favorites session listener', () {
+    var notifications = 0;
+    vm.addListener(() => notifications++);
+    vm.dispose();
+    guard.invalidate();
+    expect(notifications, 0);
+  });
 
   test(
     'dispose during a lookup suppresses later updates and queued lookups',

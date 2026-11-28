@@ -27,8 +27,11 @@ class AuthSessionBridge {
     if (version == _seenVersion && email == _seenEmail) return;
     _seenVersion = version;
     _seenEmail = email;
-    guard.invalidate();
-    if (email != null) guard.startSession(email);
+    if (email == null) {
+      guard.invalidate();
+    } else {
+      guard.startSession(email);
+    }
   }
 
   void dispose() {
@@ -36,5 +39,6 @@ class AuthSessionBridge {
     _disposed = true;
     authSignals.removeListener(_sync);
     guard.invalidate();
+    guard.dispose();
   }
 }

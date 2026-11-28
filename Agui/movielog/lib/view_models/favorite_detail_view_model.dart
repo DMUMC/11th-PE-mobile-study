@@ -12,7 +12,9 @@ class FavoriteDetailViewModel extends ChangeNotifier with SafeNotify {
     required this.favoriteApi,
     required this.sessionGuard,
     required this.accountId,
-  }) : _sessionGeneration = sessionGuard.generation;
+  }) : _sessionGeneration = sessionGuard.generation {
+    sessionGuard.addListener(_onSessionChanged);
+  }
 
   final int movieId;
   final FavoriteApiService favoriteApi;
@@ -28,6 +30,23 @@ class FavoriteDetailViewModel extends ChangeNotifier with SafeNotify {
 
   bool get isCurrent =>
       !isDisposed && sessionGuard.isCurrent(_sessionGeneration, accountId);
+
+  void _onSessionChanged() {
+    if (isDisposed || isCurrent) return;
+    sessionGuard.removeListener(_onSessionChanged);
+    isFavorite = false;
+    hasLoadedStatus = false;
+    isLoading = false;
+    isSaving = false;
+    errorMessage = null;
+    notifyIfAlive();
+  }
+
+  @override
+  void dispose() {
+    sessionGuard.removeListener(_onSessionChanged);
+    super.dispose();
+  }
 
   Future<void> load() async {
     if (!isCurrent || isLoading || isSaving) return;

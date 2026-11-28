@@ -15,7 +15,9 @@ class FavoritesViewModel extends ChangeNotifier with SafeNotify {
     required this.tmdbApi,
     required this.sessionGuard,
     required this.accountId,
-  }) : _sessionGeneration = sessionGuard.generation;
+  }) : _sessionGeneration = sessionGuard.generation {
+    sessionGuard.addListener(_onSessionChanged);
+  }
 
   final FavoriteApiService favoriteApi;
   final TmdbMovieService tmdbApi;
@@ -36,6 +38,23 @@ class FavoritesViewModel extends ChangeNotifier with SafeNotify {
 
   bool _isCurrent(int refreshGeneration) =>
       _isCurrentSession && refreshGeneration == _refreshGeneration;
+
+  void _onSessionChanged() {
+    if (isDisposed || _isCurrentSession) return;
+    sessionGuard.removeListener(_onSessionChanged);
+    _refreshGeneration++;
+    items = const [];
+    phase = LoadPhase.idle;
+    errorMessage = null;
+    _retryingMovieIds.clear();
+    notifyIfAlive();
+  }
+
+  @override
+  void dispose() {
+    sessionGuard.removeListener(_onSessionChanged);
+    super.dispose();
+  }
 
   Future<void> refresh() async {
     if (!_isCurrentSession) return;

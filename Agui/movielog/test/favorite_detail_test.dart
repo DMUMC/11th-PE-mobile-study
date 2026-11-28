@@ -304,32 +304,76 @@ void main() {
     },
   );
 
-  test(
-    'simultaneous expired-token responses clear the current session once',
-    () async {
-      final entered = Completer<void>(), gate = Completer<void>();
-      var count = 0;
-      adapter.respond = (_) async {
-        if (++count == 2) entered.complete();
-        await gate.future;
-        return _response(null, status: 401, code: 'AUTH401_4');
-      };
-      final checking = expectLater(
-        Future.wait([
-          service.checkFavorite(movieId: 550),
-          service.checkFavorite(movieId: 550),
-        ]),
-        throwsA(isA<DioException>()),
-      );
-      await entered.future;
-      gate.complete();
-      await checking;
-      expect(auth.status, AuthStatus.signedOut);
-      expect(storage.token, isNull);
-      expect(storage.deletes, 1);
-      expect(bridge.guard.accountId, isNull);
-    },
-  );
+  for (final code in ['AUTH401_2', 'AUTH401_3', 'AUTH401_4']) {
+    test(
+      'simultaneous $code responses clear the current session once',
+      () async {
+        final entered = Completer<void>(), gate = Completer<void>();
+        var count = 0;
+        adapter.respond = (_) async {
+          if (++count == 2) entered.complete();
+          await gate.future;
+          return _response(null, status: 401, code: code);
+        };
+        final checking = expectLater(
+          Future.wait([
+            service.checkFavorite(movieId: 550),
+            service.checkFavorite(movieId: 550),
+          ]),
+          throwsA(isA<DioException>()),
+        );
+        await entered.future;
+        gate.complete();
+        await checking;
+        expect(auth.status, AuthStatus.signedOut);
+        expect(storage.token, isNull);
+        expect(storage.deletes, 1);
+        expect(bridge.guard.accountId, isNull);
+      },
+    );
+  }
+
+  test('logout immediately clears a loaded bookmark state', () async {
+    adapter.favorite = true;
+    await vm.load();
+    expect(vm.isFavorite, isTrue);
+    await auth.logout();
+    expect(vm.isFavorite, isFalse);
+    expect(vm.hasLoadedStatus, isFalse);
+    expect(vm.isLoading, isFalse);
+    expect(vm.isSaving, isFalse);
+    expect(vm.errorMessage, isNull);
+    expect(vm.isCurrent, isFalse);
+  });
+
+  test('session expiration clears bookmark state while saving', () async {
+    await vm.load();
+    final entered = Completer<void>(), gate = Completer<void>();
+    adapter.respond = (options) async {
+      entered.complete();
+      await gate.future;
+      return adapter.normal(options);
+    };
+    final saving = vm.toggle();
+    await entered.future;
+    await auth.expireSessionIfCurrent(auth.sessionVersion);
+    expect(vm.isSaving, isFalse);
+    expect(vm.hasLoadedStatus, isFalse);
+    gate.complete();
+    expect(await saving, isNull);
+    expect(vm.isFavorite, isFalse);
+  });
+
+  test('network failure preserves the session and token', () async {
+    adapter.respond = (options) async => throw DioException(
+      requestOptions: options,
+      type: DioExceptionType.connectionError,
+    );
+    await vm.load();
+    expect(auth.status, AuthStatus.signedIn);
+    expect(storage.token, 'test-token');
+    expect(storage.deletes, 0);
+  });
 
   test(
     'late 401 from a prior session cannot log out a newly logged in account',
@@ -357,7 +401,11 @@ void main() {
     },
   );
 
-  for (final error in [(403, 'RATING403_1'), (401, 'AUTH401_1')]) {
+  for (final error in [
+    (403, 'RATING403_1'),
+    (403, 'AUTH401_4'),
+    (401, 'AUTH401_1'),
+  ]) {
     test('${error.$2} does not expire the session', () async {
       adapter.respond = (_) async =>
           _response(null, status: error.$1, code: error.$2);

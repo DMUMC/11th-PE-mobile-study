@@ -58,6 +58,26 @@ class TmdbMovieService {
     return TmdbMoviePageDto.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<TmdbMoviePageDto> searchMovies({
+    required int page,
+    required String query,
+  }) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError.value(query, 'query', 'must not be blank');
+    }
+    final response = await _dio.get<dynamic>(
+      '/search/movie',
+      queryParameters: {
+        'query': trimmed,
+        'page': page,
+        'language': 'ko-KR',
+        'include_adult': false,
+      },
+    );
+    return TmdbMoviePageDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<List<TmdbGenreDto>> fetchGenres() async {
     final response = await _dio.get(
       '/genre/movie/list',

@@ -58,6 +58,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<void>? _tokenWrite;
   bool _isCurrent(int version) => !_disposed && version == _sessionVersion;
   bool _expired(DioException e) =>
+      e.response?.statusCode == 401 &&
       const {'AUTH401_2', 'AUTH401_3', 'AUTH401_4'}.contains(apiErrorCode(e));
   void _notify() {
     if (!_disposed) notifyListeners();
