@@ -46,22 +46,42 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   Future<void> _showRatingDialog() async {
     final viewModel = context.read<MovieDetailViewModel>();
-    final saved = await showDialog<bool>(
+    final favorites = context.read<FavoriteDetailViewModel>();
+    if (!favorites.isCurrent ||
+        !favorites.hasLoadedStatus ||
+        favorites.isLoading ||
+        favorites.isSaving) {
+      return;
+    }
+    final alreadyFavorite = favorites.isFavorite;
+    final saved = await showDialog<Object>(
       context: context,
       barrierDismissible: false,
       builder: (context) => MovieRatingDialog(
-        onSubmit: (score, comment) =>
-            viewModel.createRating(score: score, comment: comment),
+        showAddToFavorite: !alreadyFavorite,
+        onSubmit: (score, comment, addToFavorites) => alreadyFavorite
+            ? viewModel.createRating(score: score, comment: comment)
+            : viewModel.createMovieRecord(
+                score: score,
+                comment: comment,
+                addToFavorites: addToFavorites,
+              ),
       ),
     );
     if (saved == true && mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('평점을 저장했습니다.')));
+      await favorites.load();
+    } else if (saved is RatingSubmissionException && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(saved.message)));
+      if (saved.closeDialog) await favorites.load();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final favorites = context.watch<FavoriteDetailViewModel>();
     final movie = widget.movie;
     final example = movie == null
         ? findMovieById(int.tryParse(widget.movieId))
@@ -202,7 +222,13 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                             label: '평점 남기기',
                             width: double.infinity,
                             backgroundColor: _detailPrimary,
-                            onPressed: _showRatingDialog,
+                            onPressed:
+                                favorites.isCurrent &&
+                                    favorites.hasLoadedStatus &&
+                                    !favorites.isLoading &&
+                                    !favorites.isSaving
+                                ? _showRatingDialog
+                                : null,
                           ),
                           const _FavoriteErrorNotice(),
                         ],

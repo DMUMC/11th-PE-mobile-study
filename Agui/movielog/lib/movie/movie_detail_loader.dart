@@ -8,6 +8,7 @@ import 'package:movielog/view_models/movie_detail_view_model.dart';
 
 import '../core/session/session_guard.dart';
 import '../data/services/favorite_api_service.dart';
+import '../data/services/movie_record_api_service.dart';
 import '../view_models/favorite_detail_view_model.dart';
 import '../widgets/movielog_button.dart';
 
@@ -95,6 +96,7 @@ class _MovieDetailLoaderState extends State<MovieDetailLoader> {
               context.read<RatingApiService>(),
               auth,
               snapshot.data!.movie,
+              movieRecordApi: context.read<MovieRecordApiService>(),
             ),
           ),
           ChangeNotifierProvider(

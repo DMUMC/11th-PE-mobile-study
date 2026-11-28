@@ -21,6 +21,7 @@ import 'core/network/auth_interceptor.dart';
 import 'core/session/auth_session_bridge.dart';
 import 'core/session/session_guard.dart';
 import 'data/services/favorite_api_service.dart';
+import 'data/services/movie_record_api_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,12 +98,16 @@ class MovieLogApp extends StatelessWidget {
           },
           dispose: (_, bridge) => bridge.dispose(),
         ),
-        Provider<SessionGuard>(
+        ListenableProvider<SessionGuard>(
           create: (context) => context.read<AuthSessionBridge>().guard,
         ),
         Provider<FavoriteApiService>(
           create: (context) =>
               FavoriteApiService(context.read<({Dio client})>().client),
+        ),
+        Provider<MovieRecordApiService>(
+          create: (context) =>
+              MovieRecordApiService(context.read<({Dio client})>().client),
         ),
         ChangeNotifierProvider(create: (_) => LearningMemberSession()),
         Provider<SignUpService>(

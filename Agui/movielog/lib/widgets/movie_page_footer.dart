@@ -9,14 +9,33 @@ class MoviePageFooter extends StatelessWidget {
     super.key,
     required this.vm,
     this.loadMoreLabel = '더 보기',
+    this.automatic = false,
   });
 
   final PagedMoviesViewModel vm;
   final String loadMoreLabel;
+  final bool automatic;
 
   @override
   Widget build(BuildContext context) {
     if (vm.phase != LoadPhase.ready) return const SizedBox.shrink();
+    if (automatic && vm.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: SizedBox.square(
+            dimension: 28,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              semanticsLabel: '다음 페이지를 불러오는 중',
+            ),
+          ),
+        ),
+      );
+    }
+    if (automatic && vm.hasMore && vm.loadMoreError == null) {
+      return const SizedBox(height: 76);
+    }
     if (!vm.hasMore && !vm.isLoadingMore && vm.loadMoreError == null) {
       return const Padding(
         padding: EdgeInsets.all(16),

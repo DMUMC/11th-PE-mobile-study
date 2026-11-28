@@ -4,17 +4,22 @@ import 'package:movielog/movie/widgets/movie_rating_input.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 
+import '../../view_models/movie_detail_view_model.dart';
+
 class MovieRatingDialog extends StatefulWidget {
   const MovieRatingDialog({
     this.initialScore = 0,
     this.initialComment,
+    this.showAddToFavorite = false,
     required this.onSubmit,
     super.key,
   });
 
   final int initialScore;
   final String? initialComment;
-  final Future<void> Function(int score, String? comment) onSubmit;
+  final bool showAddToFavorite;
+  final Future<void> Function(int score, String? comment, bool addToFavorites)
+  onSubmit;
 
   @override
   State<MovieRatingDialog> createState() => _MovieRatingDialogState();
@@ -22,6 +27,7 @@ class MovieRatingDialog extends StatefulWidget {
 
 class _MovieRatingDialogState extends State<MovieRatingDialog> {
   bool _isSubmitting = false;
+  bool _addToFavorites = false;
   String? _errorText;
   late int _score = widget.initialScore;
   late final _commentController = TextEditingController(
@@ -102,6 +108,24 @@ class _MovieRatingDialogState extends State<MovieRatingDialog> {
                     ),
                   ),
                 ),
+                if (widget.showAddToFavorite) ...[
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    value: _addToFavorites,
+                    onChanged: _isSubmitting
+                        ? null
+                        : (value) =>
+                              setState(() => _addToFavorites = value ?? false),
+                    title: const Text(
+                      '즐겨찾기에도 추가',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    activeColor: AppColors.primary,
+                  ),
+                ],
                 if (_errorText != null) ...[
                   const SizedBox(height: 8),
                   Text(_errorText!, style: const TextStyle(color: Colors.red)),
@@ -142,19 +166,26 @@ class _MovieRatingDialogState extends State<MovieRatingDialog> {
   }
 
   Future<void> _confirm() async {
+    if (_isSubmitting) return;
     setState(() {
       _isSubmitting = true;
       _errorText = null;
     });
     final comment = _commentController.text.trim();
     try {
-      await widget.onSubmit(_score, comment.isEmpty ? null : comment);
+      await widget.onSubmit(
+        _score,
+        comment.isEmpty ? null : comment,
+        widget.showAddToFavorite && _addToFavorites,
+      );
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.maybeOf(context)
-          ?.showSnackBar(SnackBar(content: Text(error.toString())));
+      if (error is RatingSubmissionException && error.closeDialog) {
+        Navigator.of(context).pop(error);
+        return;
+      }
       setState(() {
         _isSubmitting = false;
         _errorText = error.toString();

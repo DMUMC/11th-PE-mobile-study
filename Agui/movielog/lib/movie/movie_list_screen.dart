@@ -9,7 +9,7 @@ import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/genre_preference.dart';
 import 'package:movielog/movie/data/movie_sort_preference.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
-import 'package:movielog/movie/widgets/movie_grid.dart';
+import 'package:movielog/movie/widgets/movie_summary_card.dart';
 import 'package:movielog/movie/widgets/movie_list_empty.dart';
 import 'package:movielog/movie/widgets/movie_list_error.dart';
 import 'package:movielog/movie/widgets/movie_list_loading.dart';
@@ -31,6 +31,7 @@ class MovieListScreen extends StatefulWidget {
 class _MovieListScreenState extends State<MovieListScreen> {
   late final _genrePreference = GenrePreference();
   late final _sortPreference = MovieSortPreference();
+  final _scrollController = ScrollController(keepScrollOffset: false);
 
   List<int>? _selectedGenreIds;
   String? _pendingGenreQuery;
@@ -48,9 +49,26 @@ class _MovieListScreenState extends State<MovieListScreen> {
     _isRestoringGenres = widget.initialGenreQuery == null;
     _viewModel = context.read<MovieListViewModel>();
     _viewModel.addListener(_applyInitialGenre);
+    _scrollController.addListener(_onScroll);
     if (_isRestoringGenres) unawaited(_restoreSelectedGenres());
     unawaited(_restoreSortOrder());
     scheduleMicrotask(_applyInitialGenre);
+  }
+
+  void _onScroll() {
+    if (!mounted ||
+        !_scrollController.hasClients ||
+        !_scrollController.position.hasContentDimensions ||
+        _viewModel.isLoadingMore ||
+        !_viewModel.hasMore ||
+        _viewModel.loadMoreError != null ||
+        ModalRoute.of(context)?.isCurrent != true ||
+        !TickerMode.valuesOf(context).enabled) {
+      return;
+    }
+    if (_scrollController.position.extentAfter <= 240) {
+      unawaited(_viewModel.loadNextPage());
+    }
   }
 
   @override
@@ -237,22 +255,26 @@ class _MovieListScreenState extends State<MovieListScreen> {
   @override
   void dispose() {
     _viewModel.removeListener(_applyInitialGenre);
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFEFCF9),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFEFCF9),
         toolbarHeight: 64,
-        centerTitle: false,
+        centerTitle: true,
         titleSpacing: 16,
         title: const Text(
           '영화',
           style: TextStyle(
-            color: AppColors.primary600,
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
+            color: AppColors.primary,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
@@ -438,8 +460,19 @@ class _MovieListScreenState extends State<MovieListScreen> {
                     );
                     _sortMovies(visibleMovies);
 
+                    // Check after layout too, so a short page can fill a tall
+                    // viewport without waiting for a scroll gesture.
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => _onScroll(),
+                    );
+                    final genresById = {
+                      for (final genre in viewModel.genres)
+                        genre.id: genre.name,
+                    };
+
                     return visibleMovies.isEmpty
                         ? CustomScrollView(
+                            controller: _scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
                             slivers: [
                               const SliverFillRemaining(
@@ -447,14 +480,38 @@ class _MovieListScreenState extends State<MovieListScreen> {
                                 child: MovieListEmpty(),
                               ),
                               SliverToBoxAdapter(
-                                child: MoviePageFooter(vm: viewModel),
+                                child: MoviePageFooter(
+                                  vm: viewModel,
+                                  automatic: true,
+                                ),
                               ),
                             ],
                           )
-                        : MovieGrid(
-                            movies: visibleMovies,
-                            genres: viewModel.genres,
-                            footer: MoviePageFooter(vm: viewModel),
+                        : ListView.separated(
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                            itemCount: visibleMovies.length + 1,
+                            separatorBuilder: (_, index) => SizedBox(
+                              height: index < visibleMovies.length - 1 ? 20 : 0,
+                            ),
+                            itemBuilder: (context, index) {
+                              if (index == visibleMovies.length) {
+                                return MoviePageFooter(
+                                  vm: viewModel,
+                                  automatic: true,
+                                );
+                              }
+                              final movie = visibleMovies[index];
+                              return MovieSummaryCard(
+                                key: ValueKey(movie.id),
+                                movie: movie,
+                                genreNames: movie.genreIds
+                                    .map((id) => genresById[id])
+                                    .whereType<String>()
+                                    .toList(),
+                              );
+                            },
                           );
                   },
                 ),

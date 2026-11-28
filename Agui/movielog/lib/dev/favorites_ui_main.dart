@@ -13,6 +13,7 @@ import '../data/models/tmdb_movie_dto.dart';
 import '../data/services/auth_api_service.dart';
 import '../data/services/member_api_service.dart';
 import '../data/services/rating_api_service.dart';
+import '../data/services/movie_record_api_service.dart';
 import '../movie/movie_detail_loader.dart';
 import '../profile_screen/favorites_screen.dart';
 import '../profile_screen/profile_screen.dart';
@@ -138,6 +139,7 @@ void main() {
                 ),
         ),
         Provider(create: (_) => RatingApiService(dio, dio)),
+        Provider(create: (_) => MovieRecordApiService(dio)),
         Provider<AuthSessionBridge>(
           lazy: false,
           create: (context) {
@@ -152,7 +154,7 @@ void main() {
           },
           dispose: (_, bridge) => bridge.dispose(),
         ),
-        Provider<SessionGuard>(
+        ListenableProvider<SessionGuard>(
           create: (context) => context.read<AuthSessionBridge>().guard,
         ),
         Provider<FavoriteApiService>(create: (_) => _PreviewFavoriteApi()),

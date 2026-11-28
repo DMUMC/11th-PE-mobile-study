@@ -1,14 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../data/models/tmdb_movie_dto.dart';
 import '../theme/app_colors.dart';
 import '../view_models/load_phase.dart';
 import '../view_models/paged_movies_view_model.dart';
 import '../widgets/movie_page_footer.dart';
 import '../widgets/movielog_button.dart';
-import '../widgets/tmdb_poster_image.dart';
+import 'widgets/movie_summary_card.dart';
 
 class MovieSearchScreen extends StatefulWidget {
   const MovieSearchScreen({super.key});
@@ -19,10 +20,20 @@ class MovieSearchScreen extends StatefulWidget {
 
 class _MovieSearchScreenState extends State<MovieSearchScreen> {
   final _text = TextEditingController();
+  Timer? _debounce;
   String _submittedQuery = '';
   String? _inputError;
 
+  void _onChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _submitSearch(value);
+    });
+  }
+
   void _submitSearch(String value) {
+    _debounce?.cancel();
     final query = value.trim();
     setState(() {
       _submittedQuery = query;
@@ -33,6 +44,7 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _text.dispose();
     super.dispose();
   }
@@ -91,6 +103,7 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
                         child: TextField(
                           controller: _text,
                           textInputAction: TextInputAction.search,
+                          onChanged: _onChanged,
                           onSubmitted: _submitSearch,
                           style: const TextStyle(fontSize: 14),
                           decoration: const InputDecoration(
@@ -180,7 +193,7 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
                             separatorBuilder: (_, _) =>
                                 const SizedBox(height: 20),
                             itemBuilder: (context, index) =>
-                                _SearchResultCard(movie: vm.movies[index]),
+                                MovieSummaryCard(movie: vm.movies[index]),
                           ),
                         ),
                         SliverFillRemaining(
@@ -206,84 +219,4 @@ class _MovieSearchScreenState extends State<MovieSearchScreen> {
       ),
     ),
   );
-}
-
-class _SearchResultCard extends StatelessWidget {
-  const _SearchResultCard({required this.movie});
-
-  final TmdbMovieDto movie;
-
-  @override
-  Widget build(BuildContext context) {
-    final year = movie.releaseDate?.split('-').first;
-    return Material(
-      color: const Color(0xFFFEFCF9),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFD9D3E1)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push('/movies/${movie.id}', extra: movie),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ExcludeSemantics(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: TmdbPosterImage(
-                    posterPath: movie.posterPath,
-                    width: 76,
-                    height: 120,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        movie.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (year != null && year.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          year,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.gray,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Text(
-                        '평점 ${movie.voteAverage.toStringAsFixed(1)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

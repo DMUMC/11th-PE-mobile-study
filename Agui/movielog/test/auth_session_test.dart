@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show TextFormField;
+import 'package:provider/provider.dart';
+import 'package:movielog/auth/login_screen.dart';
+import 'package:movielog/core/session/session_guard.dart';
 import 'package:movielog/main.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 import 'package:movielog/core/storage/token_storage.dart';
@@ -55,6 +58,11 @@ void main() {
     await tester.pumpWidget(const MovieLogApp());
     await tester.pumpAndSettle();
     expect(find.text('MovieLog에 로그인'), findsOneWidget);
+    // Read the actual app's lazy provider, as the detail loader does.
+    // A plain Provider<SessionGuard> would throw for ChangeNotifier here.
+    final loginContext = tester.element(find.byType(LoginScreen));
+    expect(loginContext.read<SessionGuard>().accountId, isNull);
+    expect(tester.takeException(), isNull);
     await tester.tap(find.byType(MovieLogButton));
     await tester.pumpAndSettle();
     expect(find.text('이메일을 입력해 주세요.'), findsOneWidget);
