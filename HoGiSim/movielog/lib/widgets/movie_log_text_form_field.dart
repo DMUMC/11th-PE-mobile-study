@@ -19,6 +19,7 @@ class MovieLogTextFormField extends StatelessWidget {
     this.focusNode,
     this.keyboardType,
     this.obscureText = false,
+    this.enabled = true,
     this.onFieldSubmitted,
     this.onToggleObscure,
     super.key,
@@ -39,6 +40,7 @@ class MovieLogTextFormField extends StatelessWidget {
   final FocusNode? focusNode;
   final TextInputType? keyboardType;
   final bool obscureText;
+  final bool enabled;
   final ValueChanged<String>? onFieldSubmitted;
   final VoidCallback? onToggleObscure;
 
@@ -55,6 +57,7 @@ class MovieLogTextFormField extends StatelessWidget {
     final field = TextFormField(
       key: fieldKey,
       controller: controller,
+      enabled: enabled,
       focusNode: focusNode,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
@@ -129,9 +132,7 @@ class MovieLogTextFormField extends StatelessWidget {
     if (_hasError) {
       return const Icon(Icons.error_outline, color: AppColors.error);
     }
-    if (isValid) {
-      return const Icon(Icons.check_circle, color: AppColors.primary);
-    }
+
     if (onToggleObscure != null) {
       return IconButton(
         tooltip: obscureText ? '비밀번호 표시' : '비밀번호 숨기기',
@@ -144,6 +145,8 @@ class MovieLogTextFormField extends StatelessWidget {
         ),
       );
     }
-    return null;
+    return isValid
+        ? const Icon(Icons.check_circle, color: AppColors.primary)
+        : null;
   }
 }

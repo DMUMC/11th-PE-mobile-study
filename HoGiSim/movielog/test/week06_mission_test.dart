@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:movielog/main.dart';
+import 'package:movielog/view_models/learning_member_session.dart';
+import 'package:provider/provider.dart';
 import 'package:movielog/data/services/tmdb_movie_service.dart';
 import 'package:movielog/widgets/movielog_button.dart';
 
@@ -69,8 +71,8 @@ void main() {
     await tester.enterText(nickname, '중복닉네임');
     await tester.pumpAndSettle();
     expect(find.text('사용할 수 있는 닉네임입니다.'), findsNothing);
-    expect(find.text('이미 사용 중인 닉네임입니다.'), findsOneWidget);
-    expect(button(nicknameButton).onPressed, isNull);
+    expect(find.text('이미 사용 중인 닉네임입니다.'), findsNothing);
+    expect(button(nicknameButton).onPressed, isNotNull);
 
     await tester.enterText(email, 'retry@example.com');
     await tester.pump();
@@ -100,9 +102,15 @@ void main() {
     expect(find.text('사용할 수 있는 이메일입니다.'), findsOneWidget);
     await tester.enterText(email, 'used@example.com');
     await tester.pumpAndSettle();
-    expect(button(emailButton).onPressed, isNull);
-    expect(find.text('이미 사용 중인 이메일입니다.'), findsOneWidget);
+    expect(button(emailButton).onPressed, isNotNull);
+    expect(find.text('이미 사용 중인 이메일입니다.'), findsNothing);
     expect(backend.requests, hasLength(6));
+    expect(
+      backend.requests.every(
+        (request) => request.path.startsWith('/v6/members/'),
+      ),
+      isTrue,
+    );
 
     final form = find.byKey(const Key('signUpFormContent'));
     final submit = find.byKey(const Key('signUpButton'));
@@ -118,12 +126,12 @@ void main() {
     final tmdb = fixture();
     final backend = FixtureAdapter(
       respond: (options) {
-        expect(options.path, '/v5/members/1/ratings');
+        expect(options.path, '/v6/members/42/ratings');
         expect(options.method, 'GET');
         return pending.future;
       },
     );
-    await pumpApp(tester, '/my', backend, tmdb: tmdb.service);
+    await pumpApp(tester, '/my', backend, tmdb: tmdb.service, memberId: 42);
     await tester.tap(find.text('내가 등록한 평점'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -170,7 +178,13 @@ void main() {
       respond: (_) async =>
           FixtureAdapter.json([ratingJson(1, 550, '최고의 영화!')]),
     );
-    await pumpApp(tester, '/my/ratings', backend, tmdb: tmdb.service);
+    await pumpApp(
+      tester,
+      '/my/ratings',
+      backend,
+      tmdb: tmdb.service,
+      memberId: 42,
+    );
     expect(find.text('영화 #550'), findsOneWidget);
     expect(find.text('최고의 영화!'), findsOneWidget);
     expect(find.byKey(const Key('poster-placeholder')), findsOneWidget);
@@ -190,12 +204,16 @@ Future<void> pumpApp(
   String location,
   FixtureAdapter backend, {
   TmdbMovieService? tmdb,
+  int? memberId,
 }) async {
   tester.view.physicalSize = const Size(400, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  final router = createAppRouter(initialLocation: location);
+  final router = createAppRouter(
+    initialLocation: location,
+    genrePreferenceStore: MemoryGenreStore(),
+  );
   addTearDown(router.dispose);
   final dio = Dio(BaseOptions(baseUrl: 'https://workbook.devnoco.com'))
     ..httpClientAdapter = backend;
@@ -207,4 +225,11 @@ Future<void> pumpApp(
     ),
   );
   await tester.pumpAndSettle();
+  if (memberId != null) {
+    tester
+        .element(find.byType(Scaffold).first)
+        .read<LearningMemberSession>()
+        .setMemberId(memberId);
+    await tester.pumpAndSettle();
+  }
 }

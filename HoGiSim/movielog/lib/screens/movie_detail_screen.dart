@@ -10,7 +10,8 @@ import '../view_models/movie_load_status.dart';
 import '../widgets/movie_list_states.dart';
 import '../widgets/tmdb_poster_image.dart';
 import '../theme/app_colors.dart';
-import '../widgets/movie_rating_input.dart';
+import '../view_models/learning_member_session.dart';
+import '../widgets/rating_dialog.dart';
 
 class MovieDetailPage extends StatelessWidget {
   const MovieDetailPage({super.key});
@@ -45,7 +46,6 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool _isFavorite = false;
-  double? _myRating;
 
   void _toggleFavorite() {
     setState(() => _isFavorite = !_isFavorite);
@@ -60,23 +60,39 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   }
 
   Future<void> _openRatingDialog() async {
-    final rating = await showDialog<MovieRatingResult>(
+    final memberId = context.read<LearningMemberSession>().memberId;
+    if (memberId == null) return;
+    final model = context.read<MovieDetailViewModel>();
+    final saved = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black54,
-      builder: (_) => MovieRatingInput(
-        movieId: widget.movie.id,
+      barrierDismissible: false,
+      builder: (_) => RatingDialog(
         movieTitle: widget.movie.title,
+        onSubmit: (score, comment) => model.createRating(
+          memberId: memberId,
+          score: score,
+          comment: comment,
+        ),
       ),
     );
-    if (rating == null || !mounted) return;
-    setState(() => _myRating = rating.score);
+    if (!mounted ||
+        saved != true ||
+        ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('평점 ${rating.score}점을 선택했습니다.')));
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('평점을 등록했습니다. 마이페이지의 내가 등록한 평점에서 확인할 수 있습니다.'),
+        ),
+      );
   }
 
   @override
   Widget build(BuildContext context) {
     final movie = widget.movie;
+    final memberId = context.watch<LearningMemberSession>().memberId;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -165,26 +181,39 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
       bottomNavigationBar: SafeArea(
         top: false,
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                key: const Key('favoriteButton'),
-                onPressed: _toggleFavorite,
-                icon: Icon(
-                  _isFavorite ? Icons.bookmark : Icons.bookmark_border,
+            if (memberId == null)
+              Align(
+                child: TextButton(
+                  onPressed: () => context.push('/signup'),
+                  child: const Text('평점을 남기려면 학습용 회원가입이 필요합니다.'),
                 ),
-                label: Text(_isFavorite ? '즐겨찾기됨' : '즐겨찾기'),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FilledButton.icon(
-                key: const Key('openRatingDialog'),
-                onPressed: _openRatingDialog,
-                icon: const Icon(Icons.rate_review_outlined),
-                label: Text(_myRating == null ? '평점 남기기' : '$_myRating점'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: const Key('favoriteButton'),
+                    onPressed: _toggleFavorite,
+                    icon: Icon(
+                      _isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                    ),
+                    label: Text(_isFavorite ? '즐겨찾기됨' : '즐겨찾기'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const Key('openRatingDialog'),
+                    onPressed: memberId == null ? null : _openRatingDialog,
+                    icon: const Icon(Icons.rate_review_outlined),
+                    label: const Text('평점 남기기'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,13 +1,47 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../data/models/rating_request.dart';
 import '../data/models/tmdb_movie_dto.dart';
+import '../data/services/rating_api_service.dart';
 import '../data/models/tmdb_genre_dto.dart';
 import '../data/services/tmdb_movie_service.dart';
 import 'movie_load_status.dart';
 
 class MovieDetailViewModel extends ChangeNotifier {
-  MovieDetailViewModel(this._service, this.movieId, {this.movie});
+  MovieDetailViewModel(
+    this._service,
+    this.movieId,
+    this._ratingService, {
+    this.movie,
+  });
+
+  final RatingApiService _ratingService;
+  bool _savingRating = false;
+
+  Future<void> createRating({
+    required int memberId,
+    required int score,
+    String? comment,
+  }) async {
+    if (_disposed || _savingRating) {
+      throw StateError('평점 등록 요청을 실행할 수 없습니다.');
+    }
+    _savingRating = true;
+    try {
+      await _ratingService.createRating(
+        memberId: memberId,
+        request: CreateRatingRequest(
+          movieId: movieId,
+          score: score,
+          comment: comment,
+        ),
+      );
+    } finally {
+      _savingRating = false;
+    }
+  }
+
   final TmdbMovieService _service;
   final int movieId;
   TmdbMovieDto? movie;
