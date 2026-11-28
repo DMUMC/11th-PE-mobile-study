@@ -7,6 +7,7 @@ class TmdbMovieDto {
     this.backdropPath,
     this.releaseDate,
     this.genreIds = const [],
+    this.genreNames = const [],
     this.voteAverage = 0,
     this.popularity = 0,
   });
@@ -18,6 +19,7 @@ class TmdbMovieDto {
   final String? backdropPath;
   final String? releaseDate;
   final List<int> genreIds;
+  final List<String> genreNames;
   final double voteAverage;
   final double popularity;
 
@@ -34,6 +36,8 @@ class TmdbMovieDto {
         (posterPath != null && posterPath is! String)) {
       throw const FormatException('Invalid movie response');
     }
+    final genres = (json['genres'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
     return TmdbMovieDto(
       id: id.toInt(),
       title: title.trim().isEmpty ? '영화 #${id.toInt()}' : title,
@@ -44,9 +48,12 @@ class TmdbMovieDto {
 
       backdropPath: json['backdrop_path'] as String?,
       releaseDate: json['release_date'] as String?,
-      genreIds: (json['genre_ids'] as List<dynamic>? ?? const [])
-          .map((value) => (value as num).toInt())
-          .toList(),
+      genreIds:
+          (json['genre_ids'] as List<dynamic>? ??
+                  genres.map((genre) => genre['id']).toList())
+              .map((value) => (value as num).toInt())
+              .toList(),
+      genreNames: genres.map((genre) => genre['name'] as String).toList(),
       voteAverage: (json['vote_average'] as num? ?? 0).toDouble(),
       popularity: (json['popularity'] as num? ?? 0).toDouble(),
     );

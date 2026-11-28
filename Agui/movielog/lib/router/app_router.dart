@@ -21,9 +21,16 @@ import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/movie_list_screen.dart';
 import 'package:movielog/profile_screen/profile_screen.dart';
 import 'package:movielog/profile_screen/my_ratings_screen.dart';
+import 'package:movielog/profile_screen/favorites_screen.dart';
 import 'package:movielog/start_screen.dart';
 import 'package:movielog/view_models/movie_home_view_model.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
+
+import '../core/session/session_guard.dart';
+import '../data/services/favorite_api_service.dart';
+import '../view_models/favorites_view_model.dart';
+import '../view_models/paged_movies_view_model.dart';
+import '../movie/movie_search_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -109,7 +116,19 @@ class AppRouter {
                     ),
                 routes: [
                   GoRoute(
+                    path: 'search',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => ChangeNotifierProvider(
+                      create: (context) => PagedMoviesViewModel(
+                        tmdbApi: context.read<TmdbMovieService>(),
+                        searchOnly: true,
+                      ),
+                      child: const MovieSearchScreen(),
+                    ),
+                  ),
+                  GoRoute(
                     path: ':movieId',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = int.tryParse(
                         state.pathParameters['movieId'] ?? '',
@@ -121,6 +140,7 @@ class AppRouter {
                       }
                       final extra = state.extra;
                       return MovieDetailLoader(
+                        key: ValueKey('movie:$id'),
                         movieId: id,
                         initialMovie: extra is TmdbMovieDto && extra.id == id
                             ? extra
@@ -140,22 +160,68 @@ class AppRouter {
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
                   GoRoute(
+                    path: 'favorites',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final auth = context.watch<AuthViewModel>();
+                      final member = auth.member;
+                      final guard = context.read<SessionGuard>();
+                      if (member == null || guard.accountId != member.email) {
+                        return Scaffold(
+                          appBar: AppBar(
+                            title: const Text('내 즐겨찾기'),
+                            centerTitle: true,
+                          ),
+                          body: Center(
+                            child: auth.memberStatus == MemberLoadStatus.error
+                                ? MovieLogButton(
+                                    label: '내 정보 다시 조회',
+                                    onPressed: () =>
+                                        auth.loadMember(force: true),
+                                  )
+                                : const CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return ChangeNotifierProvider(
+                        key: ValueKey('${member.email}:${guard.generation}'),
+                        create: (context) => FavoritesViewModel(
+                          favoriteApi: context.read<FavoriteApiService>(),
+                          tmdbApi: context.read<TmdbMovieService>(),
+                          sessionGuard: guard,
+                          accountId: member.email,
+                        ),
+                        child: const FavoritesPage(),
+                      );
+                    },
+                  ),
+                  GoRoute(
                     path: 'profile/edit',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final auth = context.watch<AuthViewModel>();
                       if (auth.member == null) {
                         return Scaffold(
-                          appBar: AppBar(centerTitle: true, title: const Text('프로필 수정')),
+                          appBar: AppBar(
+                            centerTitle: true,
+                            title: const Text('프로필 수정'),
+                          ),
                           body: Center(
                             child: auth.memberStatus == MemberLoadStatus.error
-                                ? MovieLogButton(label: '다시 시도', onPressed: () => auth.loadMember(force: true))
+                                ? MovieLogButton(
+                                    label: '다시 시도',
+                                    onPressed: () =>
+                                        auth.loadMember(force: true),
+                                  )
                                 : const CircularProgressIndicator(),
                           ),
                         );
                       }
                       return ChangeNotifierProvider<EditProfileViewModel>(
-                        create: (context) => EditProfileViewModel(context.read<MemberApiService>(), auth),
+                        create: (context) => EditProfileViewModel(
+                          context.read<MemberApiService>(),
+                          auth,
+                        ),
                         child: const EditProfileScreen(),
                       );
                     },

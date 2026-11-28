@@ -9,14 +9,15 @@ import 'package:movielog/data/models/tmdb_movie_dto.dart';
 import 'package:movielog/movie/data/genre_preference.dart';
 import 'package:movielog/movie/data/movie_sort_preference.dart';
 import 'package:movielog/movie/widgets/movie_genre_filter_sheet.dart';
-import 'package:movielog/movie/widgets/movie_grid.dart';
+import 'package:movielog/movie/widgets/movie_summary_card.dart';
 import 'package:movielog/movie/widgets/movie_list_empty.dart';
 import 'package:movielog/movie/widgets/movie_list_error.dart';
 import 'package:movielog/movie/widgets/movie_list_loading.dart';
-import 'package:movielog/movie/widgets/movie_request_error_dialog.dart';
 import 'package:movielog/theme/app_colors.dart';
 import 'package:movielog/view_models/movie_list_view_model.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/movie_page_footer.dart';
 
 class MovieListScreen extends StatefulWidget {
   const MovieListScreen({super.key, this.initialGenreQuery});
@@ -30,6 +31,7 @@ class MovieListScreen extends StatefulWidget {
 class _MovieListScreenState extends State<MovieListScreen> {
   late final _genrePreference = GenrePreference();
   late final _sortPreference = MovieSortPreference();
+  final _scrollController = ScrollController(keepScrollOffset: false);
 
   List<int>? _selectedGenreIds;
   String? _pendingGenreQuery;
@@ -37,12 +39,8 @@ class _MovieListScreenState extends State<MovieListScreen> {
   late final MovieListViewModel _viewModel;
   bool _hasAppliedInitialGenre = false;
   int _genreSelectionRevision = 0;
-  int _handledFailureVersion = 0;
-  bool _isFailureDialogOpen = false;
   MovieSortOrder _sortOrder = MovieSortOrder.catalog;
   int _sortSelectionRevision = 0;
-  String _searchQuery = '';
-  bool _isSearching = false;
 
   @override
   void initState() {
@@ -51,10 +49,26 @@ class _MovieListScreenState extends State<MovieListScreen> {
     _isRestoringGenres = widget.initialGenreQuery == null;
     _viewModel = context.read<MovieListViewModel>();
     _viewModel.addListener(_applyInitialGenre);
-    _viewModel.addListener(_handleRequestFailure);
+    _scrollController.addListener(_onScroll);
     if (_isRestoringGenres) unawaited(_restoreSelectedGenres());
     unawaited(_restoreSortOrder());
     scheduleMicrotask(_applyInitialGenre);
+  }
+
+  void _onScroll() {
+    if (!mounted ||
+        !_scrollController.hasClients ||
+        !_scrollController.position.hasContentDimensions ||
+        _viewModel.isLoadingMore ||
+        !_viewModel.hasMore ||
+        _viewModel.loadMoreError != null ||
+        ModalRoute.of(context)?.isCurrent != true ||
+        !TickerMode.valuesOf(context).enabled) {
+      return;
+    }
+    if (_scrollController.position.extentAfter <= 240) {
+      unawaited(_viewModel.loadNextPage());
+    }
   }
 
   @override
@@ -156,9 +170,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
   }
 
   void _sortMovies(List<TmdbMovieDto> movies) {
-    final original = context.read<MovieListViewModel>().movies;
+    final original = {
+      for (final (index, movie) in _viewModel.movies.indexed) movie.id: index,
+    };
     int catalogOrder(TmdbMovieDto a, TmdbMovieDto b) =>
-        original.indexOf(a).compareTo(original.indexOf(b));
+        (original[a.id] ?? 0).compareTo(original[b.id] ?? 0);
 
     switch (_sortOrder) {
       case MovieSortOrder.catalog:
@@ -187,36 +203,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
     debugPrint('[TMDB 디버그] Discover 네트워크 차단 ${blocked ? '켜짐' : '꺼짐'}');
   }
 
-  void _handleRequestFailure() {
-    if (!mounted || _viewModel.failureVersion <= _handledFailureVersion) return;
-    _handledFailureVersion = _viewModel.failureVersion;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _isFailureDialogOpen) return;
-      unawaited(_showRequestFailureDialog());
-    });
-  }
-
-  Future<void> _showRequestFailureDialog() async {
-    _isFailureDialogOpen = true;
-    final retry = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: const Color(0x6626252A),
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => MovieRequestErrorDialog(
-          onDebugRestore: kDebugMode && TmdbDebugNetworkInterceptor.isBlocked
-              ? () {
-                  _setDebugNetworkBlocked(false);
-                  setDialogState(() {});
-                }
-              : null,
-        ),
-      ),
-    );
-    _isFailureDialogOpen = false;
-    if (retry == true && mounted) await _viewModel.retryMovies();
-  }
-
   Future<void> _showGenreFilter() async {
     final selectedGenreIds = await showModalBottomSheet<List<int>>(
       context: context,
@@ -234,8 +220,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
   }
 
   Future<void> _selectGenres(List<int>? genreIds) async {
-    if (_viewModel.isLoading) return;
-
     final appliedIds = _viewModel.genres
         .where((genre) => genreIds?.contains(genre.id) ?? false)
         .map((genre) => genre.id)
@@ -271,45 +255,35 @@ class _MovieListScreenState extends State<MovieListScreen> {
   @override
   void dispose() {
     _viewModel.removeListener(_applyInitialGenre);
-    _viewModel.removeListener(_handleRequestFailure);
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFEFCF9),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFEFCF9),
         toolbarHeight: 64,
-        centerTitle: false,
+        centerTitle: true,
         titleSpacing: 16,
-        title: _isSearching
-            ? TextField(
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: '영화 제목 검색',
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                onChanged: (value) => setState(() => _searchQuery = value),
-              )
-            : const Text(
-                '영화',
-                style: TextStyle(
-                  color: AppColors.primary600,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+        title: const Text(
+          '영화',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
           if (kDebugMode)
             Consumer<MovieListViewModel>(
               builder: (context, viewModel, child) => IconButton(
                 tooltip: TmdbDebugNetworkInterceptor.isBlocked
                     ? '디버그: 네트워크 복구'
-                    : '디버그: 차단 후 새로고침',
+                    : '디버그: 다음 요청 차단',
                 icon: Icon(
                   TmdbDebugNetworkInterceptor.isBlocked
                       ? Icons.wifi_off
@@ -321,29 +295,21 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         _setDebugNetworkBlocked(
                           !TmdbDebugNetworkInterceptor.isBlocked,
                         );
-                        if (TmdbDebugNetworkInterceptor.isBlocked) {
-                          unawaited(_refreshMovies());
-                        }
                       },
               ),
             ),
           IconButton(
-            tooltip: _isSearching ? '검색 닫기' : '영화 검색',
-            onPressed: () => setState(() {
-              _isSearching = !_isSearching;
-              if (!_isSearching) _searchQuery = '';
-            }),
-            icon: _isSearching
-                ? const Icon(Icons.close)
-                : SvgPicture.asset(
-                    'assets/icons/search.svg',
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.onSurface,
-                      BlendMode.srcIn,
-                    ),
-                  ),
+            tooltip: '영화 검색',
+            onPressed: () => context.push('/movies/search'),
+            icon: SvgPicture.asset(
+              'assets/icons/search.svg',
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColors.onSurface,
+                BlendMode.srcIn,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -387,7 +353,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         tooltip: '장르 필터',
                         onPressed:
                             _isRestoringGenres ||
-                                viewModel.isLoading ||
                                 viewModel.genreStatus !=
                                     MovieListLoadStatus.success
                             ? null
@@ -404,7 +369,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
               height: 48,
               child: Consumer<MovieListViewModel>(
                 builder: (context, viewModel, child) {
-                  final isLoading = viewModel.isLoading;
                   return switch (viewModel.genreStatus) {
                     MovieListLoadStatus.idle ||
                     MovieListLoadStatus.loading => const Center(
@@ -439,13 +403,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
                             key: const ValueKey('all'),
                             label: const Text('전체'),
                             selected: viewModel.selectedGenreIds == null,
-                            onSelected: isLoading
-                                ? null
-                                : (selected) {
-                                    if (selected) {
-                                      unawaited(_selectGenres(null));
-                                    }
-                                  },
+                            onSelected: (selected) {
+                              if (selected) {
+                                unawaited(_selectGenres(null));
+                              }
+                            },
                           );
                         }
                         final genre = viewModel.genres[index - 1];
@@ -455,17 +417,15 @@ class _MovieListScreenState extends State<MovieListScreen> {
                           selected:
                               viewModel.selectedGenreIds?.contains(genre.id) ??
                               false,
-                          onSelected: isLoading
-                              ? null
-                              : (selected) {
-                                  final ids = [...?viewModel.selectedGenreIds];
-                                  if (selected) {
-                                    ids.add(genre.id);
-                                  } else {
-                                    ids.remove(genre.id);
-                                  }
-                                  unawaited(_selectGenres(ids));
-                                },
+                          onSelected: (selected) {
+                            final ids = [...?viewModel.selectedGenreIds];
+                            if (selected) {
+                              ids.add(genre.id);
+                            } else {
+                              ids.remove(genre.id);
+                            }
+                            unawaited(_selectGenres(ids));
+                          },
                         );
                       },
                     ),
@@ -495,27 +455,63 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         break;
                     }
 
-                    final visibleMovies = viewModel.movies.where((movie) {
-                      final matchesSearch =
-                          _searchQuery.isEmpty ||
-                          movie.title.contains(_searchQuery.trim());
-                      return matchesSearch;
-                    }).toList();
+                    final visibleMovies = List<TmdbMovieDto>.of(
+                      viewModel.movies,
+                    );
                     _sortMovies(visibleMovies);
 
+                    // Check after layout too, so a short page can fill a tall
+                    // viewport without waiting for a scroll gesture.
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => _onScroll(),
+                    );
+                    final genresById = {
+                      for (final genre in viewModel.genres)
+                        genre.id: genre.name,
+                    };
+
                     return visibleMovies.isEmpty
-                        ? const CustomScrollView(
-                            physics: AlwaysScrollableScrollPhysics(),
+                        ? CustomScrollView(
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
                             slivers: [
-                              SliverFillRemaining(
+                              const SliverFillRemaining(
                                 hasScrollBody: false,
                                 child: MovieListEmpty(),
                               ),
+                              SliverToBoxAdapter(
+                                child: MoviePageFooter(
+                                  vm: viewModel,
+                                  automatic: true,
+                                ),
+                              ),
                             ],
                           )
-                        : MovieGrid(
-                            movies: visibleMovies,
-                            genres: viewModel.genres,
+                        : ListView.separated(
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                            itemCount: visibleMovies.length + 1,
+                            separatorBuilder: (_, index) => SizedBox(
+                              height: index < visibleMovies.length - 1 ? 20 : 0,
+                            ),
+                            itemBuilder: (context, index) {
+                              if (index == visibleMovies.length) {
+                                return MoviePageFooter(
+                                  vm: viewModel,
+                                  automatic: true,
+                                );
+                              }
+                              final movie = visibleMovies[index];
+                              return MovieSummaryCard(
+                                key: ValueKey(movie.id),
+                                movie: movie,
+                                genreNames: movie.genreIds
+                                    .map((id) => genresById[id])
+                                    .whereType<String>()
+                                    .toList(),
+                              );
+                            },
                           );
                   },
                 ),

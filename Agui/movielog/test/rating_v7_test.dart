@@ -111,7 +111,7 @@ void main() {
     'registration uses Bearer without memberId and stores response',
     () async {
       await model.createRating(score: 4, comment: '좋아요');
-      expect(adapter.request!.path, '/v7/ratings');
+      expect(adapter.request!.path, '/v8/ratings');
       expect(
         adapter.request!.headers['Authorization'],
         'Bearer local-test-token',
@@ -164,7 +164,7 @@ void main() {
       await RatingApiService(publicClient, authClient).fetchMyRatings(7),
       isEmpty,
     );
-    expect(publicAdapter.request!.path, '/v7/members/7/ratings');
+    expect(publicAdapter.request!.path, '/v8/members/7/ratings');
     expect(publicAdapter.request!.headers['Authorization'], isNull);
   });
 }

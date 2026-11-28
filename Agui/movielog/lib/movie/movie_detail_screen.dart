@@ -1,53 +1,110 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:movielog/view_models/movie_detail_view_model.dart';
-import 'package:movielog/view_models/auth_view_model.dart';
-import 'package:movielog/data/models/tmdb_movie_dto.dart';
-import 'package:movielog/movie/data/mock_movies.dart';
-import 'package:movielog/movie/model/movie.dart';
-import 'package:movielog/movie/widgets/movie_rating_dialog.dart';
-import 'package:movielog/theme/app_colors.dart';
-import 'package:movielog/theme/app_text_style.dart';
-import 'package:movielog/widgets/tmdb_poster_image.dart';
+
+import '../data/models/tmdb_movie_dto.dart';
+import '../view_models/favorite_detail_view_model.dart';
+import '../view_models/movie_detail_view_model.dart';
+import '../widgets/favorite_button.dart';
+import '../widgets/movielog_button.dart';
+import '../widgets/tmdb_poster_image.dart';
+import 'data/mock_movies.dart';
+import 'widgets/movie_rating_dialog.dart';
+
+const _detailBackground = Color(0xFFFEFCF9);
+const _detailPrimary = Color(0xFF6750A4);
+const _detailText = Color(0xFF25232A);
+const _detailSecondary = Color(0xFF655F6C);
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movieId, this.movie});
+  const MovieDetailScreen({
+    super.key,
+    required this.movieId,
+    this.movie,
+    this.genreNames = const [],
+    this.imageAsset,
+  });
 
   final String movieId;
   final TmdbMovieDto? movie;
+  final List<String> genreNames;
+  final String? imageAsset;
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
-  bool _isFavorite = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<FavoriteDetailViewModel>().load();
+    });
+  }
 
-  int get _currentMovieId =>
-      widget.movie?.id ?? int.tryParse(widget.movieId) ?? -1;
-
-  static const _starlightSynopsis = [
-    '바쁜 현대 사회 속에서 서로의 존재를 잊고 살아가던 두 남녀가 우연한 계기로 작은 천문대에서 만나게 됩니다. 매일 밤 별을 관측하며 서로의 상처를 치유하고, 잊고 있던 꿈과 사랑을 다시 깨닫게 되는 따뜻한 이야기입니다.',
-    '과거의 아픔으로 인해 사람에게 마음을 열지 못하던 여주인공은, 별자리처럼 변함없는 모습으로 자신을 기다려주는 남주인공을 통해 서서히 마음의 문을 열게 됩니다. 하지만 두 사람 앞에 놓인 현실적인 장벽들은 그들의 관계를 시험하게 되는데...',
-    '별이 쏟아지는 밤하늘 아래, 그들이 나눈 조용한 약속들은 과연 영원할 수 있을까요? 눈부신 영상미와 감성적인 OST가 어우러져 깊은 여운을 남기는 올 겨울 최고의 로맨스 영화.',
-  ];
+  Future<void> _showRatingDialog() async {
+    final viewModel = context.read<MovieDetailViewModel>();
+    final favorites = context.read<FavoriteDetailViewModel>();
+    if (!favorites.isCurrent ||
+        !favorites.hasLoadedStatus ||
+        favorites.isLoading ||
+        favorites.isSaving) {
+      return;
+    }
+    final alreadyFavorite = favorites.isFavorite;
+    final saved = await showDialog<Object>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => MovieRatingDialog(
+        showAddToFavorite: !alreadyFavorite,
+        onSubmit: (score, comment, addToFavorites) => alreadyFavorite
+            ? viewModel.createRating(score: score, comment: comment)
+            : viewModel.createMovieRecord(
+                score: score,
+                comment: comment,
+                addToFavorites: addToFavorites,
+              ),
+      ),
+    );
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('평점을 저장했습니다.')));
+      await favorites.load();
+    } else if (saved is RatingSubmissionException && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(saved.message)));
+      if (saved.closeDialog) await favorites.load();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final tmdbMovie = widget.movie;
-    final movie = tmdbMovie == null
+    final favorites = context.watch<FavoriteDetailViewModel>();
+    final movie = widget.movie;
+    final example = movie == null
         ? findMovieById(int.tryParse(widget.movieId))
         : null;
-    final hasMovie = tmdbMovie != null || movie != null;
+    final hasMovie = movie != null || example != null;
+    final year = movie?.releaseDate?.split('-').first;
+    final genres = widget.genreNames.isNotEmpty
+        ? widget.genreNames
+        : movie?.genreNames ?? const <String>[];
+    final metadata = movie == null
+        ? '${example?.year ?? ''} · ${example?.genre ?? ''}'
+        : [if (year != null && year.isNotEmpty) year, ...genres].join(' · ');
+    final overview = movie == null
+        ? '서로의 일상에 스며든 두 사람의 이야기.'
+        : movie.overview.trim().isEmpty
+        ? '영화 소개가 준비 중입니다.'
+        : movie.overview.trim();
+    final imageAsset = widget.imageAsset ?? example?.posterAsset;
 
     return Scaffold(
+      backgroundColor: _detailBackground,
       appBar: AppBar(
+        backgroundColor: _detailBackground,
         automaticallyImplyLeading: false,
         toolbarHeight: 64,
         centerTitle: true,
@@ -63,311 +120,164 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           icon: SvgPicture.asset(
             'assets/icons/arrow_back.svg',
             width: 24,
-            colorFilter: const ColorFilter.mode(
-              AppColors.primary600,
-              BlendMode.srcIn,
-            ),
+            height: 24,
+            colorFilter: const ColorFilter.mode(_detailText, BlendMode.srcIn),
           ),
         ),
         title: const Text(
-          'Cinema Archive',
+          '영화 상세',
           style: TextStyle(
-            color: AppColors.primary600,
+            color: _detailPrimary,
             fontSize: 20,
+            height: 1.35,
             fontWeight: FontWeight.w700,
           ),
         ),
-        actions: [
-          IconButton(
-            tooltip: '공유',
-            onPressed: hasMovie ? _copyMovieLink : null,
-            icon: SvgPicture.asset(
-              'assets/icons/share.svg',
-              width: 24,
-              colorFilter: const ColorFilter.mode(
-                AppColors.onSurface,
-                BlendMode.srcIn,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: !hasMovie
           ? const Center(child: Text('영화를 찾을 수 없습니다.'))
-          : _DetailBody(
-              movie: movie,
-              tmdbMovie: tmdbMovie,
-              synopsis: _starlightSynopsis,
-            ),
-      bottomNavigationBar: hasMovie ? _buildActionBar() : null,
-    );
-  }
-
-  Widget _buildActionBar() {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceBase,
-          border: Border(top: BorderSide(color: AppColors.surfaceContainer)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: _toggleFavorite,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary600,
-                    side: const BorderSide(color: AppColors.primary600),
-                    shape: const StadiumBorder(),
-                  ),
-                  icon: _isFavorite
-                      ? const Icon(Icons.bookmark, size: 18)
-                      : SvgPicture.asset(
-                          'assets/icons/bookmark.svg',
-                          width: 18,
-                          height: 18,
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.primary600,
-                            BlendMode.srcIn,
+          : SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: imageAsset != null
+                                ? Image.asset(
+                                    imageAsset,
+                                    width: double.infinity,
+                                    height: 220,
+                                    fit: BoxFit.cover,
+                                  )
+                                : TmdbPosterImage(
+                                    posterPath:
+                                        movie?.backdropPath ??
+                                        movie?.posterPath,
+                                    width: double.infinity,
+                                    height: 220,
+                                  ),
                           ),
-                        ),
-                  label: Text(_isFavorite ? '즐겨찾기 완료' : '즐겨찾기'),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: FilledButton.icon(
-                  onPressed: _showRatingDialog,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary500,
-                    shape: const StadiumBorder(),
+                          const SizedBox(height: 17),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 3),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        movie?.title ?? example!.title,
+                                        style: const TextStyle(
+                                          fontSize: 25,
+                                          height: 34 / 25,
+                                          fontWeight: FontWeight.w700,
+                                          color: _detailText,
+                                        ),
+                                      ),
+                                      if (metadata.isNotEmpty) ...[
+                                        const SizedBox(height: 13),
+                                        Text(
+                                          metadata,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            height: 18 / 13,
+                                            color: _detailSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const FavoriteButton(),
+                            ],
+                          ),
+                          const SizedBox(height: 26),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 80),
+                            child: Text(
+                              overview,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 26 / 14,
+                                color: _detailSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          MovieLogButton(
+                            label: '평점 남기기',
+                            width: double.infinity,
+                            backgroundColor: _detailPrimary,
+                            onPressed:
+                                favorites.isCurrent &&
+                                    favorites.hasLoadedStatus &&
+                                    !favorites.isLoading &&
+                                    !favorites.isSaving
+                                ? _showRatingDialog
+                                : null,
+                          ),
+                          const _FavoriteErrorNotice(),
+                        ],
+                      ),
+                    ),
                   ),
-                  icon: const Icon(Icons.rate_review_outlined, size: 18),
-                  label: const Text('평점 남기기'),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
     );
-  }
-
-  void _toggleFavorite() {
-    final added = !_isFavorite;
-    setState(() => _isFavorite = added);
-
-    final messenger = ScaffoldMessenger.of(context);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(added ? '즐겨찾기에 추가했습니다.' : '즐겨찾기에서 삭제했습니다.')),
-      );
-  }
-
-  void _copyMovieLink() {
-    unawaited(
-      Clipboard.setData(ClipboardData(text: '/movies/$_currentMovieId')),
-    );
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('영화 링크를 복사했습니다.')));
-  }
-
-  Future<void> _showRatingDialog() async {
-    final viewModel = context.read<MovieDetailViewModel>();
-    final saved = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => MovieRatingDialog(
-        onSubmit: (score, comment) =>
-            viewModel.createRating(score: score, comment: comment),
-      ),
-    );
-    if (saved == true && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('평점을 저장했습니다.')));
-    }
   }
 }
 
-class _DetailBody extends StatelessWidget {
-  const _DetailBody({this.movie, this.tmdbMovie, required this.synopsis});
-
-  final Movie? movie;
-  final TmdbMovieDto? tmdbMovie;
-  final List<String> synopsis;
+class _FavoriteErrorNotice extends StatelessWidget {
+  const _FavoriteErrorNotice();
 
   @override
-  Widget build(BuildContext context) {
-    final isStarlight =
-        tmdbMovie == null && (movie?.id == 10 || movie?.id == 6);
-    final backdrop = isStarlight
-        ? 'assets/images/posters/hero_under_the_starlight.jpg'
-        : movie?.posterAsset;
-    final metadata = tmdbMovie != null
-        ? (tmdbMovie!.releaseDate ?? '')
-        : isStarlight
-        ? '2024 · 로맨스/드라마 · 124분'
-        : '${movie!.year} · ${movie!.genre}';
-    final rating =
-        tmdbMovie?.voteAverage ?? (isStarlight ? 4.5 : movie?.rating);
-    final tags = tmdbMovie != null
-        ? <String>[]
-        : isStarlight
-        ? ['로맨스', '드라마', '감동적인']
-        : [movie!.genre];
-    final sessionRatings =
-        context.watch<AuthViewModel?>()?.sessionRatings ?? [];
-    final currentRatings = sessionRatings.where(
-      (entry) => entry.rating.movieId == tmdbMovie?.id,
-    );
-
-    return SingleChildScrollView(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (tmdbMovie != null)
-                TmdbPosterImage(
-                  posterPath: tmdbMovie!.posterPath,
-                  width: double.infinity,
-                  height: 584,
-                )
-              else
-                Image.asset(backdrop!, height: 584, fit: BoxFit.cover),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tmdbMovie?.title ?? movie!.title,
-                      style: AppTextStyles.headlineMediumBold,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      metadata,
-                      style: AppTextStyles.bodyMediumRegular.copyWith(
-                        color: AppColors.secondary500,
-                      ),
-                    ),
-                    if (rating != null) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          RatingBarIndicator(
-                            rating: tmdbMovie != null ? rating / 2 : rating,
-                            itemCount: 5,
-                            itemSize: 20,
-                            unratedColor: AppColors.neutral400,
-                            itemBuilder: (context, index) => const Icon(
-                              Icons.star_rounded,
-                              color: AppColors.primary600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isStarlight
-                                ? '4.5 (1,245)'
-                                : rating.toStringAsFixed(1),
-                            style: AppTextStyles.bodyMediumRegular.copyWith(
-                              color: AppColors.secondary500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: tags
-                          .map(
-                            (tag) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceContainer,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: Text(
-                                tag,
-                                style: AppTextStyles.labelSmallMedium.copyWith(
-                                  color: AppColors.onSurface,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                ),
+  Widget build(BuildContext context) => Consumer<FavoriteDetailViewModel>(
+    builder: (context, vm, _) {
+      final error = vm.errorMessage;
+      if (error == null || vm.isLoading || vm.isSaving || !vm.isCurrent) {
+        return const SizedBox.shrink();
+      }
+      final message = error == '즐겨찾기 등록에 실패했습니다.' || error == '즐겨찾기 해제에 실패했습니다.'
+          ? '저장하지 못했습니다. 다시 시도해 주세요.'
+          : error;
+      return Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Semantics(
+          liveRegion: true,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            constraints: const BoxConstraints(minHeight: 58),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF1EF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 18 / 13,
+                color: Color(0xFFB3261E),
               ),
-              const Divider(height: 1, color: AppColors.surfaceContainer),
-              if (currentRatings.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: Card(
-                    child: ListTile(
-                      title: Text(
-                        '내 평점 ${currentRatings.first.rating.score} / 5',
-                      ),
-                      subtitle: currentRatings.first.rating.comment == null
-                          ? null
-                          : Text(currentRatings.first.rating.comment!),
-                    ),
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('시놉시스', style: AppTextStyles.headlineMediumBold),
-                    const SizedBox(height: 8),
-                    if (tmdbMovie != null)
-                      Text(
-                        tmdbMovie!.overview.isEmpty
-                            ? '영화 소개가 준비 중입니다.'
-                            : tmdbMovie!.overview,
-                        style: AppTextStyles.bodyMediumRegular.copyWith(
-                          height: 1.6,
-                        ),
-                      )
-                    else if (isStarlight)
-                      for (final paragraph in synopsis) ...[
-                        Text(
-                          paragraph,
-                          style: AppTextStyles.bodyMediumRegular.copyWith(
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ]
-                    else
-                      const Text(
-                        '영화 소개가 준비 중입니다.',
-                        style: AppTextStyles.bodyMediumRegular,
-                      ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
 }

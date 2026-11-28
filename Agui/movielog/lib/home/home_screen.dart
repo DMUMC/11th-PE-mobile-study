@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
           actions: [
             IconButton(
               tooltip: '영화 검색',
-              onPressed: () => context.go('/movies'),
+              onPressed: () => context.push('/movies/search'),
               icon: SvgPicture.asset(
                 'assets/icons/search.svg',
                 width: 24,

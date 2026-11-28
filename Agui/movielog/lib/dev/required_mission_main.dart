@@ -291,7 +291,7 @@ class _RatingResponses implements HttpClientAdapter {
   ) async {
     final request = ++_requests;
     await Future<void>.delayed(const Duration(seconds: 3));
-    if (options.method != 'GET' || options.path != '/v7/members/1/ratings') {
+    if (options.method != 'GET' || options.path != '/v8/members/1/ratings') {
       return _jsonResponse({
         'message': 'Outside the development scenario',
       }, 501);
@@ -347,7 +347,7 @@ class _SignupResponses implements HttpClientAdapter {
     final segments = options.uri.pathSegments;
     if (options.method != 'GET' ||
         segments.length != 4 ||
-        segments[0] != 'v5' ||
+        segments[0] != 'v8' ||
         segments[1] != 'members' ||
         !{'nickname', 'email'}.contains(segments[2])) {
       return _jsonResponse({

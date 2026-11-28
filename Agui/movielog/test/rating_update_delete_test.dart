@@ -105,7 +105,7 @@ void main() {
     };
     await model.updateRating(ratingId: 12, score: 5, comment: '변경된 후기');
     expect(adapter.request!.method, 'PATCH');
-    expect(adapter.request!.path, '/v7/ratings/12');
+    expect(adapter.request!.path, '/v8/ratings/12');
     expect(adapter.request!.data, {'score': 5, 'comment': '변경된 후기'});
     expect(adapter.request!.headers['Authorization'], 'Bearer test-token');
     expect(model.ratings.single.rating.score, 5);
@@ -116,7 +116,7 @@ void main() {
     () async {
       await model.deleteRating(12);
       expect(adapter.request!.method, 'DELETE');
-      expect(adapter.request!.path, '/v7/ratings/12');
+      expect(adapter.request!.path, '/v8/ratings/12');
       expect(adapter.request!.headers['Authorization'], 'Bearer test-token');
       expect(model.ratings, isEmpty);
     },
